@@ -1,0 +1,14 @@
+{
+  "name": "kore-health",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "bun run --cwd apps/mobile start",
+    "ios": "bun run --cwd apps/mobile ios",
+    "typecheck": "tsc -p packages/ui --noEmit && tsc -p apps/mobile --noEmit"
+  }
+}

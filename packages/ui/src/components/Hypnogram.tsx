@@ -33,12 +33,12 @@ export function Hypnogram({
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = 0;
     progress.value = withDelay(
       delay,
       withTiming(1, { duration: 1400, easing: Easing.out(Easing.cubic) }),
     );
-  }, [segments, delay, progress]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const clipRect = useDerivedValue(() => rect(0, 0, width * progress.value, height));
 

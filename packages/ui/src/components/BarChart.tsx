@@ -27,12 +27,12 @@ export function BarChart({
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = 0;
     progress.value = withDelay(
       delay,
       withTiming(1, { duration: 900, easing: Easing.out(Easing.cubic) }),
     );
-  }, [data, delay, progress]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const clipRect = useDerivedValue(() =>
     rect(0, height * (1 - progress.value), width, height * progress.value),

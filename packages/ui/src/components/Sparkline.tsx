@@ -36,14 +36,13 @@ export function Sparkline({
   const dotOpacity = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = 0;
-    dotOpacity.value = 0;
     progress.value = withDelay(
       delay,
       withTiming(1, { duration, easing: Easing.out(Easing.cubic) }),
     );
     dotOpacity.value = withDelay(delay + duration - 150, withTiming(1, { duration: 300 }));
-  }, [data, delay, duration, progress, dotOpacity]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const built = useMemo(() => {
     if (width === 0 || data.length < 2) return null;

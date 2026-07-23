@@ -50,8 +50,10 @@ export default function MetricDetailScreen() {
   if (!metric) return <Redirect href="/" />;
 
   const rgb = hexToRgb(metric.color);
-  const fmt = (v: number) =>
-    `${metric.signed && v >= 0 ? '+' : ''}${v.toFixed(metric.decimals)}`;
+  const fmt = (v: number) => {
+    const rounded = Number(v.toFixed(metric.decimals)) + 0;
+    return `${metric.signed && rounded >= 0 ? '+' : ''}${rounded.toFixed(metric.decimals)}`;
+  };
 
   return (
     <Screen aura={metric.seriesId === 'hr' || metric.seriesId === 'spo2' ? 'sleep' : 'readiness'}>
@@ -61,7 +63,7 @@ export default function MetricDetailScreen() {
         right={<Label size={10} em={0.14}>{fmtDate(Date.now())}</Label>}
       />
 
-      <Animated.View entering={FadeInDown.duration(500)}>
+      <Animated.View entering={FadeInDown.delay(40).duration(500)}>
         <GlassCard radius={28} padding={20} contentStyle={{ gap: 4 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Label size={9} em={0.18}>Current</Label>

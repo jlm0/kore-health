@@ -2,7 +2,7 @@ import { Canvas, Circle, LinearGradient, Path, vec } from '@shopify/react-native
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { Easing, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
-import { closeAreaPath, scalePoints, smoothLinePath } from '../charts/buildPath';
+import { scalePoints, smoothAreaPath, smoothLinePath } from '../charts/buildPath';
 
 interface SparklineProps {
   data: readonly number[];
@@ -48,7 +48,7 @@ export function Sparkline({
     if (width === 0 || data.length < 2) return null;
     const pts = scalePoints(data, width, height, strokeWidth + 3, domain);
     const line = smoothLinePath(pts);
-    const area = fillGradient ? closeAreaPath(line, pts, height) : null;
+    const area = fillGradient ? smoothAreaPath(pts, height) : null;
     let dotPoint = null;
     if (dot === 'end') dotPoint = pts[pts.length - 1];
     else if (dot === 'min') dotPoint = pts.reduce((a, b) => (b.y > a.y ? b : a));

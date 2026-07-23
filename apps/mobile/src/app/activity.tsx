@@ -51,7 +51,7 @@ export default function ActivityScreen() {
         right={<Label size={10} em={0.14}>{fmtDate(today.dayStart)}</Label>}
       />
 
-      <Animated.View entering={FadeInDown.duration(500)}>
+      <Animated.View entering={FadeInDown.delay(40).duration(500)}>
         <GlassCard radius={28} padding={22} contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 22 }}>
           <ScoreRing size={118} value={today.activityScore} colors={gradients.activity} strokeWidth={8}>
             <Text style={{ fontSize: 30, fontFamily: fontFamily.light, color: palette.ink }}>

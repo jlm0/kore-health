@@ -34,14 +34,14 @@ export function ScoreRing({
   }, [fraction, delay, progress]);
 
   const path = useMemo(() => {
-    const p = Skia.Path.Make();
     const inset = strokeWidth / 2 + 1;
-    p.addArc(
-      { x: inset, y: inset, width: size - inset * 2, height: size - inset * 2 },
-      -90,
-      359.98,
-    );
-    return p;
+    return Skia.PathBuilder.Make()
+      .addArc(
+        { x: inset, y: inset, width: size - inset * 2, height: size - inset * 2 },
+        -90,
+        359.98,
+      )
+      .detach();
   }, [size, strokeWidth]);
 
   const r = size / 2 - strokeWidth / 2 - 1;

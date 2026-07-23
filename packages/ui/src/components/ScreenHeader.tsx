@@ -27,7 +27,7 @@ export function ScreenHeader({ title, left, right }: ScreenHeaderProps) {
 
 export function BackButton({ onPress }: { onPress: () => void }) {
   return (
-    <GlassCircle size={32} onPress={onPress}>
+    <GlassCircle size={32} onPress={onPress} accessibilityLabel="Back">
       <Chevron size={9} color={palette.slate} thickness={2} direction="left" style={{ marginLeft: 3 }} />
     </GlassCircle>
   );

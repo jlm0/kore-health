@@ -74,6 +74,7 @@ export function GlassCard({
         onPress={onPress}
         onPressIn={() => (pressed.value = 1)}
         onPressOut={() => (pressed.value = 0)}
+        accessibilityRole="button"
         style={[shadow.card, animatedStyle, style]}>
         {body}
       </AnimatedPressable>

@@ -22,7 +22,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useDays, useSeriesWindow, useToday } from '@/data/hooks';
+import { useDays, useToday } from '@/data/hooks';
 import { fmtDate } from '@/data/selectors';
 
 function readinessStatus(score: number): string {
@@ -35,8 +35,8 @@ export default function HomeScreen() {
   const router = useRouter();
   const today = useToday();
   const days = useDays();
-  const hrv24 = useSeriesWindow('hrv', 24, 40);
-  const hr24 = useSeriesWindow('hr', 24, 40);
+  const hrv14 = days.slice(-14).map((d) => d.hrvAvg);
+  const rhr14 = days.slice(-14).map((d) => d.restingHr);
   const temp7 = days.slice(-7).map((d) => d.tempDeviation);
 
   return (
@@ -50,7 +50,7 @@ export default function HomeScreen() {
         }
       />
 
-      <Animated.View entering={FadeInDown.duration(500)}>
+      <Animated.View entering={FadeInDown.delay(40).duration(500)}>
         <GlassCard
           radius={28}
           padding={16}
@@ -61,7 +61,9 @@ export default function HomeScreen() {
             <AnimatedNumber value={today.readiness} size={44} weight="extraLight" />
             <Label size={9} em={0.2}>Readiness</Label>
           </ScoreRing>
-          <Pill variant="mint" em={0.18}>{readinessStatus(today.readiness)}</Pill>
+          <Pill variant="mint" em={0.18} style={{ alignSelf: 'center' }}>
+            {readinessStatus(today.readiness)}
+          </Pill>
         </GlassCard>
       </Animated.View>
 
@@ -114,7 +116,7 @@ export default function HomeScreen() {
             <Chevron size={7} />
           </View>
           <MetricValue value={String(today.hrvAvg)} unit="ms" />
-          <Sparkline data={hrv24} height={22} color={palette.mint.base} delay={350} />
+          <Sparkline data={hrv14} height={22} color={palette.mint.base} delay={350} />
         </GlassCard>
         <GlassCard
           radius={24}
@@ -127,7 +129,7 @@ export default function HomeScreen() {
             <Chevron size={7} />
           </View>
           <MetricValue value={String(today.restingHr)} unit="bpm" />
-          <Sparkline data={hr24} height={22} color={palette.indigo.base} delay={420} />
+          <Sparkline data={rhr14} height={22} color={palette.indigo.base} delay={420} />
         </GlassCard>
       </Animated.View>
 
@@ -157,7 +159,7 @@ export default function HomeScreen() {
           style={{ flex: 1 }}
           contentStyle={{ gap: 6 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Label size={9} em={0.18}>SpO₂</Label>
+            <Label size={9} em={0.18}>SpO2</Label>
             <Chevron size={7} />
           </View>
           <MetricValue value={String(Math.round(today.spo2))} unit="%" />

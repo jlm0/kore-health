@@ -58,7 +58,7 @@ export const METRICS: Record<MetricId, MetricConfig> = {
   },
   spo2: {
     id: 'spo2',
-    title: 'SpO₂',
+    title: 'SpO2',
     unit: '%',
     seriesId: 'spo2',
     color: palette.indigo.deep,

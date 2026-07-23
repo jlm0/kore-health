@@ -240,7 +240,7 @@ export function generateDataset(seed: number, now: number = Date.now()): Dataset
       : 70;
 
     const hrvAvg = Math.round(avg(nightSamples.hrv)) || 55;
-    const restingHr = Math.round(avg(nightSamples.hr) * 0.94) || 52;
+    const restingHr = Math.round(avg(nightSamples.hr) * 0.97) || 52;
     const spo2Avg = Math.round(avg(nightSamples.spo2) * 10) / 10 || 97.5;
 
     const durationScore = clamp((asleepMin / 480) * 100, 40, 100);
@@ -363,11 +363,14 @@ export function generateNextSamples(
     spo2: dataset.series.spo2[dataset.series.spo2.length - 1]?.v ?? 97.5,
   };
   const move = rng() < 0.5 ? 0 : Math.round(rng() * 45) / 100;
+  const todayTemp = dataset.days[dataset.days.length - 1]?.tempDeviation ?? 0.1;
+  const meanRevert = (current: number, target: number, rate: number, noise: number) =>
+    current + (target - current) * rate + gaussian(rng, 0, noise);
   return {
-    hr: { t, v: Math.round(clamp(last.hr + gaussian(rng, move * 6, 2.4), 44, 170) * 10) / 10 },
-    hrv: { t, v: Math.round(clamp(last.hrv + gaussian(rng, -move * 3, 3), 18, 100) * 10) / 10 },
-    temp: { t, v: Math.round(clamp(last.temp + gaussian(rng, 0, 0.02), -0.8, 0.9) * 100) / 100 },
-    spo2: { t, v: Math.round(clamp(last.spo2 + gaussian(rng, 0, 0.2), 94, 99.6) * 10) / 10 },
+    hr: { t, v: Math.round(clamp(meanRevert(last.hr, 64 + move * 55, 0.3, 2.2), 44, 170) * 10) / 10 },
+    hrv: { t, v: Math.round(clamp(meanRevert(last.hrv, 47 - move * 10, 0.2, 2.5), 26, 95) * 10) / 10 },
+    temp: { t, v: Math.round(clamp(meanRevert(last.temp, todayTemp, 0.05, 0.015), -0.8, 0.9) * 100) / 100 },
+    spo2: { t, v: Math.round(clamp(meanRevert(last.spo2, 97.3, 0.2, 0.25), 94.5, 99.6) * 10) / 10 },
     move: { t, v: move },
   };
 }

@@ -84,7 +84,7 @@ export default function SleepScreen() {
         right={<Label size={10} em={0.14}>{fmtDate(today.dayStart)}</Label>}
       />
 
-      <Animated.View entering={FadeInDown.duration(500)}>
+      <Animated.View entering={FadeInDown.delay(40).duration(500)}>
         <GlassCard radius={28} padding={18} contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
           <ScoreRing size={92} value={today.sleepScore} colors={gradients.sleep} strokeWidth={8}>
             <Text style={{ fontSize: 28, fontFamily: fontFamily.light, color: palette.ink }}>

@@ -65,7 +65,7 @@ export default function TrendsScreen() {
         right={<Pill variant="mint" em={0.14} paddingH={10}>30 d</Pill>}
       />
 
-      <Animated.View entering={FadeInDown.duration(500)}>
+      <Animated.View entering={FadeInDown.delay(40).duration(500)}>
         <GlassCard radius={28} padding={20}>
           <Label size={9} em={0.18}>Readiness</Label>
           <HeatmapGrid

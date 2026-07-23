@@ -7,15 +7,18 @@ interface GlassCircleProps {
   size?: number;
   children?: React.ReactNode;
   onPress?: () => void;
+  accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 }
 
-export function GlassCircle({ size = 32, children, onPress, style }: GlassCircleProps) {
+export function GlassCircle({ size = 32, children, onPress, accessibilityLabel, style }: GlassCircleProps) {
   const Wrapper = onPress ? Pressable : View;
   return (
     <Wrapper
       onPress={onPress}
       hitSlop={10}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={accessibilityLabel}
       style={[shadow.circle, { width: size, height: size }, style]}>
       <View style={[styles.clip, { width: size, height: size, borderRadius: size / 2 }]}>
         {Platform.OS === 'ios' ? (

@@ -50,13 +50,13 @@ export default function ReadinessScreen() {
         right={<Label size={10} em={0.14}>{fmtDate(today.dayStart)}</Label>}
       />
 
-      <Animated.View entering={FadeInDown.duration(500)}>
+      <Animated.View entering={FadeInDown.delay(40).duration(500)}>
         <GlassCard radius={28} padding={24} contentStyle={{ alignItems: 'center', gap: 10 }}>
           <ScoreRing size={170} value={today.readiness} colors={gradients.readiness} strokeWidth={10}>
             <AnimatedNumber value={today.readiness} size={48} weight="extraLight" />
             <Label size={9} em={0.2}>Today</Label>
           </ScoreRing>
-          <Pill variant="mint" em={0.18}>
+          <Pill variant="mint" em={0.18} style={{ alignSelf: 'center' }}>
             {`${delta >= 0 ? '+' : ''}${delta} vs 7-day avg`}
           </Pill>
         </GlassCard>

@@ -54,6 +54,7 @@ export function AnimatedNumber({
   return (
     <AnimatedTextInput
       editable={false}
+      pointerEvents="none"
       underlineColorAndroid="transparent"
       animatedProps={animatedProps}
       style={[

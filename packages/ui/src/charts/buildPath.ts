@@ -1,4 +1,4 @@
-import { Skia, type SkPath } from '@shopify/react-native-skia';
+import { Skia, type SkPath, type SkPathBuilder } from '@shopify/react-native-skia';
 
 export interface ChartPoint {
   x: number;
@@ -24,10 +24,8 @@ export function scalePoints(
   }));
 }
 
-export function smoothLinePath(points: ChartPoint[]): SkPath {
-  const path = Skia.Path.Make();
-  if (points.length === 0) return path;
-  path.moveTo(points[0].x, points[0].y);
+function appendSmoothLine(builder: SkPathBuilder, points: ChartPoint[]): void {
+  builder.moveTo(points[0].x, points[0].y);
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[Math.max(0, i - 1)];
     const p1 = points[i];
@@ -37,16 +35,23 @@ export function smoothLinePath(points: ChartPoint[]): SkPath {
     const c1y = p1.y + (p2.y - p0.y) / 6;
     const c2x = p2.x - (p3.x - p1.x) / 6;
     const c2y = p2.y - (p3.y - p1.y) / 6;
-    path.cubicTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
+    builder.cubicTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
   }
-  return path;
 }
 
-export function closeAreaPath(linePath: SkPath, points: ChartPoint[], height: number): SkPath {
-  const area = linePath.copy();
-  if (points.length === 0) return area;
-  area.lineTo(points[points.length - 1].x, height);
-  area.lineTo(points[0].x, height);
-  area.close();
-  return area;
+export function smoothLinePath(points: ChartPoint[]): SkPath {
+  const builder = Skia.PathBuilder.Make();
+  if (points.length > 0) appendSmoothLine(builder, points);
+  return builder.detach();
+}
+
+export function smoothAreaPath(points: ChartPoint[], height: number): SkPath {
+  const builder = Skia.PathBuilder.Make();
+  if (points.length > 0) {
+    appendSmoothLine(builder, points);
+    builder.lineTo(points[points.length - 1].x, height);
+    builder.lineTo(points[0].x, height);
+    builder.close();
+  }
+  return builder.detach();
 }

@@ -56,7 +56,7 @@ export function MetricValue({
   unitSize = 10,
   color = palette.ink,
   unitColor = palette.muted,
-  weight = 'light',
+  weight = 'displayLight',
   style,
 }: MetricValueProps) {
   return (
@@ -87,9 +87,9 @@ export function StatBlock({ value, label, size = fontSize.statMd, align = 'flex-
       <Text
         style={{
           fontSize: size,
-          fontFamily: fontFamily.light,
+          fontFamily: fontFamily.displayLight,
           color: palette.ink,
-          lineHeight: size * 1.1,
+          lineHeight: size * 1.15,
         }}>
         {value}
       </Text>

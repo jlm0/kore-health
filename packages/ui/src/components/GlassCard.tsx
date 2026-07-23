@@ -1,8 +1,9 @@
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { radius as radiusTokens, shadow, surfaces } from '../tokens';
+import { cardTints, radius as radiusTokens, shadow, surfaces, type CardTint } from '../tokens';
 import { Chevron } from './Chevron';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -11,6 +12,7 @@ interface GlassCardProps {
   children: React.ReactNode;
   radius?: number;
   padding?: number | { horizontal?: number; vertical?: number };
+  tint?: CardTint;
   onPress?: () => void;
   chevron?: boolean;
   chevronOffset?: { top?: number; right?: number };
@@ -22,6 +24,7 @@ export function GlassCard({
   children,
   radius = radiusTokens.lg,
   padding = 16,
+  tint,
   onPress,
   chevron = false,
   chevronOffset,
@@ -42,20 +45,37 @@ export function GlassCard({
   const body = (
     <View style={[styles.clip, { borderRadius: radius }]}>
       {Platform.OS === 'ios' ? (
-        <BlurView intensity={36} tint="extraLight" style={StyleSheet.absoluteFill} />
+        <BlurView intensity={48} tint="extraLight" style={StyleSheet.absoluteFill} />
       ) : null}
       <View
         style={[
           StyleSheet.absoluteFill,
           {
             backgroundColor: Platform.OS === 'ios' ? surfaces.card : surfaces.cardFallback,
-            borderRadius: radius,
-            borderWidth: 1,
-            borderColor: surfaces.cardBorder,
           },
         ]}
       />
+      {tint != null && (
+        <LinearGradient
+          colors={[...cardTints[tint]] as [string, string]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      )}
+      <LinearGradient
+        colors={[...surfaces.cardSheen] as [string, string, string]}
+        locations={[0, 0.45, 1]}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={[paddingStyle, contentStyle]}>{children}</View>
+      <View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFill,
+          { borderRadius: radius, borderWidth: 1, borderColor: surfaces.cardBorder },
+        ]}
+      />
       {chevron && (
         <Chevron
           style={{

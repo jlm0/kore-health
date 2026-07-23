@@ -4,6 +4,11 @@ export const fontFamily = {
   regular: 'Sora_400Regular',
   medium: 'Sora_500Medium',
   semiBold: 'Sora_600SemiBold',
+  displayLight: 'Fraunces_300Light',
+  display: 'Fraunces_400Regular',
+  displayMedium: 'Fraunces_500Medium',
+  displaySemiBold: 'Fraunces_600SemiBold',
+  displayItalic: 'Fraunces_400Regular_Italic',
 } as const;
 
 export const fontSize = {

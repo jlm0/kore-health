@@ -1,7 +1,9 @@
 import {
   BackButton,
   BarChart,
+  CardHeading,
   GlassCard,
+  IconBadge,
   Label,
   MetricValue,
   ProgressBar,
@@ -52,9 +54,10 @@ export default function ActivityScreen() {
       />
 
       <Animated.View entering={FadeInDown.delay(40).duration(500)}>
-        <GlassCard radius={28} padding={22} contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 22 }}>
+        <GlassCard radius={28} padding={22} tint="peach" contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 22 }}>
+          <IconBadge name="fire" tint="peach" style={{ position: 'absolute', top: 0, right: 0 }} />
           <ScoreRing size={118} value={today.activityScore} colors={gradients.activity} strokeWidth={8}>
-            <Text style={{ fontSize: 30, fontFamily: fontFamily.light, color: palette.ink }}>
+            <Text style={{ fontSize: 30, fontFamily: fontFamily.displayLight, color: palette.ink }}>
               {today.activityScore}
             </Text>
             <Label size={8} em={0.18}>Score</Label>
@@ -69,7 +72,7 @@ export default function ActivityScreen() {
 
       <Animated.View entering={FadeInDown.delay(80).duration(500)}>
         <GlassCard radius={28} padding={20}>
-          <Label size={9} em={0.18}>Movement</Label>
+          <CardHeading icon="walk" tint="peach">Movement</CardHeading>
           <BarChart
             data={movement}
             height={70}
@@ -90,16 +93,16 @@ export default function ActivityScreen() {
       <Animated.View
         entering={FadeInDown.delay(160).duration(500)}
         style={{ flexDirection: 'row', gap: 13 }}>
-        <GlassCard radius={24} padding={16} style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
-          <Label size={9} em={0.18}>Goal</Label>
+        <GlassCard radius={24} padding={16} tint="mint" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
+          <CardHeading icon="target" tint="mint">Goal</CardHeading>
           <MetricValue value={String(Math.round(goalPct * 100))} unit="%" />
           <ProgressBar progress={goalPct} colors={gradients.activity} delay={450} style={{ marginTop: 8 }} />
           <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.faint, marginTop: 2 }}>
             {today.activity.activeCal} / {today.activity.goalCal} cal
           </Text>
         </GlassCard>
-        <GlassCard radius={24} padding={16} style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
-          <Label size={9} em={0.18}>Inactive</Label>
+        <GlassCard radius={24} padding={16} tint="lavender" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
+          <CardHeading icon="timer-sand" tint="lavender">Inactive</CardHeading>
           <MetricValue value={fmtHoursMinutes(today.activity.inactiveMin)} unit="hrs" />
           <ProgressBar
             progress={today.activity.inactiveMin / 300}

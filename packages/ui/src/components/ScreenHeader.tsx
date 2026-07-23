@@ -1,9 +1,8 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { palette } from '../tokens';
+import { StyleSheet, Text, View } from 'react-native';
+import { fontFamily, palette } from '../tokens';
 import { Chevron } from './Chevron';
 import { GlassCircle } from './GlassCircle';
-import { Label } from './Typo';
 
 interface ScreenHeaderProps {
   title?: string;
@@ -16,9 +15,15 @@ export function ScreenHeader({ title, left, right }: ScreenHeaderProps) {
     <View style={styles.row}>
       <View style={styles.side}>{left}</View>
       {title != null && (
-        <Label size={10} em={0.2} color={palette.ink}>
+        <Text
+          style={{
+            fontSize: 19,
+            fontFamily: fontFamily.displayMedium,
+            color: palette.ink,
+            letterSpacing: 0.2,
+          }}>
           {title}
-        </Label>
+        </Text>
       )}
       <View style={[styles.side, styles.right]}>{right}</View>
     </View>

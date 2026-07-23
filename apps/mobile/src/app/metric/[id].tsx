@@ -1,6 +1,7 @@
 import {
   AnimatedNumber,
   BackButton,
+  CardHeading,
   GlassCard,
   Label,
   Pill,
@@ -64,23 +65,27 @@ export default function MetricDetailScreen() {
       />
 
       <Animated.View entering={FadeInDown.delay(40).duration(500)}>
-        <GlassCard radius={28} padding={20} contentStyle={{ gap: 4 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Label size={9} em={0.18}>Current</Label>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <View
-                style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: metric.color }}
-              />
-              <Label size={8} em={0.12} color={palette.faint}>Live</Label>
-            </View>
-          </View>
+        <GlassCard radius={28} padding={20} tint={metric.tint} contentStyle={{ gap: 4 }}>
+          <CardHeading
+            icon={metric.icon}
+            tint={metric.tint}
+            right={
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                <View
+                  style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: metric.color }}
+                />
+                <Label size={8} em={0.12} color={palette.faint}>Live</Label>
+              </View>
+            }>
+            Current
+          </CardHeading>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
             <AnimatedNumber
               value={latest}
               decimals={metric.decimals}
               signed={metric.signed}
               size={44}
-              weight="extraLight"
+              weight="displayLight"
             />
             <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.muted }}>
               {metric.unit}
@@ -109,17 +114,21 @@ export default function MetricDetailScreen() {
 
       <Animated.View entering={FadeInDown.delay(80).duration(500)}>
         <GlassCard radius={28} padding={20} contentStyle={{ gap: 6 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <Label size={9} em={0.18}>30-Day Trend</Label>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-              <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
-                {fmt(stats.avg)}
-              </Text>
-              <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.muted }}>
-                avg
-              </Text>
-            </View>
-          </View>
+          <CardHeading
+            icon="trending-up"
+            tint={metric.tint}
+            right={
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
+                <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
+                  {fmt(stats.avg)}
+                </Text>
+                <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.muted }}>
+                  avg
+                </Text>
+              </View>
+            }>
+            30-Day Trend
+          </CardHeading>
           <Sparkline data={daily} height={72} color={metric.color} delay={450} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
             <StatBlock value={fmt(stats.min)} label="Low" size={20} align="center" />

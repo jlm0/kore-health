@@ -21,7 +21,7 @@ packages/ui        @kore/ui design system
 
 ## Design system
 
-`@kore/ui` owns every visual primitive; screens only compose. Tokens are lifted 1:1 from the design (ink `#333947`, mint/indigo/lavender/peach ramps, `rgba(255,255,255,0.52)` glass surfaces, 22–28 pt radii). Glass cards use `expo-blur` + translucent white + hairline border + soft shadow. Charts are drawn directly with `@shopify/react-native-skia` and animated with Reanimated (path trims, clip reveals, count-up numbers, staggered card entrances).
+`@kore/ui` owns every visual primitive; screens only compose. Tokens extend the original design (ink `#333947`, mint/indigo/lavender/peach ramps, 22–28 pt radii) with a warmer art direction: Fraunces serif display type for numbers, titles and the home greeting (Sora stays on labels/body), saturated multi-stop aura backgrounds with a Skia fractal-noise grain, and per-card color tints. Glass cards use `expo-blur` + translucent white + a specular top sheen + hairline border + soft shadow. `IconBadge` chips (MaterialCommunityIcons on tinted gradients) mark each card's function — sleeping Zs, flame, heart-pulse. Charts are drawn directly with `@shopify/react-native-skia` and animated with Reanimated (path trims, clip reveals, count-up numbers, staggered card entrances).
 
 ## Data
 

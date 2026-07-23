@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "peerDependencies": {
+    "@expo/vector-icons": "*",
     "@shopify/react-native-skia": "*",
     "expo-blur": "*",
     "expo-linear-gradient": "*",

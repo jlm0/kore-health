@@ -1,4 +1,4 @@
-import { palette } from '@kore/ui';
+import { palette, type IconBadgeName, type IconTint } from '@kore/ui';
 import type { DaySummary, SeriesId } from './types';
 
 export type MetricId = 'hrv' | 'rhr' | 'temp' | 'spo2';
@@ -9,6 +9,8 @@ export interface MetricConfig {
   unit: string;
   seriesId: SeriesId;
   color: string;
+  icon: IconBadgeName;
+  tint: IconTint;
   decimals: number;
   signed: boolean;
   dailyValue: (day: DaySummary) => number;
@@ -23,6 +25,8 @@ export const METRICS: Record<MetricId, MetricConfig> = {
     unit: 'ms',
     seriesId: 'hrv',
     color: palette.mint.base,
+    icon: 'heart-pulse',
+    tint: 'mint',
     decimals: 0,
     signed: false,
     dailyValue: (d) => d.hrvAvg,
@@ -36,6 +40,8 @@ export const METRICS: Record<MetricId, MetricConfig> = {
     unit: 'bpm',
     seriesId: 'hr',
     color: palette.indigo.base,
+    icon: 'heart',
+    tint: 'indigo',
     decimals: 0,
     signed: false,
     dailyValue: (d) => d.restingHr,
@@ -49,6 +55,8 @@ export const METRICS: Record<MetricId, MetricConfig> = {
     unit: '°C',
     seriesId: 'temp',
     color: palette.mint.base,
+    icon: 'thermometer',
+    tint: 'lavender',
     decimals: 1,
     signed: true,
     dailyValue: (d) => d.tempDeviation,
@@ -62,6 +70,8 @@ export const METRICS: Record<MetricId, MetricConfig> = {
     unit: '%',
     seriesId: 'spo2',
     color: palette.indigo.deep,
+    icon: 'lungs',
+    tint: 'peach',
     decimals: 0,
     signed: false,
     dailyValue: (d) => d.spo2,

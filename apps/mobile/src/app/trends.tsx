@@ -1,5 +1,6 @@
 import {
   BackButton,
+  CardHeading,
   GlassCard,
   HeatmapGrid,
   Label,
@@ -66,8 +67,8 @@ export default function TrendsScreen() {
       />
 
       <Animated.View entering={FadeInDown.delay(40).duration(500)}>
-        <GlassCard radius={28} padding={20}>
-          <Label size={9} em={0.18}>Readiness</Label>
+        <GlassCard radius={28} padding={20} tint="lavender">
+          <CardHeading icon="calendar-month" tint="lavender">Readiness</CardHeading>
           <HeatmapGrid
             values={heatValues}
             dayLabels={dayLetters}
@@ -79,17 +80,21 @@ export default function TrendsScreen() {
 
       <Animated.View entering={FadeInDown.delay(80).duration(500)}>
         <GlassCard radius={28} padding={20}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <Label size={9} em={0.18}>Sleep Score</Label>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-              <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
-                {sleepAvg}
-              </Text>
-              <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.muted }}>
-                avg
-              </Text>
-            </View>
-          </View>
+          <CardHeading
+            icon="sleep"
+            tint="indigo"
+            right={
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
+                <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
+                  {sleepAvg}
+                </Text>
+                <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.muted }}>
+                  avg
+                </Text>
+              </View>
+            }>
+            Sleep Score
+          </CardHeading>
           <Sparkline
             data={sleepScores}
             height={64}
@@ -104,16 +109,16 @@ export default function TrendsScreen() {
       <Animated.View
         entering={FadeInDown.delay(160).duration(500)}
         style={{ flexDirection: 'row', gap: 13 }}>
-        <GlassCard radius={24} padding={16} style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
-          <Label size={9} em={0.18}>HRV</Label>
+        <GlassCard radius={24} padding={16} tint="mint" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
+          <CardHeading icon="heart-pulse" tint="mint">HRV</CardHeading>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
             <MetricValue value={String(hrvRecent)} size={24} />
             <TrendDelta delta={hrvRecent - hrvPrior} improving={hrvRecent >= hrvPrior} />
           </View>
           <Sparkline data={hrvDaily} height={36} color={palette.mint.base} delay={450} />
         </GlassCard>
-        <GlassCard radius={24} padding={16} style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
-          <Label size={9} em={0.18}>Resting HR</Label>
+        <GlassCard radius={24} padding={16} tint="indigo" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
+          <CardHeading icon="heart" tint="indigo">Resting HR</CardHeading>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
             <MetricValue value={String(rhrRecent)} size={24} />
             <TrendDelta delta={rhrRecent - rhrPrior} improving={rhrRecent <= rhrPrior} />
@@ -136,7 +141,7 @@ export default function TrendsScreen() {
             padding={14}
             style={{ flex: 1 }}
             contentStyle={{ alignItems: 'center', gap: 3 }}>
-            <Text style={{ fontSize: 20, fontFamily: fontFamily.light, color: palette.ink }}>
+            <Text style={{ fontSize: 20, fontFamily: fontFamily.displayLight, color: palette.ink }}>
               {s.value}
             </Text>
             <Label size={8} em={0.14} color={palette.faint}>

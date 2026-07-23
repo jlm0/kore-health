@@ -1,7 +1,9 @@
 import {
   BackButton,
+  CardHeading,
   GlassCard,
   Hypnogram,
+  IconBadge,
   Label,
   MetricValue,
   Pill,
@@ -85,14 +87,15 @@ export default function SleepScreen() {
       />
 
       <Animated.View entering={FadeInDown.delay(40).duration(500)}>
-        <GlassCard radius={28} padding={18} contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <GlassCard radius={28} padding={18} tint="indigo" contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <IconBadge name="sleep" tint="indigo" style={{ position: 'absolute', top: 0, right: 0 }} />
           <ScoreRing size={92} value={today.sleepScore} colors={gradients.sleep} strokeWidth={8}>
-            <Text style={{ fontSize: 28, fontFamily: fontFamily.light, color: palette.ink }}>
+            <Text style={{ fontSize: 28, fontFamily: fontFamily.displayLight, color: palette.ink }}>
               {today.sleepScore}
             </Text>
           </ScoreRing>
           <View style={{ gap: 5, flex: 1 }}>
-            <Text style={{ fontSize: 36, fontFamily: fontFamily.extraLight, color: palette.ink, lineHeight: 38 }}>
+            <Text style={{ fontSize: 36, fontFamily: fontFamily.displayLight, color: palette.ink, lineHeight: 40 }}>
               {dur.h}
               <Text style={{ fontSize: 16, color: palette.muted }}>h</Text> {dur.m}
               <Text style={{ fontSize: 16, color: palette.muted }}>m</Text>
@@ -116,7 +119,7 @@ export default function SleepScreen() {
 
       <Animated.View entering={FadeInDown.delay(80).duration(500)}>
         <GlassCard radius={28} padding={20}>
-          <Label size={9} em={0.18}>Stages</Label>
+          <CardHeading icon="chart-timeline-variant" tint="lavender">Stages</CardHeading>
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
             <View style={{ height: 100, justifyContent: 'space-between', paddingVertical: 2 }}>
               {STAGE_ROWS.map((r) => (
@@ -163,8 +166,8 @@ export default function SleepScreen() {
       <Animated.View
         entering={FadeInDown.delay(240).duration(500)}
         style={{ flexDirection: 'row', gap: 13 }}>
-        <GlassCard radius={24} padding={16} style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
-          <Label size={9} em={0.18}>Heart Rate</Label>
+        <GlassCard radius={24} padding={16} tint="indigo" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
+          <CardHeading icon="heart" tint="indigo">Heart Rate</CardHeading>
           <MetricValue value={String(sleep.lowestHr)} unit="low" />
           <Sparkline
             data={nightHr}
@@ -175,8 +178,8 @@ export default function SleepScreen() {
             delay={500}
           />
         </GlassCard>
-        <GlassCard radius={24} padding={16} style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
-          <Label size={9} em={0.18}>HRV</Label>
+        <GlassCard radius={24} padding={16} tint="mint" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
+          <CardHeading icon="heart-pulse" tint="mint">HRV</CardHeading>
           <MetricValue value={String(sleep.peakHrv)} unit="peak" />
           <Sparkline
             data={nightHrv}

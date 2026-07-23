@@ -28,9 +28,10 @@ export const palette = {
 } as const;
 
 export const surfaces = {
-  card: 'rgba(255,255,255,0.52)',
+  card: 'rgba(255,255,255,0.38)',
   cardBorder: 'rgba(255,255,255,0.8)',
-  cardFallback: 'rgba(255,255,255,0.78)',
+  cardFallback: 'rgba(255,255,255,0.72)',
+  cardSheen: ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.05)', 'rgba(255,255,255,0)'],
   track: 'rgba(51,57,71,0.07)',
   trackStrong: 'rgba(51,57,71,0.08)',
   hairline: 'rgba(51,57,71,0.12)',
@@ -43,6 +44,24 @@ export const tints = {
   indigo: 'rgba(126,150,224,0.13)',
   peach: 'rgba(239,181,140,0.16)',
 } as const;
+
+export const cardTints = {
+  mint: ['rgba(124,203,185,0.22)', 'rgba(124,203,185,0.02)'],
+  indigo: ['rgba(147,170,236,0.22)', 'rgba(147,170,236,0.02)'],
+  lavender: ['rgba(192,180,234,0.22)', 'rgba(192,180,234,0.02)'],
+  peach: ['rgba(242,203,172,0.26)', 'rgba(242,203,172,0.03)'],
+} as const;
+
+export type CardTint = keyof typeof cardTints;
+
+export const iconTints = {
+  mint: { bg: ['#D5F1E8', '#AEE1D2'], fg: '#3E9484' },
+  indigo: { bg: ['#E0E8FD', '#C2CFF7'], fg: '#5C77D6' },
+  lavender: { bg: ['#EBE4FB', '#D4C8F0'], fg: '#8A72CE' },
+  peach: { bg: ['#FCE6D1', '#F5C9A5'], fg: '#C97C4E' },
+} as const;
+
+export type IconTint = keyof typeof iconTints;
 
 export const gradients = {
   readiness: [palette.mint.light, palette.mint.deep],
@@ -61,11 +80,11 @@ export const stageColors = {
 export type StageKey = keyof typeof stageColors;
 
 export const screenGradients = {
-  home: ['#F6F8FC', '#EEF1F8'],
-  sleep: ['#F5F7FC', '#EEF0F8'],
-  readiness: ['#F5F8FB', '#EEF2F6'],
-  activity: ['#F8F7FA', '#F1F0F6'],
-  trends: ['#F5F7FB', '#EFF1F7'],
+  home: ['#DEE6FA', '#EBE9F6', '#F8EDE2'],
+  sleep: ['#D8DFF8', '#E5E2F6', '#F2EBEE'],
+  readiness: ['#D9EFE7', '#E6EEEA', '#F5EEE2'],
+  activity: ['#FAE3D0', '#F3E7E2', '#E3E8F6'],
+  trends: ['#E4DEF6', '#E9E7F5', '#F4EEE4'],
 } as const;
 
 export type ScreenKey = keyof typeof screenGradients;

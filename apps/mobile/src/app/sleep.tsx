@@ -95,7 +95,7 @@ export default function SleepScreen() {
             </Text>
           </ScoreRing>
           <View style={{ gap: 5, flex: 1 }}>
-            <Text style={{ fontSize: 36, fontFamily: fontFamily.displayLight, color: palette.ink, lineHeight: 40 }}>
+            <Text style={{ fontSize: 36, fontFamily: fontFamily.displayLight, color: palette.ink, lineHeight: 46 }}>
               {dur.h}
               <Text style={{ fontSize: 16, color: palette.muted }}>h</Text> {dur.m}
               <Text style={{ fontSize: 16, color: palette.muted }}>m</Text>

@@ -63,7 +63,7 @@ export function AnimatedNumber({
           fontFamily: fontFamily[weight],
           color,
           padding: 0,
-          lineHeight: size * 1.05,
+          lineHeight: size * 1.22,
           fontVariant: ['tabular-nums'],
         },
         style,

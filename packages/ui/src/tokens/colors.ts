@@ -46,10 +46,10 @@ export const tints = {
 } as const;
 
 export const cardTints = {
-  mint: ['rgba(124,203,185,0.22)', 'rgba(124,203,185,0.02)'],
-  indigo: ['rgba(147,170,236,0.22)', 'rgba(147,170,236,0.02)'],
-  lavender: ['rgba(192,180,234,0.22)', 'rgba(192,180,234,0.02)'],
-  peach: ['rgba(242,203,172,0.26)', 'rgba(242,203,172,0.03)'],
+  mint: ['rgba(124,203,185,0.14)', 'rgba(124,203,185,0.02)'],
+  indigo: ['rgba(147,170,236,0.14)', 'rgba(147,170,236,0.02)'],
+  lavender: ['rgba(192,180,234,0.14)', 'rgba(192,180,234,0.02)'],
+  peach: ['rgba(242,203,172,0.16)', 'rgba(242,203,172,0.03)'],
 } as const;
 
 export type CardTint = keyof typeof cardTints;
@@ -79,12 +79,12 @@ export const stageColors = {
 
 export type StageKey = keyof typeof stageColors;
 
-export const screenGradients = {
-  home: ['#DEE6FA', '#EBE9F6', '#F8EDE2'],
-  sleep: ['#D8DFF8', '#E5E2F6', '#F2EBEE'],
-  readiness: ['#D9EFE7', '#E6EEEA', '#F5EEE2'],
-  activity: ['#FAE3D0', '#F3E7E2', '#E3E8F6'],
-  trends: ['#E4DEF6', '#E9E7F5', '#F4EEE4'],
+export const screenBase = {
+  home: '#CBD3EE',
+  sleep: '#BCC8EC',
+  readiness: '#BFE7C9',
+  activity: '#F6D8C5',
+  trends: '#F5DBDE',
 } as const;
 
-export type ScreenKey = keyof typeof screenGradients;
+export type ScreenKey = keyof typeof screenBase;

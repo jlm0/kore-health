@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { screenGradients, spacing, type ScreenKey } from '../tokens';
+import { screenBase, spacing, type ScreenKey } from '../tokens';
 import { AuraBackground } from './AuraBackground';
 
 interface ScreenProps {
@@ -23,7 +23,7 @@ export function Screen({ aura, children, scroll = true, gap = spacing.cardGap, c
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: screenGradients[aura][0] }]}>
+    <View style={[styles.root, { backgroundColor: screenBase[aura] }]}>
       <AuraBackground screen={aura} />
       {scroll ? (
         <ScrollView

@@ -21,7 +21,9 @@ packages/ui        @kore/ui design system
 
 ## Design system
 
-`@kore/ui` owns every visual primitive; screens only compose. Tokens extend the original design (ink `#333947`, mint/indigo/lavender/peach ramps, 22–28 pt radii) with a warmer art direction: Fraunces serif display type for numbers, titles and the home greeting (Sora stays on labels/body), saturated multi-stop aura backgrounds with a Skia fractal-noise grain, and per-card color tints. Glass cards use `expo-blur` + translucent white + a specular top sheen + hairline border + soft shadow. `IconBadge` chips (MaterialCommunityIcons on tinted gradients) mark each card's function — sleeping Zs, flame, heart-pulse. Charts are drawn directly with `@shopify/react-native-skia` and animated with Reanimated (path trims, clip reveals, count-up numbers, staggered card entrances).
+`@kore/ui` owns every visual primitive; screens only compose. Tokens extend the original design (ink `#333947`, mint/indigo/lavender/peach ramps, 22–28 pt radii) with a warmer art direction: Fraunces serif display type for numbers, titles and the home greeting (Sora stays on labels/body), and per-card color tints. Each screen floats over a bundled abstract soft-3D render (Unsplash — soft spheres, liquid folds and pastel blurs keyed to the screen's hue) under a per-screen white readability scrim, so the `expo-blur` glass cards frost real imagery. Cards add a specular top sheen + hairline border + soft shadow, and `IconBadge` chips (MaterialCommunityIcons on tinted gradients) mark each card's function — sleeping Zs, flame, heart-pulse. Charts are drawn directly with `@shopify/react-native-skia` and animated with Reanimated (path trims, clip reveals, count-up numbers, staggered card entrances).
+
+Note: on RN 0.86 / Fabric, an `<Image>` styled only with `StyleSheet.absoluteFill` lays out at the asset's intrinsic size instead of filling its parent — background images must be given explicit `width`/`height` (see `AuraBackground`).
 
 ## Data
 

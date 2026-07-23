@@ -61,7 +61,7 @@ export function MetricValue({
 }: MetricValueProps) {
   return (
     <View style={[styles.valueRow, style]}>
-      <Text style={{ fontSize: size, fontFamily: fontFamily[weight], color, lineHeight: size * 1.1 }}>
+      <Text style={{ fontSize: size, fontFamily: fontFamily[weight], color, lineHeight: size * 1.25 }}>
         {value}
       </Text>
       {unit != null && (
@@ -89,11 +89,11 @@ export function StatBlock({ value, label, size = fontSize.statMd, align = 'flex-
           fontSize: size,
           fontFamily: fontFamily.displayLight,
           color: palette.ink,
-          lineHeight: size * 1.15,
+          lineHeight: size * 1.25,
         }}>
         {value}
       </Text>
-      <Label size={8} em={0.16} color={palette.faint}>
+      <Label size={8} em={0.16} color={palette.faint} style={{ marginTop: -2 }}>
         {label}
       </Label>
     </View>

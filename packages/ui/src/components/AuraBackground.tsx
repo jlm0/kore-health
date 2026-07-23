@@ -1,17 +1,25 @@
-import {
-  Canvas,
-  Circle,
-  FractalNoise,
-  LinearGradient,
-  RadialGradient,
-  Rect,
-  vec,
-} from '@shopify/react-native-skia';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { StyleSheet, useWindowDimensions } from 'react-native';
-import { auraPresets, screenGradients, type ScreenKey } from '../tokens';
+import { Image, StyleSheet, useWindowDimensions, type ImageSourcePropType } from 'react-native';
+import { type ScreenKey } from '../tokens';
 
-const DESIGN_WIDTH = 402;
+const sources: Record<ScreenKey, ImageSourcePropType> = {
+  home: require('../../assets/backgrounds/home.jpg'),
+  sleep: require('../../assets/backgrounds/sleep.jpg'),
+  readiness: require('../../assets/backgrounds/readiness.jpg'),
+  activity: require('../../assets/backgrounds/activity.jpg'),
+  trends: require('../../assets/backgrounds/trends.jpg'),
+};
+
+const SCRIM = 'rgba(250,251,253,';
+
+const scrims: Record<ScreenKey, [number, number, number, number]> = {
+  home: [0.7, 0.32, 0.1, 0.28],
+  sleep: [0.68, 0.32, 0.14, 0.32],
+  readiness: [0.72, 0.36, 0.14, 0.32],
+  activity: [0.66, 0.3, 0.1, 0.28],
+  trends: [0.66, 0.3, 0.1, 0.28],
+};
 
 interface AuraBackgroundProps {
   screen: ScreenKey;
@@ -19,42 +27,19 @@ interface AuraBackgroundProps {
 
 export function AuraBackground({ screen }: AuraBackgroundProps) {
   const { width, height } = useWindowDimensions();
-  const scale = width / DESIGN_WIDTH;
-
+  const [top, upper, mid, bottom] = scrims[screen];
   return (
-    <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Rect x={0} y={0} width={width} height={height}>
-        <LinearGradient
-          start={vec(0, 0)}
-          end={vec(width * 0.25, height)}
-          colors={[...screenGradients[screen]]}
-        />
-      </Rect>
-      {auraPresets[screen].map((blob, i) => {
-        const cx = blob.cx * scale;
-        const cy = Math.min(blob.cy * scale, height + blob.r);
-        const r = blob.r * scale;
-        return (
-          <Circle key={i} cx={cx} cy={cy} r={r}>
-            <RadialGradient
-              c={vec(cx, cy)}
-              r={r}
-              colors={[blob.color, 'transparent']}
-              positions={[0, 0.68]}
-            />
-          </Circle>
-        );
-      })}
-      <Rect x={0} y={0} width={width} height={height * 0.4}>
-        <LinearGradient
-          start={vec(0, 0)}
-          end={vec(0, height * 0.4)}
-          colors={['rgba(255,255,255,0.34)', 'rgba(255,255,255,0)']}
-        />
-      </Rect>
-      <Rect x={0} y={0} width={width} height={height} opacity={0.06}>
-        <FractalNoise freqX={0.9} freqY={0.9} octaves={3} seed={7} />
-      </Rect>
-    </Canvas>
+    <>
+      <Image
+        source={sources[screen]}
+        style={{ position: 'absolute', top: 0, left: 0, width, height }}
+        resizeMode="cover"
+      />
+      <LinearGradient
+        colors={[`${SCRIM}${top})`, `${SCRIM}${upper})`, `${SCRIM}${mid})`, `${SCRIM}${bottom})`]}
+        locations={[0, 0.24, 0.62, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+    </>
   );
 }

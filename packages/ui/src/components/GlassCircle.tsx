@@ -1,0 +1,54 @@
+import { BlurView } from 'expo-blur';
+import React from 'react';
+import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { shadow, surfaces } from '../tokens';
+
+interface GlassCircleProps {
+  size?: number;
+  children?: React.ReactNode;
+  onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
+}
+
+export function GlassCircle({ size = 32, children, onPress, style }: GlassCircleProps) {
+  const Wrapper = onPress ? Pressable : View;
+  return (
+    <Wrapper
+      onPress={onPress}
+      hitSlop={10}
+      style={[shadow.circle, { width: size, height: size }, style]}>
+      <View style={[styles.clip, { width: size, height: size, borderRadius: size / 2 }]}>
+        {Platform.OS === 'ios' ? (
+          <BlurView intensity={30} tint="extraLight" style={StyleSheet.absoluteFill} />
+        ) : null}
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: 'rgba(255,255,255,0.55)',
+              borderRadius: size / 2,
+              borderWidth: 1,
+              borderColor: surfaces.cardBorder,
+            },
+          ]}
+        />
+        <View style={styles.center}>{children}</View>
+      </View>
+    </Wrapper>
+  );
+}
+
+const styles = StyleSheet.create({
+  clip: {
+    overflow: 'hidden',
+  },
+  center: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

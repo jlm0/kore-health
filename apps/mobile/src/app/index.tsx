@@ -78,7 +78,7 @@ export default function HomeScreen() {
           <IconBadge
             name="lightning-bolt"
             tint="mint"
-            style={{ position: 'absolute', top: 2, left: 2 }}
+            style={{ position: 'absolute', top: 16, left: 16 }}
           />
           <ScoreRing size={146} value={today.readiness} colors={gradients.readiness} strokeWidth={10}>
             <AnimatedNumber value={today.readiness} size={44} weight="displayLight" />

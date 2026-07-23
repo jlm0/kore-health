@@ -55,7 +55,7 @@ export default function ActivityScreen() {
 
       <Animated.View entering={FadeInDown.delay(40).duration(500)}>
         <GlassCard radius={28} padding={22} tint="peach" contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 22 }}>
-          <IconBadge name="fire" tint="peach" style={{ position: 'absolute', top: 0, right: 0 }} />
+          <IconBadge name="fire" tint="peach" style={{ position: 'absolute', top: 16, right: 16 }} />
           <ScoreRing size={118} value={today.activityScore} colors={gradients.activity} strokeWidth={8}>
             <Text style={{ fontSize: 30, fontFamily: fontFamily.displayLight, color: palette.ink }}>
               {today.activityScore}

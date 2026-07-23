@@ -54,7 +54,7 @@ export default function ReadinessScreen() {
 
       <Animated.View entering={FadeInDown.delay(40).duration(500)}>
         <GlassCard radius={28} padding={24} tint="mint" contentStyle={{ alignItems: 'center', gap: 10 }}>
-          <IconBadge name="lightning-bolt" tint="mint" style={{ position: 'absolute', top: 0, left: 0 }} />
+          <IconBadge name="lightning-bolt" tint="mint" style={{ position: 'absolute', top: 16, left: 16 }} />
           <ScoreRing size={170} value={today.readiness} colors={gradients.readiness} strokeWidth={10}>
             <AnimatedNumber value={today.readiness} size={48} weight="displayLight" />
             <Label size={9} em={0.2}>Today</Label>

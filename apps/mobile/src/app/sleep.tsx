@@ -88,7 +88,7 @@ export default function SleepScreen() {
 
       <Animated.View entering={FadeInDown.delay(40).duration(500)}>
         <GlassCard radius={28} padding={18} tint="indigo" contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <IconBadge name="sleep" tint="indigo" style={{ position: 'absolute', top: 0, right: 0 }} />
+          <IconBadge name="sleep" tint="indigo" style={{ position: 'absolute', top: 14, right: 14 }} />
           <ScoreRing size={92} value={today.sleepScore} colors={gradients.sleep} strokeWidth={8}>
             <Text style={{ fontSize: 28, fontFamily: fontFamily.displayLight, color: palette.ink }}>
               {today.sleepScore}

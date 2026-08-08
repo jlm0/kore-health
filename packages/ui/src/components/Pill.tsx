@@ -1,12 +1,13 @@
 import React from 'react';
 import { Pressable, View, type Insets, type StyleProp, type ViewStyle } from 'react-native';
 import { haptics } from '../haptics';
-import { palette, radius, surfaces, tints } from '../tokens';
+import { palette, iconTints, radius, surfaces, tints } from '../tokens';
 import { Label } from './Typo';
 
 const variants = {
   mint: { bg: tints.mint, color: palette.mint.deep },
   indigo: { bg: tints.indigo, color: palette.indigo.deep },
+  lavender: { bg: tints.lavender, color: iconTints.lavender.fg },
   peach: { bg: tints.peach, color: palette.peach.deep },
   neutral: { bg: surfaces.chipNeutral, color: palette.muted },
 } as const;

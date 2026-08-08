@@ -42,6 +42,7 @@ export const surfaces = {
 export const tints = {
   mint: 'rgba(99,184,168,0.13)',
   indigo: 'rgba(126,150,224,0.13)',
+  lavender: 'rgba(167,147,221,0.14)',
   peach: 'rgba(239,181,140,0.16)',
 } as const;
 

@@ -16,6 +16,7 @@ export * from './components/IconBadge';
 export * from './components/Hypnogram';
 export * from './components/Pill';
 export * from './components/ProgressBar';
+export * from './components/RangeSelector';
 export * from './components/Screen';
 export * from './components/ScreenHeader';
 export * from './components/ScoreRing';

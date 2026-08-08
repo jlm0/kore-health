@@ -5,6 +5,7 @@ import {
   GlassCard,
   Label,
   Pill,
+  RangeSelector,
   Screen,
   ScreenHeader,
   Sparkline,
@@ -16,10 +17,18 @@ import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useDays, useDataset, useLatestSample, useMaturities, useSeriesWindow, useTempAbsWindow, useUnits } from '@/data/hooks';
+import { useDays, useDataset, useLatestSample, useMaturities, useTempAbsSeries, useUnits } from '@/data/hooks';
 import { type MetricGroup } from '@/data/maturity';
 import { METRICS, type MetricId } from '@/data/metrics';
-import { fmtClock, fmtDate, latestPositiveDayValue } from '@/data/selectors';
+import {
+  bucketSeries,
+  fmtClock,
+  fmtDate,
+  latestPositiveDayValue,
+  rangeAxisLabels,
+  TIME_RANGE_OPTIONS,
+  type TimeRange,
+} from '@/data/selectors';
 import { tempUnit, toDisplayTemp, toDisplayTempDelta, type Units } from '@/data/units';
 import { FEATURE } from '@/ring/constants';
 import { setRingFeature, stopLiveHeartRate, streamLiveHeartRate } from '@/ring/sync';
@@ -61,7 +70,7 @@ export default function MetricDetailScreen() {
   const days = useDays();
   const dataset = useDataset();
   const latest = useLatestSample(metric?.seriesId ?? 'hrv');
-  const day24 = useSeriesWindow(metric?.seriesId ?? 'hrv', 24, 56);
+  const [range, setRange] = useState<TimeRange>('day');
 
   // Temp absolute mode: before a personal baseline exists (state 'collecting',
   // 2+ nights needed), the deviation series is all zeros by design — show the
@@ -69,7 +78,7 @@ export default function MetricDetailScreen() {
   const maturities = useMaturities();
   const maturity = metric ? maturities[METRIC_GROUP[metric.id]] : null;
   const tempAbsMode = metric?.id === 'temp' && maturity != null && maturity.state !== 'ready';
-  const tempAbs = useTempAbsWindow(24, 56);
+  const tempAbsSeries = useTempAbsSeries();
   const tempNights = useHealthStore((s) => s.tempNights);
   const units = useUnits();
   const setUnits = useHealthStore((s) => s.setUnits);
@@ -98,11 +107,29 @@ export default function MetricDetailScreen() {
   }, [days, metric, hasSeries, tempAbsMode, tempNights, tempBaselineDays]);
 
   const current = tempAbsMode
-    ? tempAbs.latest
+    ? (tempAbsSeries[tempAbsSeries.length - 1]?.v ?? null)
     : nightBacked
       ? latestPositiveDayValue(days, metric!.dailyValue)
       : latest;
-  const currentWindow = tempAbsMode ? tempAbs.window : day24;
+
+  // Range-switched chart: Day = hourly means of today, Week = daily means
+  // over 7 days, Month = weekly means over the 30-day window. Buckets with no
+  // samples are dropped from the line (their avg is null) — never fabricated.
+  const rangeBuckets = useMemo(() => {
+    if (!metric) return [];
+    const series = tempAbsMode ? tempAbsSeries : dataset.series[metric.seriesId];
+    return bucketSeries(series, range, Date.now());
+  }, [metric, tempAbsMode, tempAbsSeries, dataset, range]);
+  const chartPoints = rangeBuckets.filter((b) => b.avg != null);
+  const chartData = chartPoints.map((b) => b.avg as number);
+  const chartXValues = chartPoints.map((b) =>
+    range === 'day'
+      ? fmtClock(b.start)
+      : range === 'week'
+        ? fmtDate(b.start, true)
+        : `Week of ${fmtDate(b.start)}`,
+  );
+  const chartXLabels = rangeAxisLabels(range, Date.now());
 
   const stats = useMemo(() => {
     if (daily.length === 0) return { min: 0, max: 0, avg: 0 };
@@ -202,18 +229,6 @@ export default function MetricDetailScreen() {
     ? `Baseline ± ${toDisplayTempDelta(0.3, units).toFixed(1)} ${tempUnit(units)}`
     : metric.rangeLabel;
 
-  // Current chart axis: real clock times over the trailing 24h window — the
-  // last sample is now, the first is now−24h, linearly interpolated between.
-  const now = Date.now();
-  const hourMs = 3_600_000;
-  const currentXLabels = [24, 18, 12, 6, 0].map((h) => fmtClock(now - h * hourMs));
-  const currentXValues =
-    currentWindow.length >= 2
-      ? currentWindow.map((_, i) =>
-          fmtClock(now - 24 * hourMs + ((24 * hourMs) * i) / (currentWindow.length - 1)),
-        )
-      : [];
-
   // TREND card: derived/longitudinal content renders only when the group's
   // trend is ready; before that it shows what unlocks it — never a fake
   // zero-line. (metric is non-null past the Redirect above.)
@@ -277,9 +292,16 @@ export default function MetricDetailScreen() {
                 'Measured during sleep — wear the ring tonight to get your first reading.'}
             </Text>
           ) : null}
-          {currentWindow.length >= 2 ? (
+          <RangeSelector
+            options={TIME_RANGE_OPTIONS}
+            value={range}
+            onChange={setRange}
+            variant={metric.tint}
+            style={{ marginTop: 12 }}
+          />
+          {chartData.length >= 2 ? (
             <Sparkline
-              data={currentWindow}
+              data={chartData}
               height={110}
               color={metric.color}
               strokeWidth={2}
@@ -288,10 +310,10 @@ export default function MetricDetailScreen() {
               delay={250}
               duration={1300}
               interactive
-              xLabels={currentXLabels}
-              xValues={currentXValues}
+              xLabels={chartXLabels}
+              xValues={chartXValues}
               formatValue={fmt}
-              yLabels={[fmt(Math.min(...currentWindow)), fmt(Math.max(...currentWindow))]}
+              yLabels={[fmt(Math.min(...chartData)), fmt(Math.max(...chartData))]}
               style={{ marginTop: 10 }}
             />
           ) : (
@@ -303,7 +325,7 @@ export default function MetricDetailScreen() {
                 lineHeight: 18,
                 marginTop: 10,
               }}>
-              No samples in the last 24 hours yet — sync your ring to fill this chart.
+              No samples in this range yet — sync your ring to fill this chart.
             </Text>
           )}
         </GlassCard>

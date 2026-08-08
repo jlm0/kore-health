@@ -7,6 +7,7 @@ import {
   Label,
   MetricValue,
   ProgressBar,
+  RangeSelector,
   Screen,
   ScoreRing,
   ScreenHeader,
@@ -18,13 +19,22 @@ import {
   surfaces,
 } from '@kore/ui';
 import { useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { EmptyDataCard } from '@/components/EmptyDataCard';
 import { useDataset, useDays, useMaturities, useToday } from '@/data/hooks';
 import { MATURITY_COPY } from '@/data/maturity';
-import { fmtDate, fmtHoursMinutes, hourlyMovement, meanOf } from '@/data/selectors';
+import {
+  fmtDate,
+  fmtHoursMinutes,
+  hourlyMovement,
+  meanOf,
+  movementByRange,
+  rangeAxisLabels,
+  TIME_RANGE_OPTIONS,
+  type TimeRange,
+} from '@/data/selectors';
 
 function movementColor(v: number): string | null {
   if (v <= 0.18) return null;
@@ -41,9 +51,19 @@ export default function ActivityScreen() {
   const dataset = useDataset();
   const maturities = useMaturities();
 
+  const [range, setRange] = useState<TimeRange>('day');
+
+  // Charts anchor to the dataset's current day (any time inside it works),
+  // so a stale sync still shows the last recorded day instead of emptiness.
+  const anchorMs = today?.dayStart ?? Date.now();
+  const dayMovement = useMemo(
+    () => (today ? hourlyMovement(dataset, anchorMs) : new Array(24).fill(0)),
+    [dataset, today, anchorMs],
+  );
   const movement = useMemo(
-    () => (today ? hourlyMovement(dataset, today.dayStart) : new Array(24).fill(0)),
-    [dataset, today],
+    () =>
+      range === 'day' ? dayMovement : movementByRange(dataset.series.move, range, anchorMs),
+    [dataset, range, anchorMs, dayMovement],
   );
 
   // Without any movement/calorie data the rings and bars would all be fake
@@ -65,7 +85,7 @@ export default function ActivityScreen() {
   // The group gate above is dataset-wide: TODAY itself may still have no
   // movement/calorie data (e.g. only a night sync so far). Per-field zeros
   // from an unmeasured day render as numeric 0, never as invented numbers.
-  const hasTodayActivity = today.activity.activeCal > 0 || movement.some((v) => v > 0);
+  const hasTodayActivity = today.activity.activeCal > 0 || dayMovement.some((v) => v > 0);
 
   // The week average skips days whose 0 score means "nothing measured".
   const weekScores = days.slice(-7).map((d) => d.activityScore).filter((v) => v > 0);
@@ -111,12 +131,19 @@ export default function ActivityScreen() {
       <Animated.View entering={FadeInDown.delay(80).duration(500)}>
         <GlassCard radius={28} padding={20}>
           <CardHeading icon="walk" tint="peach">Movement</CardHeading>
+          <RangeSelector
+            options={TIME_RANGE_OPTIONS}
+            value={range}
+            onChange={setRange}
+            variant="peach"
+            style={{ marginTop: 12 }}
+          />
           <BarChart
             data={movement}
             height={70}
             colorFor={movementColor}
             delay={250}
-            xLabels={['12 AM', '6 AM', '12 PM', '6 PM', '12 AM']}
+            xLabels={rangeAxisLabels(range, anchorMs)}
             style={{ marginTop: 12 }}
           />
         </GlassCard>

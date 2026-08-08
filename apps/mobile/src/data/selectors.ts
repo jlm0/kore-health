@@ -50,6 +50,140 @@ export function hourlyMovement(dataset: Dataset, dayStart: number): number[] {
   return buckets.map((b) => b / max);
 }
 
+// --- time-range bucketing ----------------------------------------------------
+//
+// Charts switch between Day (hourly buckets of one local day), Week (daily
+// buckets over the last 7 local days) and Month (5 weekly buckets covering
+// the 30-day dataset window, ending today). Buckets are LOCAL CALENDAR
+// buckets computed with Date arithmetic, so DST 23/25-hour days stay correct.
+// A bucket with no samples reports avg/min/max null — callers render a gap or
+// a zero-height bar, never an interpolated fabrication.
+
+export type TimeRange = 'day' | 'week' | 'month';
+
+export const TIME_RANGE_OPTIONS: readonly { id: TimeRange; label: string }[] = [
+  { id: 'day', label: 'Day' },
+  { id: 'week', label: 'Week' },
+  { id: 'month', label: 'Month' },
+];
+
+export interface RangeBucket {
+  /** Bucket start in local wall-clock ms. */
+  start: number;
+  count: number;
+  sum: number;
+  avg: number | null;
+  min: number | null;
+  max: number | null;
+}
+
+const DAY_MS = 24 * 3600_000;
+
+function localMidnight(ms: number): number {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+// Whole local days from a→b. Math.round absorbs DST: a midnight-to-midnight
+// span is 1 day even when it lasts 23 or 25 hours.
+function localDayDiff(aMidMs: number, bMidMs: number): number {
+  return Math.round((bMidMs - aMidMs) / DAY_MS);
+}
+
+function addLocalDays(midnightMs: number, days: number): number {
+  const d = new Date(midnightMs);
+  d.setDate(d.getDate() + days);
+  return d.getTime();
+}
+
+/**
+ * Aggregate a series into calendar buckets for a time range, anchored at the
+ * local day containing `nowMs`:
+ *   day   — 24 wall-clock-hour buckets of that day
+ *   week  — 7 daily buckets, that day and the 6 before
+ *   month — 5 buckets of 7 days, the last ending on that day (covers 35 days
+ *           so the full 30-day dataset window always fits)
+ */
+export function bucketSeries(
+  samples: readonly MetricSample[],
+  range: TimeRange,
+  nowMs: number,
+): RangeBucket[] {
+  const anchorMid = localMidnight(nowMs);
+  const bucketCount = range === 'day' ? 24 : range === 'week' ? 7 : 5;
+  const acc = Array.from({ length: bucketCount }, () => ({
+    sum: 0,
+    count: 0,
+    min: Infinity,
+    max: -Infinity,
+  }));
+
+  for (const s of samples) {
+    let idx: number;
+    if (range === 'day') {
+      if (s.t < anchorMid || localMidnight(s.t) !== anchorMid) continue;
+      idx = new Date(s.t).getHours();
+    } else {
+      const offset = localDayDiff(anchorMid, localMidnight(s.t)); // 0 = anchor day, negative = past
+      idx = range === 'week' ? offset + 6 : Math.floor((offset + 34) / 7);
+      if (idx < 0 || idx >= bucketCount) continue;
+    }
+    const b = acc[idx];
+    b.sum += s.v;
+    b.count += 1;
+    if (s.v < b.min) b.min = s.v;
+    if (s.v > b.max) b.max = s.v;
+  }
+
+  const startOf = (i: number): number => {
+    if (range === 'day') {
+      const d = new Date(anchorMid);
+      d.setHours(i, 0, 0, 0);
+      return d.getTime();
+    }
+    return addLocalDays(anchorMid, range === 'week' ? i - 6 : -34 + 7 * i);
+  };
+
+  return acc.map((b, i) => ({
+    start: startOf(i),
+    count: b.count,
+    sum: b.sum,
+    avg: b.count > 0 ? b.sum / b.count : null,
+    min: b.count > 0 ? b.min : null,
+    max: b.count > 0 ? b.max : null,
+  }));
+}
+
+/**
+ * Movement totals per bucket, normalized by the fullest bucket (floor 1, the
+ * hourlyMovement convention: sums are 0..1 intensities added up, so a calm
+ * day must not be amplified to full-height bars). Empty buckets are 0 — a
+ * zero-height bar, not a guess.
+ */
+export function movementByRange(
+  samples: readonly MetricSample[],
+  range: TimeRange,
+  nowMs: number,
+): number[] {
+  const sums = bucketSeries(samples, range, nowMs).map((b) => b.sum);
+  const max = Math.max(...sums, 1);
+  return sums.map((s) => s / max);
+}
+
+/** Axis tick labels for a range chart anchored at `nowMs` (spread row). */
+export function rangeAxisLabels(range: TimeRange, nowMs: number): string[] {
+  const anchorMid = localMidnight(nowMs);
+  if (range === 'day') return ['12 AM', '6 AM', '12 PM', '6 PM', '12 AM'];
+  if (range === 'week') {
+    return Array.from(
+      { length: 7 },
+      (_, i) => 'SMTWTFS'[new Date(addLocalDays(anchorMid, i - 6)).getDay()],
+    );
+  }
+  return Array.from({ length: 5 }, (_, i) => fmtDate(addLocalDays(anchorMid, -34 + 7 * i)));
+}
+
 export function normalize(values: readonly number[], floor = 0.08): number[] {
   if (values.length === 0) return [];
   const min = Math.min(...values);

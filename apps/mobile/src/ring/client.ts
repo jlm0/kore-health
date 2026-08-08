@@ -7,9 +7,9 @@ import {
   FEATURE,
   FEATURE_MODE,
   HISTORY_EVENT_PREFIX,
-  MAX_SEGMENT_JUMPS,
+  MAX_SEGMENT_PROBES,
   RESPONSE_QUIET_MS,
-  SEGMENT_JUMP_OVERLAP_DS,
+  SEGMENT_PROBE_STEP_DS,
 } from './constants';
 import type { BleTransport } from './transport';
 
@@ -68,8 +68,8 @@ export interface DrainOptions {
    * GetEvent walk stops with bytesLeft=0 at segment boundaries while newer
    * segments exist (proven on a live ring: a walk from 0 ended at ts 8.02M
    * with events present at 12.86M+). When the walk terminates with its end
-   * still below the evidence, the drain jumps forward (bounded overlap) and
-   * continues walking there instead of stopping.
+   * still below the evidence, the drain probes forward in one-day steps
+   * (never past the evidence) until it finds the next segment and resumes.
    */
   expectEndAtLeast?: number;
 }
@@ -415,17 +415,22 @@ export class OuraRingClient {
   // live ring (see docs/captures/ring-capture-2026-08-08.json):
   //
   // - Multi-segment: the walk can report bytesLeft=0 at a segment boundary
-  //   while newer segments exist. When there is evidence of newer data (the
-  //   caller's expectEndAtLeast hint, or a higher event ts already seen on
-  //   this connection), the drain jumps forward with a bounded one-day
-  //   overlap and keeps walking — the same heuristic the dev audit uses.
+  //   while newer segments exist, and history is fragmented into MANY
+  //   segments (sparse unworn gaps between them). When there is evidence of
+  //   newer data (the caller's expectEndAtLeast hint, or a higher event ts
+  //   already seen on this connection), the drain probes forward from its
+  //   current position in one-day steps — never past the evidence — until a
+  //   probe returns events, then walks normally from there. (A single fixed
+  //   jump target cannot cross multiple gaps: observed live, a jump to
+  //   evidence−1day terminated at a second boundary and the next target
+  //   computed behind the walk — a stalemate.)
   // - Dedupe: overlapping segments replay events; each event is delivered to
   //   onEvent at most once per drain, keyed by (tag, timestamp, bodyHex).
   //
   // nextCursor only ever reflects positions backed by delivered events: a
-  // segment jump moves the walk's start speculatively, but the committed
-  // cursor advances only when a batch makes progress — a jump into empty
-  // space must not strand real data below a speculative cursor.
+  // probe moves the walk's start speculatively, but the committed cursor
+  // advances only when a batch makes progress — an empty probe must not
+  // strand real data below a speculative cursor.
   async drainEvents(
     cursor: number,
     onEvent: (event: RingEvent) => void,
@@ -435,7 +440,7 @@ export class OuraRingClient {
     let start = cursor;
     let committed = cursor;
     let total = 0;
-    let jumps = 0;
+    let probes = 0;
     const seen = new Set<string>();
     const emit = (event: RingEvent): void => {
       this.maxEventTsSeen = Math.max(this.maxEventTsSeen, event.timestamp);
@@ -485,15 +490,17 @@ export class OuraRingClient {
         break;
       }
       // Termination (bytesLeft=0). When evidence says newer segments exist
-      // beyond the walk's end, jump forward (bounded overlap) and continue.
+      // beyond the walk's end, probe forward one day at a time (bounded,
+      // never past the evidence) until a probe finds the next segment.
+      // Empty probes resolve on the quiet timer and move nothing.
       const evidence = Math.max(options?.expectEndAtLeast ?? 0, this.maxEventTsSeen);
-      const jumpTarget = evidence - SEGMENT_JUMP_OVERLAP_DS;
-      if (jumps < MAX_SEGMENT_JUMPS && jumpTarget > start) {
-        jumps++;
+      const probeTarget = start + SEGMENT_PROBE_STEP_DS;
+      if (probes < MAX_SEGMENT_PROBES && probeTarget <= evidence) {
+        probes++;
         console.log(
-          `[sync] walk terminated at ${start} below expected end >=${evidence} — segment jump to ${jumpTarget} (#${jumps})`,
+          `[sync] walk terminated at ${start} below expected end >=${evidence} — probing forward at ${probeTarget} (#${probes})`,
         );
-        start = jumpTarget;
+        start = probeTarget;
         continue;
       }
       break;

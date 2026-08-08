@@ -7,6 +7,15 @@ import type { RingEventLike } from '../data/ring';
 const DAY_MS = 86_400_000;
 
 /**
+ * How close a deep rebuild's final cursor must get to the expected end (the
+ * pre-rebuild cursor) for the rebuilt dataset to be committed, in ring-clock
+ * deciseconds. One day: the forward probes step in whole days and never pass
+ * the evidence, so a walk that terminates in the final partial-day window
+ * below the evidence is still a complete-enough rebuild.
+ */
+export const DEEP_RESYNC_REACH_TOLERANCE_DS = 864_000;
+
+/**
  * True when the persisted day list has an interior hole of more than one
  * full day (e.g. …, 2026-07-27, 2026-08-06, …) — the signature of ring data
  * stranded below the sync cursor by the legacy walk's early segment

@@ -4,7 +4,7 @@ import { useHealthStore, useLiveStore } from '../store/health';
 import { waitForBluetoothReady, withTimeout, describeBleError } from './bluetooth';
 import { OuraRingClient, type LatestValues } from './client';
 import { FEATURE, FEATURE_MODE, CONNECT_TIMEOUT_MS } from './constants';
-import { dedupeEvents, hasInteriorDateGap } from './resync';
+import { dedupeEvents, hasInteriorDateGap, DEEP_RESYNC_REACH_TOLERANCE_DS } from './resync';
 import { BleTransport } from './transport';
 
 // Ring sync orchestration: connect to the paired ring → authenticate → sync
@@ -14,6 +14,13 @@ import { BleTransport } from './transport';
 // there. Pairing (key install) happens on the pairing screen, not here.
 
 let syncing = false;
+// Circuit breaker: an AUTO-triggered deep resync runs at most once per app
+// session — if the rebuild cannot complete (or the gap persists), later
+// syncs stay incremental instead of re-entering a rebuild loop (observed
+// live: an incomplete rebuild regressed days=7 → days=2, and the gap
+// detector immediately re-triggered on the next sync). A forced
+// deepResync() bypasses this.
+let autoDeepResyncUsed = false;
 // Set while a live HR stream is running so stopLiveHeartRate() can end it
 // early; the client still restores AUTOMATIC mode on the way out.
 let liveStop: (() => void) | null = null;
@@ -180,15 +187,22 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
 
     store().setConnectionStatus('syncing');
     const previousCursor = store().syncCursor;
-    const deep =
-      options?.forceDeepResync === true ||
-      (store().dataset != null && hasInteriorDateGap(store().dataset!.days));
+    const forced = options?.forceDeepResync === true;
+    const gapDetected =
+      store().dataset != null && hasInteriorDateGap(store().dataset!.days);
+    const deep = forced || (gapDetected && !autoDeepResyncUsed);
     if (deep) {
+      if (!forced) autoDeepResyncUsed = true;
       console.log(
-        `[sync] deep resync (${options?.forceDeepResync ? 'forced' : 'interior date gap'}): ` +
+        `[sync] deep resync (${forced ? 'forced' : 'interior date gap'}): ` +
           `full rebuild from cursor 0, expected end >=${previousCursor}`,
       );
     } else {
+      if (gapDetected) {
+        console.log(
+          '[sync] interior date gap persists, but auto deep resync already ran this session — staying incremental',
+        );
+      }
       console.log(`[sync] draining events from cursor ${previousCursor}`);
     }
     const events: RingEventLike[] = [];
@@ -200,79 +214,95 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
       // never a stale dataset with a rewound cursor (which the next
       // incremental sync would double-fold from).
       deep ? undefined : (nextCursor) => store().setSyncCursor(nextCursor),
-      // The old cursor is proof newer segments exist: let the walk jump past
-      // early segment-boundary terminations to reach them.
+      // The old cursor is proof newer segments exist: let the walk probe
+      // past early segment-boundary terminations to reach them.
       deep ? { expectEndAtLeast: previousCursor } : undefined,
     );
-    const uniqueEvents = dedupeEvents(events);
-    if (uniqueEvents.length !== events.length) {
+    // Commit guard: a deep rebuild whose walk could not get within a day of
+    // the expected end is INCOMPLETE — committing it would replace a more
+    // complete dataset with a regressed one (observed live: days=7 → days=2
+    // with clock=newest_event garbage dates; an incomplete walk may capture
+    // no time_sync event near the end, and the fold's clock anchoring needs
+    // one). Keep the previous dataset and cursor untouched; the circuit
+    // breaker above prevents an auto-retry loop.
+    const deepComplete =
+      !deep || outcome.nextCursor >= previousCursor - DEEP_RESYNC_REACH_TOLERANCE_DS;
+    if (deep && !deepComplete) {
       console.log(
-        `[sync] dropped ${events.length - uniqueEvents.length} duplicate events from overlapping segments`,
+        `[sync] deep resync incomplete (reached ${outcome.nextCursor} of ${previousCursor}) — keeping previous dataset`,
       );
     }
-    console.log(`[sync] drained ${uniqueEvents.length} events, folding`);
-    // Diagnostic: event-type breakdown + computed day rows, so score/data
-    // accuracy can be sanity-checked from the logs.
-    const byName = new Map<string, number>();
-    let metBins = 0;
-    for (const e of uniqueEvents) {
-      byName.set(e.name, (byName.get(e.name) ?? 0) + 1);
-      if (e.name === 'activity_information') {
-        const mets = (e.decoded as Record<string, unknown> | null)?.met;
-        if (Array.isArray(mets)) metBins += mets.length;
-      }
-    }
-    console.log(
-      `[sync] event types: ${[...byName.entries()].sort((a, b) => b[1] - a[1]).map(([n, c]) => `${n}×${c}`).join(' ')}${metBins > 0 ? ` | met bins: ${metBins}` : ''}`,
-    );
-
-    const result = foldRingEvents({
-      // Deep resync rebuilds from scratch — folding old events onto the
-      // existing (non-idempotent) fold state would double-count them.
-      prior:
-        !deep && store().dataset != null
-          ? {
-              dataset: store().dataset!,
-              tempAbsSeries: store().tempAbsSeries,
-              tempNights: store().tempNights,
-              activityByDay: store().activityByDay,
-            }
-          : null,
-      events: uniqueEvents,
-      goalCal: store().activityGoalCal,
-    });
-    // Single atomic commit → single AsyncStorage write for the whole sync.
-    store().applySyncResult(result.state);
-    if (deep) {
-      // Only now is it safe to move the cursor: the rebuilt dataset and the
-      // new cursor advance together.
-      store().setSyncCursor(outcome.nextCursor);
-      console.log(`[sync] deep resync committed, cursor=${outcome.nextCursor}`);
-    }
-    console.log(
-      `[sync] done: ${result.eventsApplied} events applied, clock=${result.clockAnchor}, days=${result.state.dataset.days.length}`,
-    );
-    for (const d of result.state.dataset.days) {
-      console.log(
-        `[sync] day ${d.date}: readiness=${d.readiness} sleep=${d.sleepScore} activity=${d.activityScore} ` +
-          `cal=${Math.round(d.activity.activeCal)}/${d.activity.goalCal} rhr=${d.restingHr} ` +
-          `hrv=${d.hrvAvg} temp=${d.tempDeviation} spo2=${d.spo2}`,
-      );
-      // Diagnostic: resting HR/HRV are computed from HR points INSIDE the
-      // sleep window — show exactly why a night-backed day still has 0.
-      if (d.sleep.durationMin > 0) {
-        const hr = result.state.dataset.series.hr;
-        const inside = hr.filter((s) => s.t >= d.sleep.start && s.t < d.sleep.end).length;
-        const fmt = (ms: number) =>
-          `${new Date(ms).getHours()}:${String(new Date(ms).getMinutes()).padStart(2, '0')}`;
+    if (deepComplete) {
+      const uniqueEvents = dedupeEvents(events);
+      if (uniqueEvents.length !== events.length) {
         console.log(
-          `[sync]   sleep window ${fmt(d.sleep.start)}→${fmt(d.sleep.end)}: ` +
-            `${inside} hr pts inside, ${hr.length} total in series`,
+          `[sync] dropped ${events.length - uniqueEvents.length} duplicate events from overlapping segments`,
         );
       }
-    }
-    for (const id of ['hr', 'hrv', 'temp', 'spo2', 'move'] as const) {
-      console.log(`[sync] series ${id}: ${result.state.dataset.series[id].length} points`);
+      console.log(`[sync] drained ${uniqueEvents.length} events, folding`);
+      // Diagnostic: event-type breakdown + computed day rows, so score/data
+      // accuracy can be sanity-checked from the logs.
+      const byName = new Map<string, number>();
+      let metBins = 0;
+      for (const e of uniqueEvents) {
+        byName.set(e.name, (byName.get(e.name) ?? 0) + 1);
+        if (e.name === 'activity_information') {
+          const mets = (e.decoded as Record<string, unknown> | null)?.met;
+          if (Array.isArray(mets)) metBins += mets.length;
+        }
+      }
+      console.log(
+        `[sync] event types: ${[...byName.entries()].sort((a, b) => b[1] - a[1]).map(([n, c]) => `${n}×${c}`).join(' ')}${metBins > 0 ? ` | met bins: ${metBins}` : ''}`,
+      );
+
+      const result = foldRingEvents({
+        // Deep resync rebuilds from scratch — folding old events onto the
+        // existing (non-idempotent) fold state would double-count them.
+        prior:
+          !deep && store().dataset != null
+            ? {
+                dataset: store().dataset!,
+                tempAbsSeries: store().tempAbsSeries,
+                tempNights: store().tempNights,
+                activityByDay: store().activityByDay,
+              }
+            : null,
+        events: uniqueEvents,
+        goalCal: store().activityGoalCal,
+      });
+      // Single atomic commit → single AsyncStorage write for the whole sync.
+      store().applySyncResult(result.state);
+      if (deep) {
+        // Only now is it safe to move the cursor: the rebuilt dataset and
+        // the new cursor advance together.
+        store().setSyncCursor(outcome.nextCursor);
+        console.log(`[sync] deep resync committed, cursor=${outcome.nextCursor}`);
+      }
+      console.log(
+        `[sync] done: ${result.eventsApplied} events applied, clock=${result.clockAnchor}, days=${result.state.dataset.days.length}`,
+      );
+      for (const d of result.state.dataset.days) {
+        console.log(
+          `[sync] day ${d.date}: readiness=${d.readiness} sleep=${d.sleepScore} activity=${d.activityScore} ` +
+            `cal=${Math.round(d.activity.activeCal)}/${d.activity.goalCal} rhr=${d.restingHr} ` +
+            `hrv=${d.hrvAvg} temp=${d.tempDeviation} spo2=${d.spo2}`,
+        );
+        // Diagnostic: resting HR/HRV are computed from HR points INSIDE the
+        // sleep window — show exactly why a night-backed day still has 0.
+        if (d.sleep.durationMin > 0) {
+          const hr = result.state.dataset.series.hr;
+          const inside = hr.filter((s) => s.t >= d.sleep.start && s.t < d.sleep.end).length;
+          const fmt = (ms: number) =>
+            `${new Date(ms).getHours()}:${String(new Date(ms).getMinutes()).padStart(2, '0')}`;
+          console.log(
+            `[sync]   sleep window ${fmt(d.sleep.start)}→${fmt(d.sleep.end)}: ` +
+              `${inside} hr pts inside, ${hr.length} total in series`,
+          );
+        }
+      }
+      for (const id of ['hr', 'hrv', 'temp', 'spo2', 'move'] as const) {
+        console.log(`[sync] series ${id}: ${result.state.dataset.series[id].length} points`);
+      }
     }
 
     // History fills charts; featureLatest fills "right now". Read the ring's

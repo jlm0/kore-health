@@ -25,12 +25,16 @@ export const BATCH_SETTLE_MS = 400;
 
 // The legacy GetEvent walk can report bytesLeft=0 at a segment boundary while
 // newer segments exist (proven: a walk from 0 ended at ring-ts 8.02M with
-// events present at 12.86M+). When there is evidence of newer data, the walk
-// jumps forward and continues, overlapping by up to one day (deciseconds) for
-// continuity — duplicates from the overlap are filtered by event identity.
-export const SEGMENT_JUMP_OVERLAP_DS = 864_000;
-// Bound on segment jumps per drain so a stale/wrong hint cannot loop forever.
-export const MAX_SEGMENT_JUMPS = 50;
+// events present at 12.86M+, and the ring's history is fragmented into many
+// segments separated by sparse unworn gaps). When there is evidence of newer
+// data, the walk probes forward from its current position in one-day steps
+// (deciseconds) until a probe returns events, then walks normally from there.
+// A single fixed jump target provably cannot cross multiple gaps (observed:
+// jump to evidence−1day landed in a segment that terminated at a second
+// boundary, leaving the next target BEHIND the walk — a stalemate).
+export const SEGMENT_PROBE_STEP_DS = 864_000;
+// Bound on forward probes per drain so a stale/wrong hint cannot loop forever.
+export const MAX_SEGMENT_PROBES = 50;
 
 // History-event frames have tag >= 0x41; batch summaries ride tag 0x11;
 // extended ops use outer tag 0x2f with the sub-op as the first payload byte.

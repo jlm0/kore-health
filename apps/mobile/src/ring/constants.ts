@@ -58,6 +58,7 @@ export const FEATURE = {
   EXERCISE_HR: 0x03,
   SPO2: 0x04,
   RESTING_HR: 0x08,
+  REAL_STEPS: 0x0b,
 } as const;
 
 export const FEATURE_MODE = {

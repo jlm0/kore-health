@@ -162,6 +162,8 @@ export async function runRingAudit(client: OuraRingClient): Promise<void> {
     ['daytime', FEATURE.DAYTIME_HR],
     ['resting', FEATURE.RESTING_HR],
     ['spo2', FEATURE.SPO2],
+    ['steps', FEATURE.REAL_STEPS],
+    ['exercise', FEATURE.EXERCISE_HR],
   ] as const) {
     try {
       const st = await client.featureStatus(id);

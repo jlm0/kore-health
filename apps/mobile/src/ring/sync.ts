@@ -186,12 +186,20 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     // when the ring's mode differs from the pref — steady-state syncs skip
     // all writes (3 write round trips saved). A feature the user turned off
     // is left untouched, exactly as before.
+    // REAL_STEPS + EXERCISE_HR are always-on (no user toggle): steps is
+    // server-flag-gated in Oura's own app, so consumer rings ship with it off
+    // even though the hardware counts steps; EXERCISE_HR needs REAL_STEPS
+    // enabled first (upstream enable chain, docs/ring-features.md). Their
+    // events (0x7e/0x7f steps, 0x73/0x74 workout HR) start flowing into the
+    // history walk from the enable moment — no backfill.
     try {
       const prefs = store().featurePrefs;
       for (const [name, id, enabled] of [
         ['daytime', FEATURE.DAYTIME_HR, prefs.daytimeHr],
         ['resting', FEATURE.RESTING_HR, prefs.restingHr],
         ['spo2', FEATURE.SPO2, prefs.spo2],
+        ['steps', FEATURE.REAL_STEPS, true],
+        ['exercise', FEATURE.EXERCISE_HR, true],
       ] as const) {
         try {
           const st = await client.featureStatus(id);

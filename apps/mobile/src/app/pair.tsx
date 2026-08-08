@@ -247,6 +247,10 @@ export default function PairScreen() {
           await client.setFeatureMode(FEATURE.DAYTIME_HR, FEATURE_MODE.AUTOMATIC);
           await client.setFeatureMode(FEATURE.RESTING_HR, FEATURE_MODE.AUTOMATIC);
           await client.setFeatureMode(FEATURE.SPO2, FEATURE_MODE.AUTOMATIC);
+          // Steps + workout HR are always-on (no user toggle) — REAL_STEPS
+          // before EXERCISE_HR (upstream enable chain).
+          await client.setFeatureMode(FEATURE.REAL_STEPS, FEATURE_MODE.AUTOMATIC);
+          await client.setFeatureMode(FEATURE.EXERCISE_HR, FEATURE_MODE.AUTOMATIC);
           useHealthStore.getState().setFeaturePref('daytimeHr', true);
           useHealthStore.getState().setFeaturePref('restingHr', true);
           useHealthStore.getState().setFeaturePref('spo2', true);

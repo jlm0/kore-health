@@ -184,7 +184,7 @@ export default function HomeScreen() {
       <ScreenHeader
         left={
           <View style={{ gap: 3 }}>
-            <Text style={{ fontSize: 22, fontFamily: fontFamily.displayItalic, color: palette.ink }}>
+            <Text style={{ fontSize: 27, fontFamily: fontFamily.displayLight, color: palette.ink }}>
               {greeting()}
             </Text>
             <Label size={9} em={0.16}>{fmtDate(Date.now(), true)}</Label>
@@ -280,19 +280,19 @@ export default function HomeScreen() {
           <Animated.View entering={FadeInDown.delay(40).duration(500)}>
             <GlassCard
               radius={28}
-              padding={16}
+              padding={{ horizontal: 20, vertical: 24 }}
               tint="mint"
               chevron
               onPress={() => router.push('/readiness')}
-              contentStyle={{ alignItems: 'center', gap: 8 }}>
+              contentStyle={{ alignItems: 'center', gap: 10 }}>
               <IconBadge
                 name="lightning-bolt"
                 tint="mint"
-                style={{ position: 'absolute', top: 16, left: 16 }}
+                style={{ position: 'absolute', top: 18, left: 18 }}
               />
-              <ScoreRing size={146} value={hasNight ? today.readiness : 0} colors={gradients.readiness} strokeWidth={10}>
+              <ScoreRing size={172} value={hasNight ? today.readiness : 0} colors={gradients.readiness} strokeWidth={10}>
                 {hasNight ? (
-                  <AnimatedNumber value={today.readiness} size={64} weight="displayLight" />
+                  <AnimatedNumber value={today.readiness} size={72} weight="displayLight" />
                 ) : (
                   <Text style={{ fontSize: 34, fontFamily: fontFamily.displayLight, color: palette.muted }}>
                     0

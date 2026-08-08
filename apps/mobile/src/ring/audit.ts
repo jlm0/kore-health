@@ -75,6 +75,58 @@ interface TagTally {
   sampleRaw: string | null;
 }
 
+// Tags dumped with FULL raw bodies + decodes — the ground truth for decoder
+// development and field-level verification. Everything else stays tallied.
+const FULL_DUMP_TAGS = new Set([
+  0x42, // time_sync
+  0x45, // state_change
+  0x48, // sleep_period_information
+  0x49, // sleep_summary_1
+  0x4b, // sleep_phase_information
+  0x4c, // sleep_summary_2
+  0x4e, // sleep_phase_details
+  0x4f, // sleep_summary_3
+  0x50, // activity_information
+  0x51, // activity_summary_1
+  0x52, // activity_summary_2
+  0x53, // wear_event
+  0x55, // sleep_heart_rate
+  0x56, // alert_event
+  0x58, // sleep_summary_4
+  0x5d, // hrv_event
+  0x61, // debug_data (all subtypes — sleep_statistics 0x09 lives here)
+  0x62, // on_demand_meas
+  0x6c, // feature_session
+  0x6d, // meas_quality_event
+  0x6f, // spo2_event
+  0x76, // bedtime_period
+  0x7e, // real_step_event_feature_1
+  0x7f, // real_step_event_feature_2
+  0x8b, // spo2_r_pi_event
+]);
+
+interface DumpEvent {
+  ts: number;
+  body: string;
+  decoded?: unknown;
+}
+
+// One full-drain pass; returns the max event ts seen. The legacy GetEvent
+// walk can report bytesLeft=0 at segment boundaries while newer segments
+// exist, so callers may re-enter with a higher start.
+async function drainPass(
+  client: OuraRingClient,
+  start: number,
+  onEvent: (e: RingEvent) => void,
+): Promise<number> {
+  let maxTs = start;
+  await client.drainEvents(start, (e) => {
+    maxTs = Math.max(maxTs, e.timestamp);
+    onEvent(e);
+  });
+  return maxTs;
+}
+
 // Read-only full drain + device state. Runs on the sync's live connection,
 // after the real drain, so it never touches the persisted cursor.
 export async function runRingAudit(client: OuraRingClient): Promise<void> {
@@ -93,6 +145,12 @@ export async function runRingAudit(client: OuraRingClient): Promise<void> {
     );
   } catch (e) {
     console.log(`[audit] firmware read failed: ${e instanceof Error ? e.message : e}`);
+  }
+  try {
+    const hw = await client.hardwareId();
+    console.log(`[audit] hardware: ${hw}`);
+  } catch (e) {
+    console.log(`[audit] hardware read failed: ${e instanceof Error ? e.message : e}`);
   }
   try {
     const caps = await client.capabilities();
@@ -115,86 +173,72 @@ export async function runRingAudit(client: OuraRingClient): Promise<void> {
     }
   }
 
+  const storeCursor = useHealthStore.getState().syncCursor;
   const byTag = new Map<number, TagTally>();
-  const timeSyncs: { ringTs: number; unixTime: number }[] = [];
-  const bedtimes: unknown[] = [];
-  const hypnograms: { ts: number; decoded: unknown }[] = [];
+  const dumpByTag = new Map<number, DumpEvent[]>();
+  const seen = new Set<string>();
   let total = 0;
 
-  console.log('[audit] full drain from cursor 0 (read-only)…');
-  const outcome = await client.drainEvents(
-    0,
-    (e) => {
-      total++;
-      let t = byTag.get(e.tag);
-      if (!t) {
-        t = {
-          name: e.name,
-          count: 0,
-          decoded: 0,
-          unvalidated: 0,
-          minTs: e.timestamp,
-          maxTs: e.timestamp,
-          sampleDecoded: null,
-          sampleRaw: null,
-        };
-        byTag.set(e.tag, t);
+  const handle = (e: RingEvent) => {
+    // Multi-pass walks overlap — dedupe on the event's identity.
+    const key = `${e.tag}:${e.timestamp}:${e.bodyHex}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    total++;
+    let t = byTag.get(e.tag);
+    if (!t) {
+      t = {
+        name: e.name,
+        count: 0,
+        decoded: 0,
+        unvalidated: 0,
+        minTs: e.timestamp,
+        maxTs: e.timestamp,
+        sampleDecoded: null,
+        sampleRaw: null,
+      };
+      byTag.set(e.tag, t);
+    }
+    t.count++;
+    t.minTs = Math.min(t.minTs, e.timestamp);
+    t.maxTs = Math.max(t.maxTs, e.timestamp);
+    if (e.decoded != null) {
+      t.decoded++;
+      const d = e.decoded as Record<string, unknown>;
+      if (d._status === 'unvalidated') t.unvalidated++;
+      if (t.sampleDecoded == null) t.sampleDecoded = JSON.stringify(e.decoded).slice(0, 300);
+    } else if (t.sampleRaw == null) {
+      t.sampleRaw = e.bodyHex.slice(0, 96);
+    }
+    if (FULL_DUMP_TAGS.has(e.tag)) {
+      let list = dumpByTag.get(e.tag);
+      if (!list) {
+        list = [];
+        dumpByTag.set(e.tag, list);
       }
-      t.count++;
-      t.minTs = Math.min(t.minTs, e.timestamp);
-      t.maxTs = Math.max(t.maxTs, e.timestamp);
-      if (e.decoded != null) {
-        t.decoded++;
-        const d = e.decoded as Record<string, unknown>;
-        if (d._status === 'unvalidated') t.unvalidated++;
-        if (t.sampleDecoded == null) {
-          t.sampleDecoded = JSON.stringify(e.decoded).slice(0, 300);
-        }
-        if (e.name === 'time_sync' && typeof d.unix_time === 'number') {
-          timeSyncs.push({ ringTs: e.timestamp, unixTime: d.unix_time });
-        }
-        if (e.name === 'bedtime_period' && bedtimes.length < 10) {
-          bedtimes.push({ ts: e.timestamp, decoded: e.decoded });
-        }
-        if (e.name.startsWith('sleep_phase') && hypnograms.length < 10) {
-          hypnograms.push({ ts: e.timestamp, decoded: e.decoded });
-        }
-      } else if (t.sampleRaw == null) {
-        t.sampleRaw = e.bodyHex.slice(0, 96);
-      }
-    },
-    (nextCursor) => console.log(`[audit] drain progress: cursor=${nextCursor} events=${total}`),
-  );
-  console.log(`[audit] drain complete: ${outcome.eventsSynced} events`);
+      list.push(e.decoded != null ? { ts: e.timestamp, body: e.bodyHex, decoded: e.decoded } : { ts: e.timestamp, body: e.bodyHex });
+    }
+  };
+
+  // Pass 1: from 0. The legacy walk can stop early at a segment boundary
+  // (observed: bytesLeft=0 while events exist at higher timestamps), so if it
+  // ends below the app's own cursor, pass 2 re-walks the recent era with a
+  // one-day overlap for continuity.
+  console.log('[audit] full drain pass 1 from cursor 0 (read-only)…');
+  const end1 = await drainPass(client, 0, handle);
+  console.log(`[audit] pass 1 ended at ${end1} (store cursor ${storeCursor})`);
+  if (storeCursor > 0 && end1 < storeCursor - 864_000) {
+    console.log('[audit] early termination detected — pass 2 over recent era');
+    await drainPass(client, storeCursor - 864_000, handle);
+  }
+  console.log(`[audit] drain complete: ${total} unique events`);
 
   const tallies = [...byTag.entries()]
     .map(([tag, t]) => ({ tag: `0x${tag.toString(16)}`, ...t }))
     .sort((a, b) => b.count - a.count);
   logJson('drain.byTag', tallies);
 
-  // Clock-anchor evidence: each time_sync maps a ring decisecond ts to unix
-  // time — consecutive anchors expose ring-clock drift and anchor spacing.
-  const anchors = timeSyncs.map((a, i) => {
-    const prev = timeSyncs[i - 1];
-    return {
-      ...a,
-      wallIso: iso(a.unixTime * 1000),
-      ringGapDs: prev ? a.ringTs - prev.ringTs : null,
-      wallGapS: prev ? a.unixTime - prev.unixTime : null,
-      driftMs: prev
-        ? (a.unixTime - prev.unixTime) * 1000 - (a.ringTs - prev.ringTs) * 100
-        : null,
-    };
-  });
-  logJson('drain.timeSyncAnchors', anchors);
-
-  logJson('drain.bedtimes', bedtimes);
-  logJson(
-    'drain.hypnogramSamples',
-    hypnograms.map((h) => ({
-      ts: h.ts,
-      phases: (h.decoded as { phases?: string[] })?.phases?.length ?? null,
-      decoded: h.decoded,
-    })),
-  );
+  for (const [tag, list] of [...dumpByTag.entries()].sort((a, b) => a[0] - b[0])) {
+    logJson(`dump.0x${tag.toString(16)}.${byTag.get(tag)?.name ?? 'unknown'}`, list);
+  }
 }

@@ -26,7 +26,8 @@ SplashScreen.preventAutoHideAsync();
 
 // Auto-sync when the app comes to the foreground: paired ring only, and no
 // more than once per 5 minutes so reopening the app doesn't hammer the ring.
-const AUTO_SYNC_MIN_INTERVAL_MS = 5 * 60 * 1000;
+// In dev builds the cooldown drops to 30s to keep the audit loop quick.
+const AUTO_SYNC_MIN_INTERVAL_MS = __DEV__ ? 30_000 : 5 * 60 * 1000;
 
 function maybeAutoSync() {
   const { ringDeviceId, connectionStatus, lastSyncAt } = useHealthStore.getState();

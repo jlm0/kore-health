@@ -1,9 +1,9 @@
 export const palette = {
   ink: '#333947',
-  slate: '#6B7280',
-  muted: '#99A0B0',
-  faint: '#B9BFCC',
-  ghost: '#C6CBD6',
+  slate: '#5A6270',
+  muted: '#61697A',
+  faint: '#788093',
+  ghost: '#A9B0BF',
   white: '#FFFFFF',
   mint: {
     light: '#7CCBB9',
@@ -28,7 +28,7 @@ export const palette = {
 } as const;
 
 export const surfaces = {
-  card: 'rgba(255,255,255,0.38)',
+  card: 'rgba(255,255,255,0.62)',
   cardBorder: 'rgba(255,255,255,0.8)',
   cardFallback: 'rgba(255,255,255,0.72)',
   cardSheen: ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.05)', 'rgba(255,255,255,0)'],

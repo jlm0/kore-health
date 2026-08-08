@@ -1,8 +1,8 @@
 import { Canvas, Group, RoundedRect, rect } from '@shopify/react-native-skia';
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Easing, useDerivedValue, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
-import { surfaces } from '../tokens';
+import { fontFamily, palette, surfaces } from '../tokens';
 
 interface BarChartProps {
   data: readonly number[];
@@ -12,6 +12,8 @@ interface BarChartProps {
   gapFraction?: number;
   delay?: number;
   style?: StyleProp<ViewStyle>;
+  /** Tick labels rendered in a row beneath the chart. */
+  xLabels?: readonly string[];
 }
 
 export function BarChart({
@@ -22,6 +24,7 @@ export function BarChart({
   gapFraction = 0.45,
   delay = 0,
   style,
+  xLabels,
 }: BarChartProps) {
   const [width, setWidth] = useState(0);
   const progress = useSharedValue(0);
@@ -56,23 +59,36 @@ export function BarChart({
   }, [width, height, data, colorFor, gapFraction, minBarFraction]);
 
   return (
-    <View style={[{ height }, style]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-      {width > 0 && (
-        <Canvas style={{ width, height }}>
-          <Group clip={clipRect}>
-            {bars.map((b, i) => (
-              <RoundedRect
-                key={i}
-                x={b.x}
-                y={b.y}
-                width={b.w}
-                height={b.h}
-                r={b.w / 2}
-                color={b.color}
-              />
-            ))}
-          </Group>
-        </Canvas>
+    <View style={style}>
+      <View style={{ height }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+        {width > 0 && (
+          <Canvas style={{ width, height }}>
+            <Group clip={clipRect}>
+              {bars.map((b, i) => (
+                <RoundedRect
+                  key={i}
+                  x={b.x}
+                  y={b.y}
+                  width={b.w}
+                  height={b.h}
+                  r={b.w / 2}
+                  color={b.color}
+                />
+              ))}
+            </Group>
+          </Canvas>
+        )}
+      </View>
+      {xLabels && xLabels.length > 0 && (
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+          {xLabels.map((t, i) => (
+            <Text
+              key={i}
+              style={{ fontSize: 8, fontFamily: fontFamily.regular, color: palette.faint }}>
+              {t}
+            </Text>
+          ))}
+        </View>
       )}
     </View>
   );

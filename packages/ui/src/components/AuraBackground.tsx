@@ -14,11 +14,11 @@ const sources: Record<ScreenKey, ImageSourcePropType> = {
 const SCRIM = 'rgba(250,251,253,';
 
 const scrims: Record<ScreenKey, [number, number, number, number]> = {
-  home: [0.7, 0.32, 0.1, 0.28],
-  sleep: [0.68, 0.32, 0.14, 0.32],
-  readiness: [0.72, 0.36, 0.14, 0.32],
-  activity: [0.66, 0.3, 0.1, 0.28],
-  trends: [0.66, 0.3, 0.1, 0.28],
+  home: [0.78, 0.5, 0.36, 0.52],
+  sleep: [0.76, 0.5, 0.38, 0.54],
+  readiness: [0.8, 0.52, 0.38, 0.54],
+  activity: [0.74, 0.48, 0.36, 0.52],
+  trends: [0.74, 0.48, 0.36, 0.52],
 };
 
 interface AuraBackgroundProps {

@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { haptics } from '../haptics';
 import { cardTints, radius as radiusTokens, shadow, surfaces, type CardTint } from '../tokens';
 import { Chevron } from './Chevron';
 
@@ -91,7 +92,10 @@ export function GlassCard({
   if (onPress) {
     return (
       <AnimatedPressable
-        onPress={onPress}
+        onPress={() => {
+          haptics.tap();
+          onPress();
+        }}
         onPressIn={() => (pressed.value = 1)}
         onPressOut={() => (pressed.value = 0)}
         accessibilityRole="button"

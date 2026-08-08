@@ -1,0 +1,8 @@
+[project]
+name = "oura_core"
+source_dir = "src"
+
+[android]
+package_name = "rs.craby.ouracore"
+
+[ios]

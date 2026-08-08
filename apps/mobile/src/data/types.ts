@@ -61,8 +61,6 @@ export interface DaySummary {
 }
 
 export interface Dataset {
-  seed: number;
-  generatedAt: number;
   days: DaySummary[];
   series: Record<SeriesId, MetricSample[]>;
 }

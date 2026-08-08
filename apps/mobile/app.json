@@ -9,10 +9,12 @@
     "userInterfaceStyle": "light",
     "backgroundColor": "#F6F8FC",
     "ios": {
+      "bundleIdentifier": "com.kore.health",
       "icon": "./assets/expo.icon",
       "supportsTablet": false
     },
     "android": {
+      "package": "com.kore.health",
       "adaptiveIcon": {
         "backgroundColor": "#EEF1F8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -34,7 +36,14 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      [
+        "react-native-ble-plx",
+        {
+          "bluetoothAlwaysPermission": "Allow Kore to connect to your Oura ring over Bluetooth"
+        }
+      ],
+      "expo-background-task"
     ],
     "experiments": {
       "typedRoutes": true,

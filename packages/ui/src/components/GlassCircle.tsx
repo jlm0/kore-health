@@ -1,7 +1,9 @@
 import { BlurView } from 'expo-blur';
 import React from 'react';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { haptics } from '../haptics';
 import { shadow, surfaces } from '../tokens';
+import { touchSlop } from '../touch';
 
 interface GlassCircleProps {
   size?: number;
@@ -15,8 +17,15 @@ export function GlassCircle({ size = 32, children, onPress, accessibilityLabel, 
   const Wrapper = onPress ? Pressable : View;
   return (
     <Wrapper
-      onPress={onPress}
-      hitSlop={10}
+      onPress={
+        onPress
+          ? () => {
+              haptics.tap();
+              onPress();
+            }
+          : undefined
+      }
+      hitSlop={touchSlop(size)}
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={accessibilityLabel}
       style={[shadow.circle, { width: size, height: size }, style]}>

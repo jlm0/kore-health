@@ -1,5 +1,7 @@
 export * from './tokens';
+export * from './touch';
 export * from './charts/buildPath';
+export * from './haptics';
 export * from './components/AnimatedNumber';
 export * from './components/AuraBackground';
 export * from './components/CardHeading';

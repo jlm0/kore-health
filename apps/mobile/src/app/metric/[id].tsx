@@ -13,31 +13,96 @@ import {
   palette,
 } from '@kore/ui';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useDays, useLatestSample, useSeriesWindow } from '@/data/hooks';
+import { useDays, useDataset, useLatestSample, useMaturities, useSeriesWindow, useTempAbsWindow, useUnits } from '@/data/hooks';
+import { type MetricGroup } from '@/data/maturity';
 import { METRICS, type MetricId } from '@/data/metrics';
-import { fmtDate } from '@/data/selectors';
+import { fmtClock, fmtDate, latestPositiveDayValue } from '@/data/selectors';
+import { tempUnit, toDisplayTemp, toDisplayTempDelta, type Units } from '@/data/units';
+import { FEATURE } from '@/ring/constants';
+import { setRingFeature, stopLiveHeartRate, streamLiveHeartRate } from '@/ring/sync';
+import { useHealthStore, useLiveStore, type FeaturePrefs } from '@/store/health';
 
 function hexToRgb(hex: string): string {
   const n = parseInt(hex.slice(1), 16);
   return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
 }
 
+// Metric screens map onto the central maturity groups (NOW/TODAY/TREND).
+const METRIC_GROUP: Record<MetricId, MetricGroup> = {
+  hrv: 'hrv',
+  rhr: 'hr',
+  temp: 'temp',
+  spo2: 'spo2',
+};
+
+// Ring sensor backing each metric, toggled from the About card. Temp has no
+// toggle: skin temperature streams whenever the ring is worn — no feature
+// mode exists for it in the ring protocol.
+const SENSOR_FOR_METRIC: Partial<
+  Record<MetricId, { feature: number; prefKey: keyof FeaturePrefs; label: string }>
+> = {
+  hrv: { feature: FEATURE.RESTING_HR, prefKey: 'restingHr', label: 'Overnight HR sensor' },
+  rhr: { feature: FEATURE.DAYTIME_HR, prefKey: 'daytimeHr', label: 'Daytime HR sensor' },
+  spo2: { feature: FEATURE.SPO2, prefKey: 'spo2', label: 'Blood oxygen sensor' },
+};
+
 export default function MetricDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const metric = METRICS[id as MetricId];
+  // HRV and resting HR are night-backed metrics: their headline is the latest
+  // nightly value (same selector the home card uses), not the freshest raw
+  // sample — a daytime HR reading must never pose as "resting" HR.
+  const nightBacked = metric?.id === 'hrv' || metric?.id === 'rhr';
 
   const days = useDays();
+  const dataset = useDataset();
   const latest = useLatestSample(metric?.seriesId ?? 'hrv');
   const day24 = useSeriesWindow(metric?.seriesId ?? 'hrv', 24, 56);
 
-  const daily = useMemo(
-    () => (metric ? days.map((d) => metric.dailyValue(d)) : []),
-    [days, metric],
+  // Temp absolute mode: before a personal baseline exists (state 'collecting',
+  // 2+ nights needed), the deviation series is all zeros by design — show the
+  // real absolute skin temperature instead of a useless flat 0.0.
+  const maturities = useMaturities();
+  const maturity = metric ? maturities[METRIC_GROUP[metric.id]] : null;
+  const tempAbsMode = metric?.id === 'temp' && maturity != null && maturity.state !== 'ready';
+  const tempAbs = useTempAbsWindow(24, 56);
+  const tempNights = useHealthStore((s) => s.tempNights);
+  const units = useUnits();
+  const setUnits = useHealthStore((s) => s.setUnits);
+
+  // A metric has a daily trend only when its series has real points — a
+  // DaySummary field can be 0 without data (e.g. SpO2 is never invented), and
+  // a flat all-zero line must never pose as a trend.
+  const hasSeries = metric ? dataset.series[metric.seriesId].length > 0 : false;
+  // Nights with a real deviation: the first recorded night has no baseline
+  // yet, so its deviation is 0 by design (sorted ascending in ring.ts).
+  const tempBaselineDays = useMemo(
+    () => new Set(tempNights.slice(1).map((n) => n.dayStart)),
+    [tempNights],
   );
+  const daily = useMemo(() => {
+    if (tempAbsMode) return tempNights.map((n) => n.meanC);
+    if (!metric || !hasSeries) return [];
+    // 0 means "not measured" for hrv/rhr/spo2 — those days must not drag the
+    // min/avg stats to a fake 0. Temp uses the baseline-backed nights instead.
+    if (metric.id === 'temp') {
+      return days
+        .filter((d) => tempBaselineDays.has(d.dayStart))
+        .map((d) => d.tempDeviation);
+    }
+    return days.map((d) => metric.dailyValue(d)).filter((v) => v > 0);
+  }, [days, metric, hasSeries, tempAbsMode, tempNights, tempBaselineDays]);
+
+  const current = tempAbsMode
+    ? tempAbs.latest
+    : nightBacked
+      ? latestPositiveDayValue(days, metric!.dailyValue)
+      : latest;
+  const currentWindow = tempAbsMode ? tempAbs.window : day24;
 
   const stats = useMemo(() => {
     if (daily.length === 0) return { min: 0, max: 0, avg: 0 };
@@ -48,13 +113,112 @@ export default function MetricDetailScreen() {
     };
   }, [daily]);
 
+  // Live HR session state. The session itself lives in the stores: beats land
+  // in the non-persisted useLiveStore buffer and progress is read from
+  // connectionStatus ('connecting' → 'connected' while streaming). liveSession
+  // marks that THIS screen started the stream, so a history sync's status
+  // changes never masquerade as a live session here.
+  const ringDeviceId = useHealthStore((s) => s.ringDeviceId);
+  const connectionStatus = useHealthStore((s) => s.connectionStatus);
+  const liveHr = useLiveStore((s) => s.liveHr);
+  const [liveSession, setLiveSession] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
+  const liveBeats = useMemo(() => liveHr.slice(-30).map((s) => s.v), [liveHr]);
+
+  // Sensor toggle (About card): optimistic pref flip, applied to the ring over
+  // BLE; reverted when the ring doesn't confirm. Sync applies these prefs on
+  // every run, so an "Off" choice survives future syncs.
+  const featurePrefs = useHealthStore((s) => s.featurePrefs);
+  const setFeaturePref = useHealthStore((s) => s.setFeaturePref);
+  const [sensorError, setSensorError] = useState<string | null>(null);
+
   if (!metric) return <Redirect href="/" />;
 
-  const rgb = hexToRgb(metric.color);
-  const fmt = (v: number) => {
-    const rounded = Number(v.toFixed(metric.decimals)) + 0;
-    return `${metric.signed && rounded >= 0 ? '+' : ''}${rounded.toFixed(metric.decimals)}`;
+  const sensor = SENSOR_FOR_METRIC[metric.id] ?? null;
+  // Any BLE op (sync, live stream, another toggle) owns the link meanwhile.
+  const sensorBusy = connectionStatus !== 'disconnected';
+
+  const onToggleSensor = () => {
+    if (!sensor || sensorBusy) return;
+    if (!ringDeviceId) {
+      router.push('/pair');
+      return;
+    }
+    const next = !featurePrefs[sensor.prefKey];
+    setFeaturePref(sensor.prefKey, next);
+    setSensorError(null);
+    void setRingFeature(sensor.feature, next).then((ok) => {
+      if (!ok) {
+        setFeaturePref(sensor.prefKey, !next);
+        setSensorError(useHealthStore.getState().syncError ?? 'Could not reach the ring');
+      }
+    });
   };
+
+  const liveConnecting = liveSession && connectionStatus === 'connecting';
+  const liveStreaming = liveSession && connectionStatus === 'connected';
+  const liveBpm = liveHr.length > 0 ? liveHr[liveHr.length - 1].v : 0;
+
+  const onToggleLive = () => {
+    // Early stop: the stream loop exits and the client restores AUTOMATIC
+    // mode, exactly as on natural completion.
+    if (liveStreaming) {
+      stopLiveHeartRate();
+      return;
+    }
+    if (liveSession) return; // still connecting
+    // No paired ring → choosing one is the pairing screen's job, not a blind
+    // scan from here.
+    if (!ringDeviceId) {
+      router.push('/pair');
+      return;
+    }
+    setLiveError(null);
+    setLiveSession(true);
+    void streamLiveHeartRate(60).finally(() => {
+      setLiveSession(false);
+      // streamLiveHeartRate surfaces failures via syncError; capture it here
+      // so the card shows it readably instead of spinning forever. A stale
+      // error from an unrelated sync never appears on this card.
+      setLiveError(useHealthStore.getState().syncError);
+    });
+  };
+
+  const rgb = hexToRgb(metric.color);
+  // Temp display conversion: the store stays in °C — absolute readings use
+  // °F = °C×9/5+32, deviations the Δ rule (×9/5, no offset). Other metrics
+  // pass through untouched. Temp keeps 1 decimal in both units/modes.
+  const isTemp = metric.id === 'temp';
+  const toDisplay = (v: number): number =>
+    !isTemp ? v : tempAbsMode ? toDisplayTemp(v, units) : toDisplayTempDelta(v, units);
+  const fmt = (v: number) => {
+    const d = toDisplay(v);
+    const signed = tempAbsMode ? false : metric.signed;
+    return `${signed && d >= 0 ? '+' : ''}${d.toFixed(metric.decimals)}`;
+  };
+  const displayUnit = isTemp ? tempUnit(units) : metric.unit;
+  // The static rangeLabel mentions °C — recompute the bound with the Δ rule.
+  const rangeLabel = isTemp
+    ? `Baseline ± ${toDisplayTempDelta(0.3, units).toFixed(1)} ${tempUnit(units)}`
+    : metric.rangeLabel;
+
+  // Current chart axis: real clock times over the trailing 24h window — the
+  // last sample is now, the first is now−24h, linearly interpolated between.
+  const now = Date.now();
+  const hourMs = 3_600_000;
+  const currentXLabels = [24, 18, 12, 6, 0].map((h) => fmtClock(now - h * hourMs));
+  const currentXValues =
+    currentWindow.length >= 2
+      ? currentWindow.map((_, i) =>
+          fmtClock(now - 24 * hourMs + ((24 * hourMs) * i) / (currentWindow.length - 1)),
+        )
+      : [];
+
+  // TREND card: derived/longitudinal content renders only when the group's
+  // trend is ready; before that it shows what unlocks it — never a fake
+  // zero-line. (metric is non-null past the Redirect above.)
+  const trend = maturity!;
+  const showTrend = trend.trendReady && daily.length > 0;
 
   return (
     <Screen aura={metric.seriesId === 'hr' || metric.seriesId === 'spo2' ? 'sleep' : 'readiness'}>
@@ -74,71 +238,223 @@ export default function MetricDetailScreen() {
                 <View
                   style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: metric.color }}
                 />
-                <Label size={8} em={0.12} color={palette.faint}>Live</Label>
+                <Label size={8} em={0.12} color={palette.faint}>
+                  {nightBacked ? 'Night' : 'Live'}
+                </Label>
               </View>
             }>
-            Current
+            {nightBacked ? 'Latest night' : 'Current'}
           </CardHeading>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-            <AnimatedNumber
-              value={latest}
-              decimals={metric.decimals}
-              signed={metric.signed}
-              size={44}
-              weight="displayLight"
-            />
+            {current != null ? (
+              <AnimatedNumber
+                value={toDisplay(current)}
+                decimals={metric.decimals}
+                signed={tempAbsMode ? false : metric.signed}
+                size={44}
+                weight="displayLight"
+              />
+            ) : (
+              <Text style={{ fontSize: 44, fontFamily: fontFamily.displayLight, color: palette.ink }}>
+                {(0).toFixed(metric.decimals)}
+              </Text>
+            )}
             <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.muted }}>
-              {metric.unit}
+              {displayUnit}
             </Text>
           </View>
-          <Sparkline
-            data={day24}
-            height={110}
-            color={metric.color}
-            strokeWidth={2}
-            dot="end"
-            fillGradient={[`rgba(${rgb},0.22)`, `rgba(${rgb},0)`]}
-            delay={250}
-            duration={1300}
-            style={{ marginTop: 10 }}
-          />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-            {['-24h', '-18h', '-12h', '-6h', 'Now'].map((t) => (
-              <Text key={t} style={{ fontSize: 8, fontFamily: fontFamily.regular, color: palette.faint }}>
-                {t}
-              </Text>
-            ))}
-          </View>
+          {tempAbsMode ? (
+            <Text style={{ fontSize: 10, fontFamily: fontFamily.regular, color: palette.faint, lineHeight: 15 }}>
+              Absolute skin temperature — your personal baseline builds over the first nights,
+              then this switches to deviation.
+            </Text>
+          ) : null}
+          {nightBacked && current == null ? (
+            // A 0 here means "no overnight measurement yet" — say so, or the
+            // 0 next to a daytime-HR chart below reads as broken.
+            <Text style={{ fontSize: 10, fontFamily: fontFamily.regular, color: palette.faint, lineHeight: 15 }}>
+              {maturity?.copy.unlock ??
+                'Measured during sleep — wear the ring tonight to get your first reading.'}
+            </Text>
+          ) : null}
+          {currentWindow.length >= 2 ? (
+            <Sparkline
+              data={currentWindow}
+              height={110}
+              color={metric.color}
+              strokeWidth={2}
+              dot="end"
+              fillGradient={[`rgba(${rgb},0.22)`, `rgba(${rgb},0)`]}
+              delay={250}
+              duration={1300}
+              interactive
+              xLabels={currentXLabels}
+              xValues={currentXValues}
+              formatValue={fmt}
+              yLabels={[fmt(Math.min(...currentWindow)), fmt(Math.max(...currentWindow))]}
+              style={{ marginTop: 10 }}
+            />
+          ) : (
+            <Text
+              style={{
+                fontSize: 12,
+                fontFamily: fontFamily.regular,
+                color: palette.slate,
+                lineHeight: 18,
+                marginTop: 10,
+              }}>
+              No samples in the last 24 hours yet — sync your ring to fill this chart.
+            </Text>
+          )}
         </GlassCard>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(80).duration(500)}>
+      {metric.seriesId === 'hr' ? (
+        <Animated.View entering={FadeInDown.delay(80).duration(500)}>
+          <GlassCard radius={28} padding={20} tint={metric.tint} contentStyle={{ gap: 10 }}>
+            <CardHeading
+              icon="heart"
+              tint={metric.tint}
+              right={
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                  <View
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
+                      backgroundColor: liveStreaming ? palette.mint.deep : palette.faint,
+                    }}
+                  />
+                  <Label size={8} em={0.12} color={palette.faint}>
+                    {liveStreaming ? 'Streaming' : liveConnecting ? 'Starting' : 'Idle'}
+                  </Label>
+                </View>
+              }>
+              Live heart rate
+            </CardHeading>
+            {liveSession || liveHr.length > 0 ? (
+              <>
+                {liveHr.length > 0 ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+                    <AnimatedNumber value={liveBpm} size={44} weight="displayLight" />
+                    <Text
+                      style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.muted }}>
+                      bpm
+                    </Text>
+                  </View>
+                ) : null}
+                {liveBeats.length >= 2 ? (
+                  <Sparkline
+                    data={liveBeats}
+                    height={48}
+                    color={metric.color}
+                    strokeWidth={2}
+                    dot="end"
+                    fillGradient={[`rgba(${rgb},0.22)`, `rgba(${rgb},0)`]}
+                    duration={400}
+                  />
+                ) : (
+                  // No big 0 bpm here — 0 is a reading, not a placeholder.
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontFamily: fontFamily.regular,
+                      color: palette.faint,
+                      lineHeight: 16,
+                    }}>
+                    {liveConnecting
+                      ? 'Connecting to your ring…'
+                      : 'Waiting for the first beat — keep the ring snug on your finger.'}
+                  </Text>
+                )}
+              </>
+            ) : (
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: fontFamily.regular,
+                  color: palette.slate,
+                  lineHeight: 18,
+                }}>
+                Start a 60-second session to watch your heart rate beat by beat — keep the ring on
+                your finger.
+              </Text>
+            )}
+            <Pill
+              variant={liveStreaming ? 'peach' : 'mint'}
+              em={0.16}
+              onPress={onToggleLive}
+              disabled={liveConnecting}
+              style={{ alignSelf: 'flex-start' }}>
+              {liveStreaming
+                ? 'Stop'
+                : liveConnecting
+                  ? 'Starting…'
+                  : liveHr.length > 0
+                    ? 'Restart (60 s)'
+                    : 'Start live (60 s)'}
+            </Pill>
+            {liveError != null && !liveSession ? (
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontFamily: fontFamily.regular,
+                  color: palette.peach.deep,
+                  lineHeight: 16,
+                }}>
+                {liveError}
+              </Text>
+            ) : null}
+          </GlassCard>
+        </Animated.View>
+      ) : null}
+
+      <Animated.View entering={FadeInDown.delay(120).duration(500)}>
         <GlassCard radius={28} padding={20} contentStyle={{ gap: 6 }}>
           <CardHeading
             icon="trending-up"
             tint={metric.tint}
             right={
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-                <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
-                  {fmt(stats.avg)}
-                </Text>
-                <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.muted }}>
-                  avg
-                </Text>
-              </View>
+              showTrend ? (
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
+                  <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
+                    {fmt(stats.avg)}
+                  </Text>
+                  <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.muted }}>
+                    avg
+                  </Text>
+                </View>
+              ) : undefined
             }>
             30-Day Trend
           </CardHeading>
-          <Sparkline data={daily} height={72} color={metric.color} delay={450} />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
-            <StatBlock value={fmt(stats.min)} label="Low" size={20} align="center" />
-            <StatBlock value={fmt(stats.avg)} label="Average" size={20} align="center" />
-            <StatBlock value={fmt(stats.max)} label="High" size={20} align="center" />
-          </View>
+          {showTrend ? (
+            <>
+              <Sparkline data={daily} height={72} color={metric.color} delay={450} />
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
+                <StatBlock value={fmt(stats.min)} label="Low" size={20} align="center" />
+                <StatBlock value={fmt(stats.avg)} label="Average" size={20} align="center" />
+                <StatBlock value={fmt(stats.max)} label="High" size={20} align="center" />
+              </View>
+            </>
+          ) : (
+            <Text
+              style={{
+                fontSize: 12,
+                fontFamily: fontFamily.regular,
+                color: palette.slate,
+                lineHeight: 18,
+                marginTop: 4,
+              }}>
+              {trend.trendReady
+                ? 'No daily trend yet — it builds up as you sync your ring over the coming days.'
+                : (trend.copy.unlock ?? trend.copy.none)}
+            </Text>
+          )}
         </GlassCard>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(160).duration(500)}>
+      <Animated.View entering={FadeInDown.delay(200).duration(500)}>
         <GlassCard radius={26} padding={20} contentStyle={{ gap: 10 }}>
           <Label size={9} em={0.18}>About</Label>
           <Text
@@ -150,7 +466,60 @@ export default function MetricDetailScreen() {
             }}>
             {metric.insight}
           </Text>
-          <Pill variant="neutral" em={0.08}>{metric.rangeLabel}</Pill>
+          <Pill variant="neutral" em={0.08}>{rangeLabel}</Pill>
+          {isTemp ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: 4,
+              }}>
+              <Label size={9} em={0.18}>Units</Label>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {(['imperial', 'metric'] as Units[]).map((u) => (
+                  <Pill
+                    key={u}
+                    variant={units === u ? 'mint' : 'neutral'}
+                    em={0.1}
+                    onPress={() => setUnits(u)}
+                    accessibilityLabel={`Show temperatures in ${tempUnit(u)}`}>
+                    {tempUnit(u)}
+                  </Pill>
+                ))}
+              </View>
+            </View>
+          ) : null}
+          {sensor ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: 4,
+              }}>
+              <Label size={9} em={0.18}>{sensor.label}</Label>
+              <Pill
+                variant={featurePrefs[sensor.prefKey] ? 'mint' : 'neutral'}
+                em={0.1}
+                disabled={sensorBusy}
+                onPress={onToggleSensor}
+                accessibilityLabel={`${sensor.label}: ${featurePrefs[sensor.prefKey] ? 'on' : 'off'}. Tap to toggle`}>
+                {sensorBusy ? '…' : featurePrefs[sensor.prefKey] ? 'On' : 'Off'}
+              </Pill>
+            </View>
+          ) : null}
+          {sensorError != null ? (
+            <Text
+              style={{
+                fontSize: 11,
+                fontFamily: fontFamily.regular,
+                color: palette.peach.deep,
+                lineHeight: 16,
+              }}>
+              {sensorError}
+            </Text>
+          ) : null}
         </GlassCard>
       </Animated.View>
     </Screen>

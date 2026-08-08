@@ -9,6 +9,10 @@
   "scripts": {
     "start": "bun run --cwd apps/mobile start",
     "ios": "bun run --cwd apps/mobile ios",
-    "typecheck": "tsc -p packages/ui --noEmit && tsc -p apps/mobile --noEmit"
+    "typecheck": "tsc -p packages/ui --noEmit && tsc -p apps/mobile --noEmit",
+    "test": "bun test apps/mobile"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
   }
 }

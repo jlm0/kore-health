@@ -22,7 +22,9 @@ import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import { Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { EmptyDataCard } from '@/components/EmptyDataCard';
 import { useDataset, useToday } from '@/data/hooks';
+import { MATURITY_COPY } from '@/data/maturity';
 import { downsample, fmtClock, fmtDate, fmtDuration, fmtHoursMinutes, windowSamples } from '@/data/selectors';
 
 const STAGE_ROWS = ['Awake', 'REM', 'Light', 'Deep'];
@@ -31,27 +33,39 @@ export default function SleepScreen() {
   const router = useRouter();
   const today = useToday();
   const dataset = useDataset();
-  const sleep = today.sleep;
+  const sleep = today?.sleep ?? null;
+  // A window under 30 min (or with no detected asleep epochs) yields an empty
+  // summary whose start/end are set but every value is 0 — that is not a
+  // tracked night, so durationMin > 0 is part of the gate.
+  const hasSleep = sleep != null && sleep.start > 0 && sleep.end > sleep.start && sleep.durationMin > 0;
 
   const hypnoSegments: HypnogramSegment[] = useMemo(() => {
+    if (!hasSleep) return [];
     const span = sleep.end - sleep.start;
     return sleep.stages.map((s) => ({
       stage: s.stage,
       startFrac: (s.start - sleep.start) / span,
       endFrac: (s.end - sleep.start) / span,
     }));
-  }, [sleep]);
+  }, [sleep, hasSleep]);
 
   const nightHr = useMemo(
-    () => downsample(windowSamples(dataset.series.hr, sleep.start, sleep.end).map((s) => s.v), 36),
-    [dataset, sleep],
+    () =>
+      hasSleep
+        ? downsample(windowSamples(dataset.series.hr, sleep.start, sleep.end).map((s) => s.v), 36)
+        : [],
+    [dataset, sleep, hasSleep],
   );
   const nightHrv = useMemo(
-    () => downsample(windowSamples(dataset.series.hrv, sleep.start, sleep.end).map((s) => s.v), 36),
-    [dataset, sleep],
+    () =>
+      hasSleep
+        ? downsample(windowSamples(dataset.series.hrv, sleep.start, sleep.end).map((s) => s.v), 36)
+        : [],
+    [dataset, sleep, hasSleep],
   );
 
   const timeLabels = useMemo(() => {
+    if (!hasSleep) return [];
     const labels: string[] = [];
     for (let i = 0; i < 5; i++) {
       const t = sleep.start + ((sleep.end - sleep.start) * i) / 4;
@@ -60,9 +74,34 @@ export default function SleepScreen() {
       labels.push(`${h} ${d.getHours() >= 12 ? 'PM' : 'AM'}`);
     }
     return labels;
-  }, [sleep]);
+  }, [sleep, hasSleep]);
+
+  if (today == null || !hasSleep) {
+    return (
+      <Screen aura="sleep">
+        <ScreenHeader
+          title="Sleep"
+          left={<BackButton onPress={() => router.back()} />}
+          right={today ? <Label size={10} em={0.14}>{fmtDate(today.dayStart)}</Label> : undefined}
+        />
+        <EmptyDataCard
+          icon="sleep"
+          tint="indigo"
+          title="No sleep tracked"
+          message={MATURITY_COPY.sleep.empty}
+        />
+      </Screen>
+    );
+  }
 
   const dur = fmtDuration(sleep.durationMin);
+
+  // One clock label per sparkline point, spanning the sleep window (used for
+  // scrub tooltips). Points are evenly spaced after downsampling.
+  const nightXValues = (n: number): string[] =>
+    Array.from({ length: n }, (_, i) =>
+      fmtClock(sleep.start + ((sleep.end - sleep.start) * i) / Math.max(1, n - 1)),
+    );
 
   const stageSegments = [
     { weight: sleep.deepMin, color: stageColors.deep },
@@ -168,7 +207,7 @@ export default function SleepScreen() {
         style={{ flexDirection: 'row', gap: 13 }}>
         <GlassCard radius={24} padding={16} tint="indigo" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
           <CardHeading icon="heart" tint="indigo">Heart Rate</CardHeading>
-          <MetricValue value={String(sleep.lowestHr)} unit="low" />
+          <MetricValue value={sleep.lowestHr > 0 ? String(sleep.lowestHr) : '0'} unit="low" />
           <Sparkline
             data={nightHr}
             height={44}
@@ -176,11 +215,15 @@ export default function SleepScreen() {
             dot="min"
             dotColor={palette.indigo.deep}
             delay={500}
+            interactive
+            xLabels={nightHr.length >= 2 ? timeLabels : undefined}
+            xValues={nightXValues(nightHr.length)}
+            formatValue={(v) => String(Math.round(v))}
           />
         </GlassCard>
         <GlassCard radius={24} padding={16} tint="mint" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
           <CardHeading icon="heart-pulse" tint="mint">HRV</CardHeading>
-          <MetricValue value={String(sleep.peakHrv)} unit="peak" />
+          <MetricValue value={sleep.peakHrv > 0 ? String(sleep.peakHrv) : '0'} unit="peak" />
           <Sparkline
             data={nightHrv}
             height={44}
@@ -188,6 +231,10 @@ export default function SleepScreen() {
             dot="max"
             dotColor={palette.mint.deep}
             delay={560}
+            interactive
+            xLabels={nightHrv.length >= 2 ? timeLabels : undefined}
+            xValues={nightXValues(nightHrv.length)}
+            formatValue={(v) => String(Math.round(v))}
           />
         </GlassCard>
       </Animated.View>

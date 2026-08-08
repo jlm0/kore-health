@@ -11,6 +11,7 @@
     "expo-linear-gradient": "*",
     "react": "*",
     "react-native": "*",
+    "react-native-pulsar": "*",
     "react-native-reanimated": "*",
     "react-native-safe-area-context": "*"
   },

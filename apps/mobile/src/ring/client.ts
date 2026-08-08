@@ -1,12 +1,15 @@
 import { OuraCore } from '@kore/oura-core';
 import { hexToBytes, randomKeyHex } from './bytes';
 import {
+  BATCH_SETTLE_MS,
   EVENT_BATCH_TAG,
   EXT_TAG,
   FEATURE,
   FEATURE_MODE,
   HISTORY_EVENT_PREFIX,
+  MAX_SEGMENT_JUMPS,
   RESPONSE_QUIET_MS,
+  SEGMENT_JUMP_OVERLAP_DS,
 } from './constants';
 import type { BleTransport } from './transport';
 
@@ -56,6 +59,19 @@ export interface RingEvent {
 export interface SyncOutcome {
   eventsSynced: number;
   nextCursor: number;
+}
+
+export interface DrainOptions {
+  /**
+   * Evidence that history extends at least to this ring-clock decisecond —
+   * e.g. the persisted cursor when rebuilding from 0. The ring's legacy
+   * GetEvent walk stops with bytesLeft=0 at segment boundaries while newer
+   * segments exist (proven on a live ring: a walk from 0 ended at ts 8.02M
+   * with events present at 12.86M+). When the walk terminates with its end
+   * still below the evidence, the drain jumps forward (bounded overlap) and
+   * continues walking there instead of stopping.
+   */
+  expectEndAtLeast?: number;
 }
 
 export interface HeartRateSample {
@@ -163,9 +179,14 @@ function sleep(ms: number): Promise<void> {
  * encoding/decoding goes through the OuraCore native module.
  */
 export class OuraRingClient {
+  // Highest event timestamp seen on this connection across all drains —
+  // evidence of newer data for the multi-segment walk (see drainEvents).
+  private maxEventTsSeen = 0;
+
   constructor(
     private transport: BleTransport,
     private quietMs = RESPONSE_QUIET_MS,
+    private batchSettleMs = BATCH_SETTLE_MS,
   ) {}
 
   private build(op: string, params: Record<string, unknown> = {}): string {
@@ -177,13 +198,28 @@ export class OuraRingClient {
   // per-request means there is no stale backlog to drain. A continuously
   // chattering ring (e.g. a leftover live stream) would keep the quiet timer
   // re-arming forever, so a hard cap resolves with whatever has arrived.
-  private request(requestHex: string, maxWaitMs = 15_000): Promise<RingPacket[]> {
+  //
+  // eventBatch enables the history fast path: the batch summary (0x11) rides
+  // with/after the batch's event frames and reports how many events the batch
+  // holds. Once the summary is seen and that count has arrived, the batch is
+  // provably complete and the request resolves immediately (the caller fires
+  // the next get_event right away) instead of waiting out the full quiet
+  // window. The quiet window and the cap remain as backstops, so a batch can
+  // never be split across requests by a premature resolve.
+  private request(
+    requestHex: string,
+    maxWaitMs = 15_000,
+    eventBatch = false,
+  ): Promise<RingPacket[]> {
     return new Promise<RingPacket[]>((resolve, reject) => {
       const frames: string[] = [];
       let timer: ReturnType<typeof setTimeout>;
+      let settleTimer: ReturnType<typeof setTimeout> | null = null;
+      let batchEventFrames = 0;
       const finish = (reason: string) => {
         clearTimeout(timer);
         clearTimeout(capTimer);
+        if (settleTimer) clearTimeout(settleTimer);
         unsubscribe();
         const packets = toPackets(frames);
         if (__DEV__) {
@@ -205,12 +241,38 @@ export class OuraRingClient {
       const capTimer = setTimeout(() => finish('cap'), maxWaitMs);
       const unsubscribe = this.transport.subscribe((frameHex) => {
         frames.push(frameHex);
+        if (eventBatch) {
+          // Frame layout is [tag][len][payload…] — the tag is the first byte.
+          const tag = frameHex.length >= 2 ? parseInt(frameHex.slice(0, 2), 16) : -1;
+          if (tag >= HISTORY_EVENT_PREFIX) {
+            batchEventFrames++;
+            // Events still arriving after the summary: cancel the fast
+            // finish — the quiet window takes over as backstop.
+            if (settleTimer) {
+              clearTimeout(settleTimer);
+              settleTimer = null;
+            }
+          } else if (tag === EVENT_BATCH_TAG) {
+            const json = OuraCore.parseEventBatch(frameHex);
+            const expected = json
+              ? (JSON.parse(json) as { eventsReceived?: number }).eventsReceived
+              : undefined;
+            if (expected !== undefined && batchEventFrames >= expected) {
+              finish('batch-complete');
+              return;
+            }
+            // Summary seen but events may still be in flight (or the summary
+            // did not parse) — settle briefly, then go.
+            settleTimer = setTimeout(() => finish('batch-settled'), this.batchSettleMs);
+          }
+        }
         arm();
       });
       arm();
       this.transport.writeFrame(requestHex).catch((error) => {
         clearTimeout(timer);
         clearTimeout(capTimer);
+        if (settleTimer) clearTimeout(settleTimer);
         unsubscribe();
         reject(error);
       });
@@ -348,17 +410,48 @@ export class OuraRingClient {
   // newest timestamp of each fully-drained batch (onBatch fires so callers can
   // persist incrementally), and stop when the ring reports no bytes left or a
   // batch makes no progress.
+  //
+  // Two hardening layers on top of the legacy walk, both proven against a
+  // live ring (see docs/captures/ring-capture-2026-08-08.json):
+  //
+  // - Multi-segment: the walk can report bytesLeft=0 at a segment boundary
+  //   while newer segments exist. When there is evidence of newer data (the
+  //   caller's expectEndAtLeast hint, or a higher event ts already seen on
+  //   this connection), the drain jumps forward with a bounded one-day
+  //   overlap and keeps walking — the same heuristic the dev audit uses.
+  // - Dedupe: overlapping segments replay events; each event is delivered to
+  //   onEvent at most once per drain, keyed by (tag, timestamp, bodyHex).
+  //
+  // nextCursor only ever reflects positions backed by delivered events: a
+  // segment jump moves the walk's start speculatively, but the committed
+  // cursor advances only when a batch makes progress — a jump into empty
+  // space must not strand real data below a speculative cursor.
   async drainEvents(
     cursor: number,
     onEvent: (event: RingEvent) => void,
     onBatch?: (nextCursor: number) => void,
+    options?: DrainOptions,
   ): Promise<SyncOutcome> {
     let start = cursor;
+    let committed = cursor;
     let total = 0;
+    let jumps = 0;
+    const seen = new Set<string>();
+    const emit = (event: RingEvent): void => {
+      this.maxEventTsSeen = Math.max(this.maxEventTsSeen, event.timestamp);
+      const key = `${event.tag}:${event.timestamp}:${event.bodyHex}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      total++;
+      onEvent(event);
+    };
     // Safety bound against a misbehaving ring that never reports drained.
     for (let i = 0; i < 100_000; i++) {
+      const t0 = Date.now();
       const packets = await this.request(
         this.build('get_event', { startDs: start, maxEvents: 255, flags: -1 }),
+        15_000,
+        true,
       );
 
       let bytesLeft = 0;
@@ -372,8 +465,7 @@ export class OuraRingClient {
           const event = ringEventFromPacket(p);
           maxTs = Math.max(maxTs, event.timestamp);
           batchEvents++;
-          total++;
-          onEvent(event);
+          emit(event);
         }
       }
 
@@ -381,16 +473,32 @@ export class OuraRingClient {
       const next = maxTs + 1;
       const progressed = batchEvents > 0 && next > start;
       console.log(
-        `[sync] batch: start=${start} events=${batchEvents} bytesLeft=${bytesLeft} maxTs=${maxTs} progressed=${progressed}`,
+        `[sync] batch: start=${start} events=${batchEvents} bytesLeft=${bytesLeft} maxTs=${maxTs} progressed=${progressed} elapsed=${Date.now() - t0}ms`,
       );
       if (progressed) {
         start = next;
-        onBatch?.(start);
+        committed = next;
+        onBatch?.(next);
+        if (bytesLeft !== 0) continue;
+      } else if (bytesLeft !== 0) {
+        // Bytes reported but no forward progress — the ring is stuck; stop.
+        break;
       }
-      // Stop when drained, or when we can make no further progress.
-      if (bytesLeft === 0 || !progressed) break;
+      // Termination (bytesLeft=0). When evidence says newer segments exist
+      // beyond the walk's end, jump forward (bounded overlap) and continue.
+      const evidence = Math.max(options?.expectEndAtLeast ?? 0, this.maxEventTsSeen);
+      const jumpTarget = evidence - SEGMENT_JUMP_OVERLAP_DS;
+      if (jumps < MAX_SEGMENT_JUMPS && jumpTarget > start) {
+        jumps++;
+        console.log(
+          `[sync] walk terminated at ${start} below expected end >=${evidence} — segment jump to ${jumpTarget} (#${jumps})`,
+        );
+        start = jumpTarget;
+        continue;
+      }
+      break;
     }
-    return { eventsSynced: total, nextCursor: start };
+    return { eventsSynced: total, nextCursor: committed };
   }
 
   // --- live / latest -----------------------------------------------------

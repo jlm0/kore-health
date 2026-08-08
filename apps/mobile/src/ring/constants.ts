@@ -16,6 +16,21 @@ export const CONNECT_TIMEOUT_MS = 30_000;
 export const REQUEST_MTU = 185;
 // Quiet window for collecting responses, mirrors DEFAULT_QUIET in client.rs.
 export const RESPONSE_QUIET_MS = 1500;
+// History-batch fast path: once the batch summary (0x11) has arrived, the
+// batch is over — the summary rides with/after the event frames. When the
+// summary's eventsReceived count is already satisfied the request resolves
+// immediately; otherwise this short settle window covers frames still in
+// flight before the next batch is requested (instead of the full quiet wait).
+export const BATCH_SETTLE_MS = 400;
+
+// The legacy GetEvent walk can report bytesLeft=0 at a segment boundary while
+// newer segments exist (proven: a walk from 0 ended at ring-ts 8.02M with
+// events present at 12.86M+). When there is evidence of newer data, the walk
+// jumps forward and continues, overlapping by up to one day (deciseconds) for
+// continuity — duplicates from the overlap are filtered by event identity.
+export const SEGMENT_JUMP_OVERLAP_DS = 864_000;
+// Bound on segment jumps per drain so a stale/wrong hint cannot loop forever.
+export const MAX_SEGMENT_JUMPS = 50;
 
 // History-event frames have tag >= 0x41; batch summaries ride tag 0x11;
 // extended ops use outer tag 0x2f with the sub-op as the first payload byte.

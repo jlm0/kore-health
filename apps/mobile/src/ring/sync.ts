@@ -4,6 +4,7 @@ import { useHealthStore, useLiveStore } from '../store/health';
 import { waitForBluetoothReady, withTimeout, describeBleError } from './bluetooth';
 import { OuraRingClient, type LatestValues } from './client';
 import { FEATURE, FEATURE_MODE, CONNECT_TIMEOUT_MS } from './constants';
+import { dedupeEvents, hasInteriorDateGap } from './resync';
 import { BleTransport } from './transport';
 
 // Ring sync orchestration: connect to the paired ring → authenticate → sync
@@ -20,6 +21,17 @@ let liveStop: (() => void) | null = null;
 /** End an in-progress live HR stream early. No-op when none is running. */
 export function stopLiveHeartRate(): void {
   liveStop?.();
+}
+
+export interface SyncOptions {
+  /**
+   * Force a deep resync: drain from cursor 0 (multi-segment, deduped) and
+   * fold with `prior: null` — a full rebuild. This is the only safe way to
+   * recover events stranded BELOW the cursor: re-feeding old events through
+   * the incremental fold would double-count, so the dataset is rebuilt from
+   * scratch instead.
+   */
+  forceDeepResync?: boolean;
 }
 
 // Connect to the paired device. Pairing is the pairing screen's job: with no
@@ -50,7 +62,6 @@ async function connectTransport(transport: BleTransport): Promise<void> {
 async function connectWithRediscovery(transport: BleTransport): Promise<void> {
   try {
     await connectTransport(transport);
-    return;
   } catch (firstError) {
     const { ringDeviceName } = useHealthStore.getState();
     if (!ringDeviceName) throw firstError;
@@ -67,6 +78,15 @@ async function connectWithRediscovery(transport: BleTransport): Promise<void> {
       CONNECT_TIMEOUT_MS,
       'Connection timed out — keep the ring nearby, or re-pair from the pairing screen',
     );
+  }
+  // The pairing screen persists the advertised name at pairing time, but
+  // stores paired before that (or via a recovered path) have it null — which
+  // silently disables the re-discovery fallback above. Backfill it from the
+  // live link: the connected Device carries the advertised name.
+  const connectedName = transport.deviceName;
+  if (connectedName && connectedName !== useHealthStore.getState().ringDeviceName) {
+    console.log(`[sync] persisting ring device name "${connectedName}" for RPA re-discovery`);
+    useHealthStore.getState().setRingDeviceName(connectedName);
   }
 }
 
@@ -85,8 +105,15 @@ async function authenticateClient(client: OuraRingClient): Promise<void> {
  * running. Errors are surfaced via connectionStatus/syncError in the store
  * rather than thrown; the catch + finally below guarantee the status can
  * never stick at 'connecting'/'syncing'.
+ *
+ * Normal syncs are incremental (drain from the persisted cursor). A deep
+ * resync — full rebuild from cursor 0, folded with prior: null — runs instead
+ * when forced, or when the persisted day list has an interior date gap (the
+ * signature of data stranded below the cursor by the legacy walk's early
+ * segment termination; the forward-only cursor can never recover it
+ * incrementally, and the non-idempotent fold forbids re-feeding old events).
  */
-export async function syncRing(): Promise<void> {
+export async function syncRing(options?: SyncOptions): Promise<void> {
   if (syncing) return;
   syncing = true;
   const store = useHealthStore.getState;
@@ -152,19 +179,43 @@ export async function syncRing(): Promise<void> {
     }
 
     store().setConnectionStatus('syncing');
-    console.log(`[sync] draining events from cursor ${store().syncCursor}`);
+    const previousCursor = store().syncCursor;
+    const deep =
+      options?.forceDeepResync === true ||
+      (store().dataset != null && hasInteriorDateGap(store().dataset!.days));
+    if (deep) {
+      console.log(
+        `[sync] deep resync (${options?.forceDeepResync ? 'forced' : 'interior date gap'}): ` +
+          `full rebuild from cursor 0, expected end >=${previousCursor}`,
+      );
+    } else {
+      console.log(`[sync] draining events from cursor ${previousCursor}`);
+    }
     const events: RingEventLike[] = [];
-    await client.drainEvents(
-      store().syncCursor,
+    const outcome = await client.drainEvents(
+      deep ? 0 : previousCursor,
       (event) => events.push({ tag: event.tag, name: event.name, timestamp: event.timestamp, decoded: event.decoded }),
-      (nextCursor) => store().setSyncCursor(nextCursor),
+      // A deep resync must not move the persisted cursor mid-rebuild: if it
+      // is interrupted, the OLD dataset stays paired with the OLD cursor —
+      // never a stale dataset with a rewound cursor (which the next
+      // incremental sync would double-fold from).
+      deep ? undefined : (nextCursor) => store().setSyncCursor(nextCursor),
+      // The old cursor is proof newer segments exist: let the walk jump past
+      // early segment-boundary terminations to reach them.
+      deep ? { expectEndAtLeast: previousCursor } : undefined,
     );
-    console.log(`[sync] drained ${events.length} events, folding`);
+    const uniqueEvents = dedupeEvents(events);
+    if (uniqueEvents.length !== events.length) {
+      console.log(
+        `[sync] dropped ${events.length - uniqueEvents.length} duplicate events from overlapping segments`,
+      );
+    }
+    console.log(`[sync] drained ${uniqueEvents.length} events, folding`);
     // Diagnostic: event-type breakdown + computed day rows, so score/data
     // accuracy can be sanity-checked from the logs.
     const byName = new Map<string, number>();
     let metBins = 0;
-    for (const e of events) {
+    for (const e of uniqueEvents) {
       byName.set(e.name, (byName.get(e.name) ?? 0) + 1);
       if (e.name === 'activity_information') {
         const mets = (e.decoded as Record<string, unknown> | null)?.met;
@@ -176,8 +227,10 @@ export async function syncRing(): Promise<void> {
     );
 
     const result = foldRingEvents({
+      // Deep resync rebuilds from scratch — folding old events onto the
+      // existing (non-idempotent) fold state would double-count them.
       prior:
-        store().dataset != null
+        !deep && store().dataset != null
           ? {
               dataset: store().dataset!,
               tempAbsSeries: store().tempAbsSeries,
@@ -185,11 +238,17 @@ export async function syncRing(): Promise<void> {
               activityByDay: store().activityByDay,
             }
           : null,
-      events,
+      events: uniqueEvents,
       goalCal: store().activityGoalCal,
     });
     // Single atomic commit → single AsyncStorage write for the whole sync.
     store().applySyncResult(result.state);
+    if (deep) {
+      // Only now is it safe to move the cursor: the rebuilt dataset and the
+      // new cursor advance together.
+      store().setSyncCursor(outcome.nextCursor);
+      console.log(`[sync] deep resync committed, cursor=${outcome.nextCursor}`);
+    }
     console.log(
       `[sync] done: ${result.eventsApplied} events applied, clock=${result.clockAnchor}, days=${result.state.dataset.days.length}`,
     );
@@ -264,6 +323,15 @@ export async function syncRing(): Promise<void> {
     transport.destroy();
     syncing = false;
   }
+}
+
+/**
+ * Force a deep resync on the next sync: full rebuild from cursor 0
+ * (multi-segment, deduped) folded with `prior: null`. Recovers events
+ * stranded below the persisted cursor — see SyncOptions.forceDeepResync.
+ */
+export async function deepResync(): Promise<void> {
+  return syncRing({ forceDeepResync: true });
 }
 
 /**

@@ -36,6 +36,13 @@ export class BleTransport {
     return this.device?.id ?? null;
   }
 
+  // Advertised name of the connected ring — the stable identity across BLE
+  // address (RPA) rotation, when the OS has it (CoreBluetooth may return null
+  // until the name is cached from an advertisement).
+  get deviceName(): string | null {
+    return this.device?.name ?? null;
+  }
+
   get isConnected(): boolean {
     return this.device != null;
   }

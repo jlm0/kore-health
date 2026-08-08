@@ -179,16 +179,33 @@ export default function PairScreen() {
           // Abort the OS-level connect our timeout abandoned (iOS keeps it
           // running in the background otherwise, wedging later attempts).
           await t.cancelPending(ring.id);
-          // Bond wiped on the ring (post-factory-reset): iOS re-bonds on a
-          // plain retry, so do one automatically before surfacing an error.
+          // Bond wiped on the ring (post-factory-reset): iOS must drop its
+          // stale bond before a re-bond can happen, and that cleanup is async
+          // — retry a few times with spacing before surfacing an error.
           if (isPairingInfoRemoved(connectError)) {
-            console.log('[pair] bond wiped on ring — retrying connect to re-bond');
-            await new Promise((r) => setTimeout(r, 1500));
-            await withTimeout(
-              t.connect(ring.id),
-              CONNECT_TIMEOUT_MS,
-              'iOS pairing is stuck — remove the ring in Settings → Bluetooth, then try again',
-            );
+            let lastError: unknown = connectError;
+            for (let attempt = 1; attempt <= 4; attempt++) {
+              console.log(`[pair] bond wiped on ring — re-bond attempt ${attempt}/4`);
+              await new Promise((r) => setTimeout(r, 1500));
+              try {
+                await withTimeout(
+                  t.connect(ring.id),
+                  CONNECT_TIMEOUT_MS,
+                  'Connection timed out — keep the ring nearby and try again',
+                );
+                lastError = null;
+                break;
+              } catch (retryError) {
+                lastError = retryError;
+                if (!isPairingInfoRemoved(retryError)) throw retryError;
+                await t.cancelPending(ring.id);
+              }
+            }
+            if (lastError) {
+              throw new Error(
+                'iOS pairing is stuck — remove the ring in Settings → Bluetooth, then try again',
+              );
+            }
           } else {
             throw connectError;
           }

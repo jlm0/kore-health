@@ -1,7 +1,7 @@
 import { OuraCore } from '@kore/oura-core';
 import { hexToBytes, randomKeyHex } from './bytes';
 import {
-  BATCH_SETTLE_MS,
+  BATCH_QUIET_MS,
   EVENT_BATCH_TAG,
   EXT_TAG,
   FEATURE,
@@ -182,11 +182,14 @@ export class OuraRingClient {
   // Highest event timestamp seen on this connection across all drains —
   // evidence of newer data for the multi-segment walk (see drainEvents).
   private maxEventTsSeen = 0;
+  // Drain sequence number, so interleaved [sync] batch lines from log
+  // streams are attributable to a specific drain and batch.
+  private drainSeq = 0;
 
   constructor(
     private transport: BleTransport,
     private quietMs = RESPONSE_QUIET_MS,
-    private batchSettleMs = BATCH_SETTLE_MS,
+    private batchQuietMs = BATCH_QUIET_MS,
   ) {}
 
   private build(op: string, params: Record<string, unknown> = {}): string {
@@ -199,27 +202,24 @@ export class OuraRingClient {
   // chattering ring (e.g. a leftover live stream) would keep the quiet timer
   // re-arming forever, so a hard cap resolves with whatever has arrived.
   //
-  // eventBatch enables the history fast path: the batch summary (0x11) rides
-  // with/after the batch's event frames and reports how many events the batch
-  // holds. Once the summary is seen and that count has arrived, the batch is
-  // provably complete and the request resolves immediately (the caller fires
-  // the next get_event right away) instead of waiting out the full quiet
-  // window. The quiet window and the cap remain as backstops, so a batch can
-  // never be split across requests by a premature resolve.
+  // get_event batch requests pass the shorter BATCH_QUIET_MS via `quietMs`:
+  // the ring pauses >1500ms between batches waiting for the next get_event,
+  // so 400ms of silence is a safe end-of-batch signal. There is deliberately
+  // NO frame-content fast finish — a summary/count-sniffing early resolve
+  // provably misfires (missed trigger → no quiet ever → cap fires → glued
+  // batches; late frames bleed into the next batch's window). The quiet
+  // window and the 15s cap are the only completion mechanisms.
   private request(
     requestHex: string,
     maxWaitMs = 15_000,
-    eventBatch = false,
+    quietMs = this.quietMs,
   ): Promise<RingPacket[]> {
     return new Promise<RingPacket[]>((resolve, reject) => {
       const frames: string[] = [];
       let timer: ReturnType<typeof setTimeout>;
-      let settleTimer: ReturnType<typeof setTimeout> | null = null;
-      let batchEventFrames = 0;
       const finish = (reason: string) => {
         clearTimeout(timer);
         clearTimeout(capTimer);
-        if (settleTimer) clearTimeout(settleTimer);
         unsubscribe();
         const packets = toPackets(frames);
         if (__DEV__) {
@@ -236,43 +236,17 @@ export class OuraRingClient {
       };
       const arm = () => {
         clearTimeout(timer);
-        timer = setTimeout(() => finish('quiet'), this.quietMs);
+        timer = setTimeout(() => finish('quiet'), quietMs);
       };
       const capTimer = setTimeout(() => finish('cap'), maxWaitMs);
       const unsubscribe = this.transport.subscribe((frameHex) => {
         frames.push(frameHex);
-        if (eventBatch) {
-          // Frame layout is [tag][len][payload…] — the tag is the first byte.
-          const tag = frameHex.length >= 2 ? parseInt(frameHex.slice(0, 2), 16) : -1;
-          if (tag >= HISTORY_EVENT_PREFIX) {
-            batchEventFrames++;
-            // Events still arriving after the summary: cancel the fast
-            // finish — the quiet window takes over as backstop.
-            if (settleTimer) {
-              clearTimeout(settleTimer);
-              settleTimer = null;
-            }
-          } else if (tag === EVENT_BATCH_TAG) {
-            const json = OuraCore.parseEventBatch(frameHex);
-            const expected = json
-              ? (JSON.parse(json) as { eventsReceived?: number }).eventsReceived
-              : undefined;
-            if (expected !== undefined && batchEventFrames >= expected) {
-              finish('batch-complete');
-              return;
-            }
-            // Summary seen but events may still be in flight (or the summary
-            // did not parse) — settle briefly, then go.
-            settleTimer = setTimeout(() => finish('batch-settled'), this.batchSettleMs);
-          }
-        }
         arm();
       });
       arm();
       this.transport.writeFrame(requestHex).catch((error) => {
         clearTimeout(timer);
         clearTimeout(capTimer);
-        if (settleTimer) clearTimeout(settleTimer);
         unsubscribe();
         reject(error);
       });
@@ -441,6 +415,7 @@ export class OuraRingClient {
     let committed = cursor;
     let total = 0;
     let probes = 0;
+    const drainId = ++this.drainSeq;
     const seen = new Set<string>();
     const emit = (event: RingEvent): void => {
       this.maxEventTsSeen = Math.max(this.maxEventTsSeen, event.timestamp);
@@ -456,14 +431,21 @@ export class OuraRingClient {
       const packets = await this.request(
         this.build('get_event', { startDs: start, maxEvents: 255, flags: -1 }),
         15_000,
-        true,
+        this.batchQuietMs,
       );
 
       let bytesLeft = 0;
+      let summaries = 0;
       let maxTs = start;
       let batchEvents = 0;
       for (const p of packets) {
         if (p.tag === EVENT_BATCH_TAG) {
+          summaries++;
+          // When the 15s cap glues multiple batches into one request, several
+          // summaries arrive — the LAST one's bytesLeft describes the ring's
+          // state after the final glued batch. All event frames are still
+          // processed; the summaries= count in the log makes tangling
+          // visible.
           const json = OuraCore.parseEventBatch(p.frameHex);
           if (json) bytesLeft = (JSON.parse(json) as { bytesLeft: number }).bytesLeft;
         } else if (p.tag >= HISTORY_EVENT_PREFIX) {
@@ -478,7 +460,7 @@ export class OuraRingClient {
       const next = maxTs + 1;
       const progressed = batchEvents > 0 && next > start;
       console.log(
-        `[sync] batch: start=${start} events=${batchEvents} bytesLeft=${bytesLeft} maxTs=${maxTs} progressed=${progressed} elapsed=${Date.now() - t0}ms`,
+        `[sync] batch d${drainId}#${i}: start=${start} events=${batchEvents} summaries=${summaries} bytesLeft=${bytesLeft} maxTs=${maxTs} progressed=${progressed} elapsed=${Date.now() - t0}ms`,
       );
       if (progressed) {
         start = next;

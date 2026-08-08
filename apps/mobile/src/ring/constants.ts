@@ -16,12 +16,15 @@ export const CONNECT_TIMEOUT_MS = 30_000;
 export const REQUEST_MTU = 185;
 // Quiet window for collecting responses, mirrors DEFAULT_QUIET in client.rs.
 export const RESPONSE_QUIET_MS = 1500;
-// History-batch fast path: once the batch summary (0x11) has arrived, the
-// batch is over — the summary rides with/after the event frames. When the
-// summary's eventsReceived count is already satisfied the request resolves
-// immediately; otherwise this short settle window covers frames still in
-// flight before the next batch is requested (instead of the full quiet wait).
-export const BATCH_SETTLE_MS = 400;
+// Shorter quiet window for get_event batch requests: the ring pauses
+// >1500ms between batches while it waits for the next get_event, so 400ms
+// of silence after the last frame is a safe end-of-batch signal — ~1.1s per
+// batch faster than the default quiet window. (A previous count-sniffing
+// fast finish on the 0x11 summary was removed: when its trigger condition
+// missed, no quiet ever happened — the ring kept pace with the immediate
+// re-requests — so the 15s cap fired and glued multiple batches into one
+// request, corrupting per-batch bookkeeping.)
+export const BATCH_QUIET_MS = 400;
 
 // The legacy GetEvent walk can report bytesLeft=0 at a segment boundary while
 // newer segments exist (proven: a walk from 0 ended at ring-ts 8.02M with

@@ -88,10 +88,11 @@ class MockTransport {
 
 const { OuraRingClient } = await import('../client');
 
-// Short timers for behavioral tests; the pipelining test overrides quietMs
-// with a long window to prove the fast path resolves without it.
-function makeClient(transport: MockTransport, quietMs = 60, batchSettleMs = 15) {
-  return new OuraRingClient(transport as unknown as BleTransport, quietMs, batchSettleMs);
+// Short timers for behavioral tests; the short-quiet test overrides the
+// default quiet window with a long one to prove batches resolve on the
+// batch quiet window instead.
+function makeClient(transport: MockTransport, quietMs = 60, batchQuietMs = 15) {
+  return new OuraRingClient(transport as unknown as BleTransport, quietMs, batchQuietMs);
 }
 
 describe('drainEvents — batching and cursor advance', () => {
@@ -126,10 +127,10 @@ describe('drainEvents — batching and cursor advance', () => {
 });
 
 describe('drainEvents — pipelined batch requests', () => {
-  it('resolves each batch on the summary, not the quiet window', async () => {
-    // 4 batches; the quiet window is 2s, so an unpipelined drain would take
-    // ~8s. With summary-triggered completion it should finish in well under
-    // one quiet window.
+  it('resolves each batch on the short batch quiet window, not the default quiet', async () => {
+    // 4 batches; the default quiet window is 2s, so a drain on it would take
+    // ~8s. With the 20ms batch quiet window it finishes in well under one
+    // default quiet window.
     const transport = new MockTransport((startDs) => {
       const base = startDs;
       return [
@@ -148,18 +149,58 @@ describe('drainEvents — pipelined batch requests', () => {
     expect(elapsed).toBeLessThan(1_000);
   });
 
-  it('falls back to the quiet window when no summary arrives', async () => {
-    // A batch with event frames but no summary: the quiet window (not the
-    // batch fast path) resolves the request, and bytesLeft stays 0 so the
-    // walk ends.
+  it('resolves a summary-less batch on the batch quiet window and ends the walk', async () => {
+    // A batch with event frames but no summary: the batch quiet window
+    // resolves the request, and bytesLeft stays 0 so the walk ends.
     const transport = new MockTransport(() => [eventFrame(0x55, 100)]);
     const client = makeClient(transport, 50, 10);
     const t0 = Date.now();
     const outcome = await client.drainEvents(0, () => {});
     const elapsed = Date.now() - t0;
-    // No summary → quiet window resolves; bytesLeft stays 0 → walk ends.
     expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 101 });
     expect(elapsed).toBeLessThan(500);
+  });
+
+  it('keeps walking when a glued batch ends with bytesLeft>0 (last summary wins)', async () => {
+    // Two batches glued into one request (the 15s cap case): both summaries
+    // arrive in the same collection window. All event frames are delivered,
+    // and the LAST summary's bytesLeft decides whether the walk continues.
+    const transport = new MockTransport((startDs) => {
+      if (startDs === 0)
+        return [
+          eventFrame(0x55, 100),
+          summaryFrame(1, 500),
+          eventFrame(0x55, 200),
+          summaryFrame(1, 500), // last summary: more bytes left
+        ];
+      if (startDs === 201) return [eventFrame(0x55, 300), summaryFrame(1, 0)];
+      return [summaryFrame(0, 0)];
+    });
+    const client = makeClient(transport);
+    const events: number[] = [];
+    const outcome = await client.drainEvents(0, (e) => events.push(e.timestamp));
+    expect(events).toEqual([100, 200, 300]);
+    expect(outcome).toEqual({ eventsSynced: 3, nextCursor: 301 });
+    expect(transport.writes.map((w) => w.startDs)).toEqual([0, 201]);
+  });
+
+  it('terminates a glued batch only when the LAST summary says bytesLeft=0', async () => {
+    const transport = new MockTransport((startDs) => {
+      if (startDs === 0)
+        return [
+          eventFrame(0x55, 100),
+          summaryFrame(1, 500),
+          eventFrame(0x55, 200),
+          summaryFrame(1, 0), // last summary: drained
+        ];
+      return [summaryFrame(0, 0)];
+    });
+    const client = makeClient(transport);
+    const events: number[] = [];
+    const outcome = await client.drainEvents(0, (e) => events.push(e.timestamp));
+    expect(events).toEqual([100, 200]);
+    expect(outcome).toEqual({ eventsSynced: 2, nextCursor: 201 });
+    expect(transport.writes.map((w) => w.startDs)).toEqual([0]);
   });
 });
 

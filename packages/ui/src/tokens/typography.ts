@@ -21,7 +21,7 @@ export const fontSize = {
   stat: 36,
   score: 30,
   scoreSm: 28,
-  value: 26,
+  value: 30,
   valueSm: 24,
   statMd: 22,
   statSm: 20,

@@ -80,15 +80,15 @@ function pointsFromFracs(
 /** Catmull-Rom smoothed path; pass closeTo to close it as an area at that y. */
 function smoothPathW(points: ChartPoint[], closeTo?: number): SkPath {
   'worklet';
-  const path = Skia.Path.Make();
-  if (points.length === 0) return path;
-  path.moveTo(points[0].x, points[0].y);
+  const builder = Skia.PathBuilder.Make();
+  if (points.length === 0) return builder.detach();
+  builder.moveTo(points[0].x, points[0].y);
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[Math.max(0, i - 1)];
     const p1 = points[i];
     const p2 = points[i + 1];
     const p3 = points[Math.min(points.length - 1, i + 2)];
-    path.cubicTo(
+    builder.cubicTo(
       p1.x + (p2.x - p0.x) / 6,
       p1.y + (p2.y - p0.y) / 6,
       p2.x - (p3.x - p1.x) / 6,
@@ -98,11 +98,11 @@ function smoothPathW(points: ChartPoint[], closeTo?: number): SkPath {
     );
   }
   if (closeTo != null) {
-    path.lineTo(points[points.length - 1].x, closeTo);
-    path.lineTo(points[0].x, closeTo);
-    path.close();
+    builder.lineTo(points[points.length - 1].x, closeTo);
+    builder.lineTo(points[0].x, closeTo);
+    builder.close();
   }
-  return path;
+  return builder.detach();
 }
 
 /** Fractions for the current morph frame: lerp from → target at t. */

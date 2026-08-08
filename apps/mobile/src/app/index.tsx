@@ -292,7 +292,7 @@ export default function HomeScreen() {
               />
               <ScoreRing size={146} value={hasNight ? today.readiness : 0} colors={gradients.readiness} strokeWidth={10}>
                 {hasNight ? (
-                  <AnimatedNumber value={today.readiness} size={44} weight="displayLight" />
+                  <AnimatedNumber value={today.readiness} size={64} weight="displayLight" />
                 ) : (
                   <Text style={{ fontSize: 34, fontFamily: fontFamily.displayLight, color: palette.muted }}>
                     0

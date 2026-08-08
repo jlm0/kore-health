@@ -30,9 +30,12 @@ export const palette = {
 } as const;
 
 export const surfaces = {
-  card: 'rgba(255,255,255,0.55)',
+  // Near-solid white: the reference designs' cards are solid white floating on
+  // a light grey field — strong translucency over a flat backdrop just reads
+  // milky. The BlurView behind still frosts the edge.
+  card: 'rgba(255,255,255,0.86)',
   cardBorder: 'rgba(255,255,255,0.9)',
-  cardFallback: 'rgba(255,255,255,0.72)',
+  cardFallback: 'rgba(255,255,255,0.92)',
   cardSheen: ['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.06)', 'rgba(255,255,255,0)'],
   track: 'rgba(35,39,47,0.06)',
   trackStrong: 'rgba(35,39,47,0.08)',

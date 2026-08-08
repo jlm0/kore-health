@@ -256,7 +256,6 @@ export default function MetricDetailScreen() {
             options={TIME_RANGE_OPTIONS}
             value={range}
             onChange={setRange}
-            variant={metric.tint}
             style={{ marginTop: 12 }}
           />
           {chartData.length >= 1 ? (

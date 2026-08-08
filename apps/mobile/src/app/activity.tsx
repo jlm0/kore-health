@@ -135,7 +135,6 @@ export default function ActivityScreen() {
             options={TIME_RANGE_OPTIONS}
             value={range}
             onChange={setRange}
-            variant="peach"
             style={{ marginTop: 12 }}
           />
           <BarChart

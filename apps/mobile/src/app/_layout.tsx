@@ -15,6 +15,13 @@ import { registerBackgroundSync } from '@/ring/background';
 import { syncRing } from '@/ring/sync';
 import { useHealthStore } from '@/store/health';
 
+// Dev-only handle so the Metro debugger can read/seed app state directly
+// (used by the visual design loop to mirror the phone's real dataset into
+// the simulator). Stripped from release bundles by __DEV__ gating.
+if (__DEV__) {
+  (globalThis as unknown as Record<string, unknown>).__koreStore = useHealthStore;
+}
+
 SplashScreen.preventAutoHideAsync();
 
 // Auto-sync when the app comes to the foreground: paired ring only, and no

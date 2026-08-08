@@ -299,7 +299,7 @@ export default function MetricDetailScreen() {
             variant={metric.tint}
             style={{ marginTop: 12 }}
           />
-          {chartData.length >= 2 ? (
+          {chartData.length >= 1 ? (
             <Sparkline
               data={chartData}
               height={110}

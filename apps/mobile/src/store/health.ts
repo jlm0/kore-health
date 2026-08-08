@@ -8,23 +8,8 @@ import type { Units } from '../data/units';
 
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'syncing';
 
-// Ring measurement features the user can toggle from the metric screens.
-// Sync applies these every run (self-paired rings ship with features OFF), so
-// a feature the user turned off stays off — sync never silently re-enables it.
-export interface FeaturePrefs {
-  /** Daytime heart-rate sampling (FEATURE 0x02). */
-  daytimeHr: boolean;
-  /** Overnight resting-HR/HRV measurement (FEATURE 0x08). */
-  restingHr: boolean;
-  /** Blood-oxygen sensing (FEATURE 0x04). */
-  spo2: boolean;
-}
-
-export const DEFAULT_FEATURE_PREFS: FeaturePrefs = {
-  daytimeHr: true,
-  restingHr: true,
-  spo2: true,
-};
+// Ring measurement features are not user-toggleable: everything the hardware
+// tracks is enabled at pairing and kept on by every sync (see sync.ts).
 
 // The ring's cached latest measurements, read via featureLatest at the end of
 // every sync. null = the ring had no current value (e.g. off the finger) —
@@ -66,8 +51,6 @@ interface HealthState {
   ringDeviceName: string | null;
   /** Display units preference. Store/data stay °C; converted only at display. */
   units: Units;
-  /** Ring measurement features the user has enabled (see FeaturePrefs). */
-  featurePrefs: FeaturePrefs;
   /** Synced dataset (days + series). Persisted; written only at sync end. */
   dataset: Dataset | null;
   /** Absolute °C grid points, for re-baselining temp deviations each sync. */
@@ -85,7 +68,6 @@ interface HealthState {
   setRingDeviceId: (id: string | null) => void;
   setRingDeviceName: (name: string | null) => void;
   setUnits: (units: Units) => void;
-  setFeaturePref: (key: keyof FeaturePrefs, enabled: boolean) => void;
   /** Unpair: drop the saved device + auth key and reset the history cursor. */
   forgetRing: () => void;
   setConnectionStatus: (status: ConnectionStatus, error?: string | null) => void;
@@ -104,7 +86,6 @@ export const useHealthStore = create<HealthState>()(
       ringDeviceId: null,
       ringDeviceName: null,
       units: 'imperial',
-      featurePrefs: DEFAULT_FEATURE_PREFS,
       dataset: null,
       tempAbsSeries: [],
       tempNights: [],
@@ -119,8 +100,6 @@ export const useHealthStore = create<HealthState>()(
       setRingDeviceId: (id) => set({ ringDeviceId: id }),
       setRingDeviceName: (name) => set({ ringDeviceName: name }),
       setUnits: (units) => set({ units }),
-      setFeaturePref: (key, enabled) =>
-        set((state) => ({ featurePrefs: { ...state.featurePrefs, [key]: enabled } })),
       forgetRing: () =>
         set({ ringDeviceId: null, ringDeviceName: null, ringAuthKey: null, syncCursor: 0 }),
       setConnectionStatus: (status, error = null) =>
@@ -150,7 +129,6 @@ export const useHealthStore = create<HealthState>()(
         ringDeviceId: state.ringDeviceId,
         ringDeviceName: state.ringDeviceName,
         units: state.units,
-        featurePrefs: state.featurePrefs,
         dataset: state.dataset,
         tempAbsSeries: state.tempAbsSeries,
         tempNights: state.tempNights,

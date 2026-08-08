@@ -182,32 +182,30 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     // enables them at onboarding. Ensure on every sync; non-fatal: a failed
     // enable must not block the history drain. RESTING_HR is the overnight
     // HRV/RHR measurement — without it there is no night data.
+    // Nothing here is optional: every feature the hardware supports stays ON
+    // (there is no user toggle). REAL_STEPS + CVA_PPG are server-flag-gated in
+    // Oura's own app, so consumer rings ship with them off even though the
+    // hardware produces the data; EXPERIMENTAL flips a firmware-internal
+    // switch (no app-visible events, enabled for parity with the upstream
+    // validated set). REAL_STEPS must precede EXERCISE_HR (upstream enable
+    // chain, docs/ring-features.md). AMBIENT_LIGHT/ATLAS are not advertised by
+    // this ring; RAW_DATA/RESEARCH_DATA are entitlement-locked — all proven
+    // unreachable, so not attempted.
     // Write-on-change: read featureStatus FIRST and only write setFeatureMode
-    // when the ring's mode differs from the pref — steady-state syncs skip
-    // all writes (3 write round trips saved). A feature the user turned off
-    // is left untouched, exactly as before.
-    // REAL_STEPS + EXERCISE_HR are always-on (no user toggle): steps is
-    // server-flag-gated in Oura's own app, so consumer rings ship with it off
-    // even though the hardware counts steps; EXERCISE_HR needs REAL_STEPS
-    // enabled first (upstream enable chain, docs/ring-features.md). Their
-    // events (0x7e/0x7f steps, 0x73/0x74 workout HR) start flowing into the
-    // history walk from the enable moment — no backfill.
+    // when the ring's mode differs — steady-state syncs skip all writes.
     try {
-      const prefs = store().featurePrefs;
-      for (const [name, id, enabled] of [
-        ['daytime', FEATURE.DAYTIME_HR, prefs.daytimeHr],
-        ['resting', FEATURE.RESTING_HR, prefs.restingHr],
-        ['spo2', FEATURE.SPO2, prefs.spo2],
-        ['steps', FEATURE.REAL_STEPS, true],
-        ['exercise', FEATURE.EXERCISE_HR, true],
+      for (const [name, id] of [
+        ['daytime', FEATURE.DAYTIME_HR],
+        ['resting', FEATURE.RESTING_HR],
+        ['spo2', FEATURE.SPO2],
+        ['steps', FEATURE.REAL_STEPS],
+        ['exercise', FEATURE.EXERCISE_HR],
+        ['cva_ppg', FEATURE.CVA_PPG],
+        ['experimental', FEATURE.EXPERIMENTAL],
       ] as const) {
         try {
           const st = await client.featureStatus(id);
-          if (!enabled) {
-            console.log(
-              `[sync] feature ${name} (0x${id.toString(16)}): mode=${st.mode} status=${st.status} state=${st.state} — disabled by user pref, untouched`,
-            );
-          } else if (st.mode === FEATURE_MODE.AUTOMATIC) {
+          if (st.mode === FEATURE_MODE.AUTOMATIC) {
             console.log(
               `[sync] feature ${name} (0x${id.toString(16)}): mode=${st.mode} status=${st.status} state=${st.state} — already AUTOMATIC, write skipped`,
             );
@@ -532,44 +530,6 @@ export async function streamLiveHeartRate(durationSeconds = 60): Promise<void> {
     }
     transport.destroy();
     liveStop = null;
-    syncing = false;
-  }
-}
-
-/**
- * Enable/disable one ring measurement feature (AUTOMATIC vs OFF) from a
- * metric screen's sensor toggle. Same connect → authenticate → act →
- * disconnect shape as a sync. Returns true when the ring confirmed the mode
- * change; failures surface in syncError and return false so the caller can
- * revert its optimistic pref. No-op (false) while another BLE op is running.
- */
-export async function setRingFeature(featureId: number, enabled: boolean): Promise<boolean> {
-  if (syncing) return false;
-  syncing = true;
-  const store = useHealthStore.getState;
-  store().setConnectionStatus('connecting');
-  const transport = new BleTransport();
-  const client = new OuraRingClient(transport);
-  try {
-    await waitForBluetoothReady();
-    await connectWithRediscovery(transport);
-    store().setConnectionStatus('connected');
-    await authenticateClient(client);
-    await client.setFeatureMode(featureId, enabled ? FEATURE_MODE.AUTOMATIC : FEATURE_MODE.OFF);
-    console.log(`[sync] feature 0x${featureId.toString(16)} set to ${enabled ? 'AUTOMATIC' : 'OFF'}`);
-    store().setConnectionStatus('disconnected');
-    return true;
-  } catch (error) {
-    console.log(`[sync] setRingFeature failed: ${describeBleError(error)}`);
-    store().setConnectionStatus('disconnected', describeBleError(error));
-    return false;
-  } finally {
-    try {
-      await transport.disconnect();
-    } catch {
-      // Link may already be down.
-    }
-    transport.destroy();
     syncing = false;
   }
 }

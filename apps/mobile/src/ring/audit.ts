@@ -37,7 +37,6 @@ export function dumpStoreSnapshot(): void {
     syncCursor: s.syncCursor,
     lastSyncAt: s.lastSyncAt != null ? iso(s.lastSyncAt) : null,
     units: s.units,
-    featurePrefs: s.featurePrefs,
     activityGoalCal: s.activityGoalCal,
     latestVitals: s.latestVitals,
     ringDeviceName: s.ringDeviceName,
@@ -164,6 +163,8 @@ export async function runRingAudit(client: OuraRingClient): Promise<void> {
     ['spo2', FEATURE.SPO2],
     ['steps', FEATURE.REAL_STEPS],
     ['exercise', FEATURE.EXERCISE_HR],
+    ['cva_ppg', FEATURE.CVA_PPG],
+    ['experimental', FEATURE.EXPERIMENTAL],
   ] as const) {
     try {
       const st = await client.featureStatus(id);

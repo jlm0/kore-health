@@ -59,6 +59,8 @@ export const FEATURE = {
   SPO2: 0x04,
   RESTING_HR: 0x08,
   REAL_STEPS: 0x0b,
+  EXPERIMENTAL: 0x0c,
+  CVA_PPG: 0x0d,
 } as const;
 
 export const FEATURE_MODE = {

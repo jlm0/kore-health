@@ -57,7 +57,6 @@ describe('useHealthStore — atomic sync persist', () => {
       'activityByDay',
       'activityGoalCal',
       'dataset',
-      'featurePrefs',
       'lastOpenedAt',
       'lastSyncAt',
       'latestVitals',

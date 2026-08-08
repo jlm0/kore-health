@@ -240,20 +240,18 @@ export default function PairScreen() {
         await client.syncTime();
 
         // First pairing turns every measurement feature ON (self-paired rings
-        // ship with them OFF) and resets the user's prefs to all-enabled —
-        // pairing is a fresh start. Best-effort: the first sync retries.
+        // ship with them OFF) — nothing is optional. Best-effort: every sync
+        // re-checks and re-applies anything that didn't take.
         setStep('Enabling sensors…');
         try {
           await client.setFeatureMode(FEATURE.DAYTIME_HR, FEATURE_MODE.AUTOMATIC);
           await client.setFeatureMode(FEATURE.RESTING_HR, FEATURE_MODE.AUTOMATIC);
           await client.setFeatureMode(FEATURE.SPO2, FEATURE_MODE.AUTOMATIC);
-          // Steps + workout HR are always-on (no user toggle) — REAL_STEPS
-          // before EXERCISE_HR (upstream enable chain).
+          // REAL_STEPS before EXERCISE_HR (upstream enable chain).
           await client.setFeatureMode(FEATURE.REAL_STEPS, FEATURE_MODE.AUTOMATIC);
           await client.setFeatureMode(FEATURE.EXERCISE_HR, FEATURE_MODE.AUTOMATIC);
-          useHealthStore.getState().setFeaturePref('daytimeHr', true);
-          useHealthStore.getState().setFeaturePref('restingHr', true);
-          useHealthStore.getState().setFeaturePref('spo2', true);
+          await client.setFeatureMode(FEATURE.CVA_PPG, FEATURE_MODE.AUTOMATIC);
+          await client.setFeatureMode(FEATURE.EXPERIMENTAL, FEATURE_MODE.AUTOMATIC);
           console.log('[pair] all sensors enabled');
         } catch (featureError) {
           console.log(`[pair] sensor enable failed (sync will retry): ${describeBleError(featureError)}`);

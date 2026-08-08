@@ -30,9 +30,8 @@ import {
   type TimeRange,
 } from '@/data/selectors';
 import { tempUnit, toDisplayTemp, toDisplayTempDelta, type Units } from '@/data/units';
-import { FEATURE } from '@/ring/constants';
-import { setRingFeature, stopLiveHeartRate, streamLiveHeartRate } from '@/ring/sync';
-import { useHealthStore, useLiveStore, type FeaturePrefs } from '@/store/health';
+import { stopLiveHeartRate, streamLiveHeartRate } from '@/ring/sync';
+import { useHealthStore, useLiveStore } from '@/store/health';
 
 function hexToRgb(hex: string): string {
   const n = parseInt(hex.slice(1), 16);
@@ -45,17 +44,6 @@ const METRIC_GROUP: Record<MetricId, MetricGroup> = {
   rhr: 'hr',
   temp: 'temp',
   spo2: 'spo2',
-};
-
-// Ring sensor backing each metric, toggled from the About card. Temp has no
-// toggle: skin temperature streams whenever the ring is worn — no feature
-// mode exists for it in the ring protocol.
-const SENSOR_FOR_METRIC: Partial<
-  Record<MetricId, { feature: number; prefKey: keyof FeaturePrefs; label: string }>
-> = {
-  hrv: { feature: FEATURE.RESTING_HR, prefKey: 'restingHr', label: 'Overnight HR sensor' },
-  rhr: { feature: FEATURE.DAYTIME_HR, prefKey: 'daytimeHr', label: 'Daytime HR sensor' },
-  spo2: { feature: FEATURE.SPO2, prefKey: 'spo2', label: 'Blood oxygen sensor' },
 };
 
 export default function MetricDetailScreen() {
@@ -152,35 +140,7 @@ export default function MetricDetailScreen() {
   const [liveError, setLiveError] = useState<string | null>(null);
   const liveBeats = useMemo(() => liveHr.slice(-30).map((s) => s.v), [liveHr]);
 
-  // Sensor toggle (About card): optimistic pref flip, applied to the ring over
-  // BLE; reverted when the ring doesn't confirm. Sync applies these prefs on
-  // every run, so an "Off" choice survives future syncs.
-  const featurePrefs = useHealthStore((s) => s.featurePrefs);
-  const setFeaturePref = useHealthStore((s) => s.setFeaturePref);
-  const [sensorError, setSensorError] = useState<string | null>(null);
-
   if (!metric) return <Redirect href="/" />;
-
-  const sensor = SENSOR_FOR_METRIC[metric.id] ?? null;
-  // Any BLE op (sync, live stream, another toggle) owns the link meanwhile.
-  const sensorBusy = connectionStatus !== 'disconnected';
-
-  const onToggleSensor = () => {
-    if (!sensor || sensorBusy) return;
-    if (!ringDeviceId) {
-      router.push('/pair');
-      return;
-    }
-    const next = !featurePrefs[sensor.prefKey];
-    setFeaturePref(sensor.prefKey, next);
-    setSensorError(null);
-    void setRingFeature(sensor.feature, next).then((ok) => {
-      if (!ok) {
-        setFeaturePref(sensor.prefKey, !next);
-        setSensorError(useHealthStore.getState().syncError ?? 'Could not reach the ring');
-      }
-    });
-  };
 
   const liveConnecting = liveSession && connectionStatus === 'connecting';
   const liveStreaming = liveSession && connectionStatus === 'connected';
@@ -511,36 +471,6 @@ export default function MetricDetailScreen() {
                 ))}
               </View>
             </View>
-          ) : null}
-          {sensor ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginTop: 4,
-              }}>
-              <Label size={9} em={0.18}>{sensor.label}</Label>
-              <Pill
-                variant={featurePrefs[sensor.prefKey] ? 'mint' : 'neutral'}
-                em={0.1}
-                disabled={sensorBusy}
-                onPress={onToggleSensor}
-                accessibilityLabel={`${sensor.label}: ${featurePrefs[sensor.prefKey] ? 'on' : 'off'}. Tap to toggle`}>
-                {sensorBusy ? '…' : featurePrefs[sensor.prefKey] ? 'On' : 'Off'}
-              </Pill>
-            </View>
-          ) : null}
-          {sensorError != null ? (
-            <Text
-              style={{
-                fontSize: 11,
-                fontFamily: fontFamily.regular,
-                color: palette.peach.deep,
-                lineHeight: 16,
-              }}>
-              {sensorError}
-            </Text>
           ) : null}
         </GlassCard>
       </Animated.View>

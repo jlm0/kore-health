@@ -59,6 +59,14 @@ export interface RingEvent {
 export interface SyncOutcome {
   eventsSynced: number;
   nextCursor: number;
+  /** Batch requests issued, including empty probes. */
+  batches: number;
+  /**
+   * sleepAnalysisProgress (0–100) from the last batch summary seen during
+   * the drain; null when no summary arrived. Tells the caller whether the
+   * ring was still generating sleep events when the drain ended.
+   */
+  sleepAnalysisProgress: number | null;
 }
 
 export interface DrainOptions {
@@ -415,6 +423,8 @@ export class OuraRingClient {
     let committed = cursor;
     let total = 0;
     let probes = 0;
+    let batches = 0;
+    let sleepProgress: number | null = null;
     const drainId = ++this.drainSeq;
     const seen = new Set<string>();
     const emit = (event: RingEvent): void => {
@@ -428,6 +438,7 @@ export class OuraRingClient {
     // Safety bound against a misbehaving ring that never reports drained.
     for (let i = 0; i < 100_000; i++) {
       const t0 = Date.now();
+      batches++;
       const packets = await this.request(
         this.build('get_event', { startDs: start, maxEvents: 255, flags: -1 }),
         15_000,
@@ -447,13 +458,26 @@ export class OuraRingClient {
           // processed; the summaries= count in the log makes tangling
           // visible.
           const json = OuraCore.parseEventBatch(p.frameHex);
-          if (json) bytesLeft = (JSON.parse(json) as { bytesLeft: number }).bytesLeft;
+          if (json) {
+            const summary = JSON.parse(json) as {
+              bytesLeft: number;
+              sleepAnalysisProgress?: number;
+            };
+            bytesLeft = summary.bytesLeft;
+            sleepProgress = summary.sleepAnalysisProgress ?? sleepProgress;
+          }
         } else if (p.tag >= HISTORY_EVENT_PREFIX) {
           const event = ringEventFromPacket(p);
           maxTs = Math.max(maxTs, event.timestamp);
           batchEvents++;
           emit(event);
         }
+      }
+      // One-line backlog estimate from the first batch: how much history the
+      // ring reported pending when this drain started (multi-day backlog
+      // visibility after a return-from-days away).
+      if (i === 0 && summaries > 0) {
+        console.log(`[sync] backlog estimate: ~${bytesLeft} bytes of ring history after first batch`);
       }
 
       // Advance the cursor past the newest event seen.
@@ -487,7 +511,35 @@ export class OuraRingClient {
       }
       break;
     }
-    return { eventsSynced: total, nextCursor: committed };
+    return {
+      eventsSynced: total,
+      nextCursor: committed,
+      batches,
+      sleepAnalysisProgress: sleepProgress,
+    };
+  }
+
+  // Lightweight sleep-analysis progress probe: a get_event at an up-to-date
+  // cursor returns no event frames, just the batch summary, which carries
+  // sleepAnalysisProgress. Any events that DO arrive are safe to ignore here
+  // — the caller's cursor is not past them, so a later drain re-fetches them.
+  async probeSleepAnalysis(cursorDs: number): Promise<number | null> {
+    const packets = await this.request(
+      this.build('get_event', { startDs: cursorDs, maxEvents: 255, flags: -1 }),
+      15_000,
+      this.batchQuietMs,
+    );
+    let progress: number | null = null;
+    for (const p of packets) {
+      if (p.tag !== EVENT_BATCH_TAG) continue;
+      const json = OuraCore.parseEventBatch(p.frameHex);
+      if (json) {
+        progress =
+          (JSON.parse(json) as { sleepAnalysisProgress?: number }).sleepAnalysisProgress ??
+          progress;
+      }
+    }
+    return progress;
   }
 
   // --- live / latest -----------------------------------------------------

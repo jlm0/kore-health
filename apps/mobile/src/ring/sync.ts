@@ -21,9 +21,33 @@ let syncing = false;
 // detector immediately re-triggered on the next sync). A forced
 // deepResync() bypasses this.
 let autoDeepResyncUsed = false;
+// Dev audit gating: the audit's read-only full history drain costs minutes
+// of ring radio time (it ran the battery 32%→21% in ~1h of dev churn when it
+// followed EVERY sync), so it runs at most once per app session — on the
+// first dev sync — unless re-armed via runAuditOnNextSync().
+let auditRanThisSession = false;
+let auditArmed = false;
 // Set while a live HR stream is running so stopLiveHeartRate() can end it
 // early; the client still restores AUTOMATIC mode on the way out.
 let liveStop: (() => void) | null = null;
+
+/** Dev-only: run the full ring audit after the next sync (ring-debug hook). */
+export function runAuditOnNextSync(): void {
+  auditArmed = true;
+}
+
+// Event tags produced by the ring's sleep analysis — used to tell whether a
+// drain already picked up fresh sleep data (see the need-based settle below).
+const SLEEP_EVENT_TAGS = new Set([
+  0x48, // sleep_period_information
+  0x49, // sleep_summary_1
+  0x4b, // sleep_phase_information
+  0x4c, // sleep_summary_2
+  0x4e, // sleep_phase_details
+  0x4f, // sleep_summary_3
+  0x58, // sleep_summary_4
+  0x76, // bedtime_period
+]);
 
 /** End an in-progress live HR stream early. No-op when none is running. */
 export function stopLiveHeartRate(): void {
@@ -77,7 +101,13 @@ async function connectWithRediscovery(transport: BleTransport): Promise<void> {
     const match =
       found.find((r) => r.name === ringDeviceName) ??
       (found.length === 1 ? found[0] : undefined);
-    if (!match) throw firstError;
+    if (!match) {
+      // Saved id stale AND name re-discovery found nothing — almost always
+      // range or a sleeping radio, not a pairing problem.
+      throw new Error(
+        'Ring not reachable — it may be out of range or asleep. Keep it nearby and try again, or re-pair from the pairing screen',
+      );
+    }
     console.log(`[sync] re-discovered as ${match.id}, refreshing saved id`);
     useHealthStore.getState().setRingDeviceId(match.id);
     await withTimeout(
@@ -127,6 +157,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
   store().setConnectionStatus('connecting');
   const transport = new BleTransport();
   const client = new OuraRingClient(transport);
+  const t0 = Date.now();
   try {
     // Gate on adapter readiness (permissions + PoweredOn) before any BLE op
     // so the first sync after app install cannot race the iOS prompt.
@@ -136,34 +167,46 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     console.log('[sync] connecting');
     await connectWithRediscovery(transport);
     store().setConnectionStatus('connected');
+    const tConnected = Date.now();
 
     console.log('[sync] authenticating');
     await authenticateClient(client);
+    const tAuthed = Date.now();
 
     // Self-paired rings ship with measurement features OFF — the official app
-    // enables them at onboarding. Ensure on every sync (idempotent, cheap);
-    // non-fatal: a failed enable must not block the history drain. RESTING_HR
-    // is the overnight HRV/RHR measurement — without it there is no night data.
-    // Only the user-enabled features are touched (featurePrefs): a feature the
-    // user turned off stays off.
+    // enables them at onboarding. Ensure on every sync; non-fatal: a failed
+    // enable must not block the history drain. RESTING_HR is the overnight
+    // HRV/RHR measurement — without it there is no night data.
+    // Write-on-change: read featureStatus FIRST and only write setFeatureMode
+    // when the ring's mode differs from the pref — steady-state syncs skip
+    // all writes (3 write round trips saved). A feature the user turned off
+    // is left untouched, exactly as before.
     try {
       const prefs = store().featurePrefs;
-      if (prefs.daytimeHr) await client.setFeatureMode(FEATURE.DAYTIME_HR, FEATURE_MODE.AUTOMATIC);
-      if (prefs.restingHr) await client.setFeatureMode(FEATURE.RESTING_HR, FEATURE_MODE.AUTOMATIC);
-      if (prefs.spo2) await client.setFeatureMode(FEATURE.SPO2, FEATURE_MODE.AUTOMATIC);
-      console.log('[sync] feature modes applied per user prefs');
-      // Read back what the ring actually reports — a confirmed write is not
-      // proof the mode took effect.
-      for (const [name, id] of [
-        ['daytime', FEATURE.DAYTIME_HR],
-        ['resting', FEATURE.RESTING_HR],
-        ['spo2', FEATURE.SPO2],
+      for (const [name, id, enabled] of [
+        ['daytime', FEATURE.DAYTIME_HR, prefs.daytimeHr],
+        ['resting', FEATURE.RESTING_HR, prefs.restingHr],
+        ['spo2', FEATURE.SPO2, prefs.spo2],
       ] as const) {
         try {
           const st = await client.featureStatus(id);
-          console.log(
-            `[sync] feature ${name} (0x${id.toString(16)}): mode=${st.mode} status=${st.status} state=${st.state}`,
-          );
+          if (!enabled) {
+            console.log(
+              `[sync] feature ${name} (0x${id.toString(16)}): mode=${st.mode} status=${st.status} state=${st.state} — disabled by user pref, untouched`,
+            );
+          } else if (st.mode === FEATURE_MODE.AUTOMATIC) {
+            console.log(
+              `[sync] feature ${name} (0x${id.toString(16)}): mode=${st.mode} status=${st.status} state=${st.state} — already AUTOMATIC, write skipped`,
+            );
+          } else {
+            await client.setFeatureMode(id, FEATURE_MODE.AUTOMATIC);
+            // Read back what the ring reports — a confirmed write is not
+            // proof the mode took effect.
+            const after = await client.featureStatus(id);
+            console.log(
+              `[sync] feature ${name} (0x${id.toString(16)}): mode ${st.mode} → AUTOMATIC written (readback mode=${after.mode} status=${after.status} state=${after.state})`,
+            );
+          }
         } catch {
           console.log(`[sync] feature ${name} (0x${id.toString(16)}): status unreadable`);
         }
@@ -176,14 +219,16 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     await client.syncTime();
 
     // Sleep events (bedtime_period, stages) only enter the history stream
-    // after the ring runs its analysis — trigger it, then let it settle.
+    // after the ring runs its analysis — trigger it now. Whether we need to
+    // WAIT for it is decided from the batch summaries' sleepAnalysisProgress
+    // after the drain (see below), replacing the old fixed 3s settle.
     console.log('[sync] triggering sleep analysis');
     try {
       await client.checkSleepAnalysis();
-      await new Promise((r) => setTimeout(r, 3000));
     } catch (sleepError) {
       console.log(`[sync] sleep analysis failed (non-fatal): ${describeBleError(sleepError)}`);
     }
+    const tPrepared = Date.now();
 
     store().setConnectionStatus('syncing');
     const previousCursor = store().syncCursor;
@@ -206,9 +251,11 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
       console.log(`[sync] draining events from cursor ${previousCursor}`);
     }
     const events: RingEventLike[] = [];
-    const outcome = await client.drainEvents(
+    const pushEvent = (event: { tag: number; name: string; timestamp: number; decoded: unknown }) =>
+      events.push({ tag: event.tag, name: event.name, timestamp: event.timestamp, decoded: event.decoded });
+    let outcome = await client.drainEvents(
       deep ? 0 : previousCursor,
-      (event) => events.push({ tag: event.tag, name: event.name, timestamp: event.timestamp, decoded: event.decoded }),
+      pushEvent,
       // A deep resync must not move the persisted cursor mid-rebuild: if it
       // is interrupted, the OLD dataset stays paired with the OLD cursor —
       // never a stale dataset with a rewound cursor (which the next
@@ -218,6 +265,45 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
       // past early segment-boundary terminations to reach them.
       deep ? { expectEndAtLeast: previousCursor } : undefined,
     );
+    let batches = outcome.batches;
+
+    // Need-based sleep-analysis settle (replaces the fixed 3s pre-drain
+    // sleep): the batch summaries' sleepAnalysisProgress says whether the
+    // ring was still analyzing when the drain ended. Only then — and only if
+    // no sleep events arrived in this drain — poll progress (bounded, ≤10s)
+    // and re-drain once so the freshly generated sleep events make THIS
+    // sync's fold. Steady state (analysis complete, progress=100) costs
+    // nothing at all.
+    const progress = outcome.sleepAnalysisProgress;
+    if (progress != null && progress < 100 && !events.some((e) => SLEEP_EVENT_TAGS.has(e.tag))) {
+      try {
+        console.log(
+          `[sync] sleep analysis in progress (${progress}%), no sleep events in drain — waiting (bounded)`,
+        );
+        const deadline = Date.now() + 10_000;
+        let p: number | null = progress;
+        while (Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 2_000));
+          p = await client.probeSleepAnalysis(outcome.nextCursor);
+          console.log(`[sync] sleep analysis progress=${p ?? 'unknown'}`);
+          if (p == null || p >= 100) break;
+        }
+        const follow = await client.drainEvents(
+          outcome.nextCursor,
+          pushEvent,
+          deep ? undefined : (nextCursor) => store().setSyncCursor(nextCursor),
+        );
+        console.log(`[sync] sleep follow-up drain: ${follow.eventsSynced} events`);
+        batches += follow.batches;
+        outcome = {
+          ...follow,
+          eventsSynced: outcome.eventsSynced + follow.eventsSynced,
+        };
+      } catch (sleepWaitError) {
+        console.log(`[sync] sleep-analysis wait failed (non-fatal): ${describeBleError(sleepWaitError)}`);
+      }
+    }
+    const tDrained = Date.now();
     // Commit guard: a deep rebuild whose walk could not get within a day of
     // the expected end is INCOMPLETE — committing it would replace a more
     // complete dataset with a regressed one (observed live: days=7 → days=2
@@ -327,16 +413,34 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     } catch (vitalsError) {
       console.log(`[sync] featureLatest failed (non-fatal): ${describeBleError(vitalsError)}`);
     }
+    const tLatest = Date.now();
+    // Per-sync timing profile — the verification channel for lifecycle cost.
+    // Segments: connect (BT-ready + connect + rediscovery), auth, features
+    // (feature modes + syncTime + sleep trigger), drain (all batch
+    // requests incl. the sleep follow-up), latest (featureLatest reads).
+    console.log(
+      `[sync] profile: connect=${tConnected - t0}ms auth=${tAuthed - tConnected}ms ` +
+        `features=${tPrepared - tAuthed}ms drain=${tDrained - tPrepared}ms (${batches} batches) ` +
+        `latest=${tLatest - tDrained}ms total=${tLatest - t0}ms`,
+    );
 
     // Dev-only data audit on the still-open connection: read-only full
     // history drain + persisted-store dump, all prefixed [audit] in the logs.
+    // Expensive (minutes of ring radio time), so it runs at most once per app
+    // session unless re-armed via runAuditOnNextSync().
     if (__DEV__) {
-      try {
-        const { runRingAudit, dumpStoreSnapshot } = await import('./audit');
-        await runRingAudit(client);
-        dumpStoreSnapshot();
-      } catch (auditError) {
-        console.log(`[audit] failed (non-fatal): ${describeBleError(auditError)}`);
+      if (auditArmed || !auditRanThisSession) {
+        auditArmed = false;
+        auditRanThisSession = true;
+        try {
+          const { runRingAudit, dumpStoreSnapshot } = await import('./audit');
+          await runRingAudit(client);
+          dumpStoreSnapshot();
+        } catch (auditError) {
+          console.log(`[audit] failed (non-fatal): ${describeBleError(auditError)}`);
+        }
+      } else {
+        console.log('[audit] skipped (already ran this session — runAuditOnNextSync() re-arms)');
       }
     }
 

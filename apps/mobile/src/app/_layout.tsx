@@ -26,12 +26,19 @@ SplashScreen.preventAutoHideAsync();
 
 // Auto-sync when the app comes to the foreground: paired ring only, and no
 // more than once per 5 minutes so reopening the app doesn't hammer the ring.
-// In dev builds the cooldown drops to 30s to keep the audit loop quick.
+// In dev builds the cooldown drops to 30s for quick iteration (the expensive
+// dev audit no longer runs per sync — it is gated to once per session).
 const AUTO_SYNC_MIN_INTERVAL_MS = __DEV__ ? 30_000 : 5 * 60 * 1000;
 
 function maybeAutoSync() {
+  // The retry interval fires regardless of app state — never attempt BLE
+  // while backgrounded (that needs the bluetooth-central background mode,
+  // which this app does not have; see ring/background.ts).
+  if (AppState.currentState !== 'active') return;
   const { ringDeviceId, connectionStatus, lastSyncAt } = useHealthStore.getState();
   if (!ringDeviceId) return;
+  // Anything other than 'disconnected' means a sync/connect is already
+  // running — the interval tick must not stack another one.
   if (connectionStatus !== 'disconnected') return;
   if (lastSyncAt != null && Date.now() - lastSyncAt < AUTO_SYNC_MIN_INTERVAL_MS) return;
   console.log('[sync] auto-sync on foreground');

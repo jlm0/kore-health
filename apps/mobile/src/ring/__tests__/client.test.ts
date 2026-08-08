@@ -19,15 +19,18 @@ function eventFrame(tag: number, ts: number, body = '01'): string {
   return `${hexByte(tag)}${hexByte(payload.length / 2)}${payload}`;
 }
 
-// Batch summary (0x11) with eventsReceived + bytesLeft packed into the
-// payload; the OuraCore mock below decodes the same layout.
-function summaryFrame(eventsReceived: number, bytesLeft: number): string {
+// Batch summary (0x11) in the real wire layout: [eventsReceived,
+// sleepAnalysisProgress, bytesLeft u32 LE]; the OuraCore mock below decodes
+// the same layout.
+function summaryFrame(eventsReceived: number, bytesLeft: number, sleepProgress = 100): string {
   const payload =
     hexByte(eventsReceived) +
+    hexByte(sleepProgress) +
     hexByte(bytesLeft & 0xff) +
     hexByte((bytesLeft >> 8) & 0xff) +
-    hexByte((bytesLeft >> 16) & 0xff);
-  return `1104${payload}`;
+    hexByte((bytesLeft >> 16) & 0xff) +
+    '00';
+  return `1106${payload}`;
 }
 
 mock.module('@kore/oura-core', () => ({
@@ -41,12 +44,12 @@ mock.module('@kore/oura-core', () => ({
       return JSON.stringify({ tag, payloadHex: frameHex.slice(4, 4 + len * 2) });
     },
     parseEventBatch: (frameHex: string) => {
-      if (frameHex.length < 12 || frameHex.slice(0, 2) !== '11') return '';
+      if (frameHex.length < 16 || frameHex.slice(0, 2) !== '11') return '';
       const b = (i: number) => parseInt(frameHex.slice(4 + i * 2, 6 + i * 2), 16);
       return JSON.stringify({
         eventsReceived: b(0),
-        sleepAnalysisProgress: 0,
-        bytesLeft: b(1) | (b(2) << 8) | (b(3) << 16),
+        sleepAnalysisProgress: b(1),
+        bytesLeft: b(2) | (b(3) << 8) | (b(4) << 16),
       });
     },
     decodeEvent: () => '',
@@ -113,7 +116,7 @@ describe('drainEvents — batching and cursor advance', () => {
     );
     expect(events).toEqual([100, 200, 300]);
     expect(batches).toEqual([201, 301]);
-    expect(outcome).toEqual({ eventsSynced: 3, nextCursor: 301 });
+    expect(outcome).toEqual({ eventsSynced: 3, nextCursor: 301, batches: 2, sleepAnalysisProgress: 100 });
     expect(transport.writes.map((w) => w.startDs)).toEqual([0, 201]);
   });
 
@@ -121,7 +124,7 @@ describe('drainEvents — batching and cursor advance', () => {
     const transport = new MockTransport(() => [summaryFrame(0, 500)]);
     const client = makeClient(transport);
     const outcome = await client.drainEvents(42, () => {});
-    expect(outcome).toEqual({ eventsSynced: 0, nextCursor: 42 });
+    expect(outcome).toEqual({ eventsSynced: 0, nextCursor: 42, batches: 1, sleepAnalysisProgress: 100 });
     expect(transport.writes).toHaveLength(1);
   });
 });
@@ -157,7 +160,7 @@ describe('drainEvents — pipelined batch requests', () => {
     const t0 = Date.now();
     const outcome = await client.drainEvents(0, () => {});
     const elapsed = Date.now() - t0;
-    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 101 });
+    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 101, batches: 1, sleepAnalysisProgress: null });
     expect(elapsed).toBeLessThan(500);
   });
 
@@ -180,7 +183,7 @@ describe('drainEvents — pipelined batch requests', () => {
     const events: number[] = [];
     const outcome = await client.drainEvents(0, (e) => events.push(e.timestamp));
     expect(events).toEqual([100, 200, 300]);
-    expect(outcome).toEqual({ eventsSynced: 3, nextCursor: 301 });
+    expect(outcome).toEqual({ eventsSynced: 3, nextCursor: 301, batches: 2, sleepAnalysisProgress: 100 });
     expect(transport.writes.map((w) => w.startDs)).toEqual([0, 201]);
   });
 
@@ -199,7 +202,7 @@ describe('drainEvents — pipelined batch requests', () => {
     const events: number[] = [];
     const outcome = await client.drainEvents(0, (e) => events.push(e.timestamp));
     expect(events).toEqual([100, 200]);
-    expect(outcome).toEqual({ eventsSynced: 2, nextCursor: 201 });
+    expect(outcome).toEqual({ eventsSynced: 2, nextCursor: 201, batches: 1, sleepAnalysisProgress: 100 });
     expect(transport.writes.map((w) => w.startDs)).toEqual([0]);
   });
 });
@@ -212,7 +215,7 @@ describe('drainEvents — multi-segment walk', () => {
     ]);
     const client = makeClient(transport);
     const outcome = await client.drainEvents(0, () => {});
-    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 8_000_001 });
+    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 8_000_001, batches: 1, sleepAnalysisProgress: 100 });
     expect(transport.writes).toHaveLength(1);
   });
 
@@ -245,7 +248,7 @@ describe('drainEvents — multi-segment walk', () => {
       { expectEndAtLeast: 13_000_000 },
     );
     expect(events).toEqual([8_000_000, 8_000_100, 12_500_000, 13_000_000]);
-    expect(outcome).toEqual({ eventsSynced: 4, nextCursor: 13_000_001 });
+    expect(outcome).toEqual({ eventsSynced: 4, nextCursor: 13_000_001, batches: 6, sleepAnalysisProgress: 100 });
     expect(transport.writes.map((w) => w.startDs)).toEqual([
       0,
       8_864_101, // 8_000_101 + 864000: probe 1 (empty)
@@ -272,7 +275,7 @@ describe('drainEvents — multi-segment walk', () => {
       expectEndAtLeast: 13_000_000,
     });
     expect(events).toEqual([8_000_000, 9_000_000, 11_000_000]);
-    expect(outcome).toEqual({ eventsSynced: 3, nextCursor: 11_000_001 });
+    expect(outcome).toEqual({ eventsSynced: 3, nextCursor: 11_000_001, batches: 6, sleepAnalysisProgress: 100 });
     expect(transport.writes.map((w) => w.startDs)).toEqual([
       0,
       8_864_001, // probe 1 — finds segment 2 (ends 9M)
@@ -297,7 +300,7 @@ describe('drainEvents — multi-segment walk', () => {
       expectEndAtLeast: 13_000_000,
     });
     expect(events).toEqual([12_400_000]);
-    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 12_400_001 });
+    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 12_400_001, batches: 1, sleepAnalysisProgress: 100 });
     expect(transport.writes.map((w) => w.startDs)).toEqual([0]);
   });
 
@@ -315,7 +318,7 @@ describe('drainEvents — multi-segment walk', () => {
       expectEndAtLeast: 13_000_000,
     });
     expect(events).toEqual([8_000_000]);
-    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 8_000_001 });
+    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 8_000_001, batches: 6, sleepAnalysisProgress: 100 });
     expect(transport.writes.map((w) => w.startDs)).toEqual([
       0,
       8_864_001,
@@ -336,7 +339,7 @@ describe('drainEvents — multi-segment walk', () => {
     const events: number[] = [];
     const outcome = await client.drainEvents(0, (e) => events.push(e.timestamp));
     expect(events).toEqual([100]);
-    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 101 });
+    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 101, batches: 1, sleepAnalysisProgress: 100 });
   });
 
   it('never probes backward onto already-drained data', async () => {
@@ -357,5 +360,43 @@ describe('drainEvents — multi-segment walk', () => {
     expect(events).toEqual([5_000_000, 11_000_000]);
     expect(outcome.nextCursor).toBe(11_000_001);
     expect(transport.writes.map((w) => w.startDs)).toEqual([0]);
+  });
+});
+
+describe('drainEvents — sleep analysis progress', () => {
+  it('reports sleepAnalysisProgress from the last batch summary', async () => {
+    const transport = new MockTransport((startDs) => {
+      if (startDs === 0) return [eventFrame(0x55, 100), summaryFrame(1, 500, 40)];
+      if (startDs === 101) return [eventFrame(0x55, 200), summaryFrame(1, 0, 100)];
+      return [summaryFrame(0, 0)];
+    });
+    const client = makeClient(transport);
+    const outcome = await client.drainEvents(0, () => {});
+    expect(outcome.sleepAnalysisProgress).toBe(100);
+    expect(outcome.batches).toBe(2);
+  });
+
+  it('reports a mid-analysis progress value when the drain ends there', async () => {
+    const transport = new MockTransport(() => [eventFrame(0x55, 100), summaryFrame(1, 0, 40)]);
+    const client = makeClient(transport);
+    const outcome = await client.drainEvents(0, () => {});
+    expect(outcome.sleepAnalysisProgress).toBe(40);
+  });
+});
+
+describe('probeSleepAnalysis', () => {
+  it('returns the progress from the summary without delivering events', async () => {
+    const transport = new MockTransport(() => [summaryFrame(0, 0, 55)]);
+    const client = makeClient(transport);
+    const progress = await client.probeSleepAnalysis(1000);
+    expect(progress).toBe(55);
+    expect(transport.writes.map((w) => w.startDs)).toEqual([1000]);
+  });
+
+  it('returns null when no summary arrives', async () => {
+    const transport = new MockTransport(() => []);
+    const client = makeClient(transport);
+    const progress = await client.probeSleepAnalysis(1000);
+    expect(progress).toBeNull();
   });
 });

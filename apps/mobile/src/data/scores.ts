@@ -109,6 +109,10 @@ const WAKE_MOVE_THRESHOLD = 0.12;
  * Consecutive equal epochs merge into segments. This is deliberately simple —
  * it uses only signals the ring actually streams and is documented as a local
  * heuristic, not a validated sleep staging algorithm.
+ *
+ * Windows without usable HR (< 10 HR epochs — ring off-wrist or HR feature
+ * off) return time-in-bed duration only: no stages, efficiency, or latency,
+ * since movement alone cannot distinguish sleep from still wakefulness.
  */
 export function computeSleep(maps: SeriesMaps, window: SleepWindow | null): SleepSummary {
   if (!window || window.endMs - window.startMs < 30 * MIN) return emptySleep(window);
@@ -134,15 +138,38 @@ export function computeSleep(maps: SeriesMaps, window: SleepWindow | null): Slee
   const hrs = epochs.map((e) => e.hr).filter((v): v is number => v != null);
   const hrvs = epochs.map((e) => e.hrv).filter((v): v is number => v != null);
   const hasHr = hrs.length >= 10;
+  const inBedMin = (window.endMs - window.startMs) / MIN;
+
+  if (!hasHr) {
+    // The ring wasn't measuring during this window (off-wrist, HR feature
+    // off). Staging from movement alone classifies every still epoch as
+    // asleep and produces invented "100% efficiency" nights — so report
+    // time-in-bed only: no stages, no efficiency, no latency claims.
+    return {
+      start: window.startMs,
+      end: window.endMs,
+      durationMin: Math.round(inBedMin),
+      efficiency: 0,
+      latencyMin: 0,
+      stages: [],
+      deepMin: 0,
+      remMin: 0,
+      lightMin: 0,
+      awakeMin: 0,
+      lowestHr: hrs.length ? Math.round(Math.min(...hrs)) : 0,
+      peakHrv: hrvs.length ? Math.round(Math.max(...hrvs)) : 0,
+    };
+  }
+
   const sortedHr = [...hrs].sort((a, b) => a - b);
-  const p10 = hasHr ? percentile(sortedHr, 10) : 0;
-  const p90 = hasHr ? percentile(sortedHr, 90) : 0;
+  const p10 = percentile(sortedHr, 10);
+  const p90 = percentile(sortedHr, 90);
   const deepMax = p10 + 0.35 * (p90 - p10);
   const remMin = p90 - 0.25 * (p90 - p10);
 
   const stageOf = (e: Epoch): SleepStage => {
     if (e.move != null && e.move >= WAKE_MOVE_THRESHOLD) return 'awake';
-    if (hasHr && e.hr != null) {
+    if (e.hr != null) {
       if (e.hr <= deepMax) return 'deep';
       if (e.hr >= remMin) return 'rem';
     }
@@ -180,7 +207,6 @@ export function computeSleep(maps: SeriesMaps, window: SleepWindow | null): Slee
   const totals: Record<SleepStage, number> = { deep: 0, rem: 0, light: 0, awake: 0 };
   for (const s of segments) totals[s.stage] += (s.end - s.start) / MIN;
   const asleepMin = totals.deep + totals.rem + totals.light;
-  const inBedMin = (window.endMs - window.startMs) / MIN;
 
   return {
     start: window.startMs,

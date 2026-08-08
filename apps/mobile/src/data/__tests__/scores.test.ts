@@ -104,6 +104,35 @@ describe('computeSleep — actigraphy staging heuristic', () => {
     expect(s.start).toBe(0);
     expect(s.durationMin).toBe(0);
   });
+
+  it('reports time-in-bed only when the window has no HR data (no invented stages)', () => {
+    // A still night (movement ~0) with zero HR points must NOT become a
+    // "100% efficiency, all light/deep" night — the ring wasn't measuring.
+    const move: MetricSample[] = [];
+    for (let t = WIN_START; t < WIN_END; t += GRID) move.push({ t, v: 0 });
+    const s = computeSleep(maps({ move }), WINDOW);
+    expect(s.durationMin).toBe(480); // 8 h time-in-bed
+    expect(s.efficiency).toBe(0);
+    expect(s.latencyMin).toBe(0);
+    expect(s.stages).toEqual([]);
+    expect(s.deepMin).toBe(0);
+    expect(s.remMin).toBe(0);
+    expect(s.lightMin).toBe(0);
+    expect(s.awakeMin).toBe(0);
+    expect(s.lowestHr).toBe(0);
+    expect(s.peakHrv).toBe(0);
+  });
+
+  it('treats sparse HR (< 10 epochs) as no staging data but keeps its extremes', () => {
+    const hr: MetricSample[] = [
+      { t: WIN_START, v: 70 },
+      { t: WIN_START + GRID, v: 58 },
+    ];
+    const s = computeSleep(maps({ hr }), WINDOW);
+    expect(s.stages).toEqual([]);
+    expect(s.efficiency).toBe(0);
+    expect(s.lowestHr).toBe(58);
+  });
 });
 
 describe('buildDaySummary — night-derived metrics', () => {

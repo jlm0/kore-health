@@ -68,6 +68,8 @@ Feature: Normalization onto the dataset grid
     Given temp events (i16 LE /100 °C, kept only in 25–40 °C)
     When folded
     Then nightly means (20:00–12:00 samples, keyed to the wake day) are computed
+    And a night enters the baseline only with ≥20 overnight samples AND a
+    plausible on-finger mean (33–37 °C) — charging/off-wrist nights are gated out
     And each night's baseline is the median of the up-to-7 preceding nightly means
     And the temp series stores deviation vs baseline — 0 until a baseline exists
 
@@ -77,12 +79,13 @@ Feature: Normalization onto the dataset grid
     Then it shows the real ABSOLUTE skin temperature (°C), never a flat "+0.0"
     And notes that the display switches to deviation once the baseline builds
 
-  Scenario: SpO2 is never invented
-    Given spo2_r_pi raw R-ratio events
+  Scenario: SpO2 uses Oura's documented cooper calibration
+    Given spo2_r_pi raw R-ratio events (per-sample r + perfusion index)
     When folded
-    Then they are NOT converted (Oura's R→% curve needs proprietary per-device
-    calibration) — only summarized spo2_event samples feed the spo2 series
-    # consequence: SpO2 may legitimately stay 0 until the ring emits 0x6f
+    Then each r converts via the cooper quadratic −12.1·r² − 6.9·r + 106.3,
+    clamped to [85, 100] (third_party/open_oura/docs/spo2-calibration.md)
+    And samples with r ≤ 0 or pi ≤ 0 are dropped (not measuring blood)
+    And summarized spo2_event samples feed the same spo2 series directly
 
   Scenario: Steps are reported as zero until validated
     Given activity data
@@ -123,6 +126,12 @@ Feature: Aggregation over time
     night minimum → deep; still + HR near night maximum → REM; else light
     And latency is the first run of 3 consecutive asleep epochs
     And efficiency = asleep / time-in-bed
+    And the UI labels stages as an estimate (from heart rate & movement)
+
+  Scenario: A window without HR data claims duration only
+    Given a sleep window with no usable HR (< 10 HR epochs — ring not measuring)
+    When the SleepSummary is built
+    Then it reports time-in-bed duration only: no stages, no efficiency, no latency
 
   Scenario: Scores are transparent composites with neutral fallbacks
     Given a day with partial data

@@ -49,6 +49,10 @@ export default function SleepScreen() {
     }));
   }, [sleep, hasSleep]);
 
+  // Staging exists only when the night had usable HR (see computeSleep); a
+  // duration-only night shows no hypnogram or stage breakdown at all.
+  const hasStages = hypnoSegments.length > 0;
+
   const nightHr = useMemo(
     () =>
       hasSleep
@@ -156,51 +160,58 @@ export default function SleepScreen() {
         </GlassCard>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(80).duration(500)}>
-        <GlassCard radius={28} padding={20}>
-          <CardHeading icon="chart-timeline-variant" tint="lavender">Stages</CardHeading>
-          <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-            <View style={{ height: 100, justifyContent: 'space-between', paddingVertical: 2 }}>
-              {STAGE_ROWS.map((r) => (
-                <Label key={r} size={8} em={0.08} color={palette.faint}>
-                  {r}
-                </Label>
-              ))}
-            </View>
-            <View style={{ flex: 1 }}>
-              <Hypnogram segments={hypnoSegments} height={104} delay={250} />
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-                {timeLabels.map((t, i) => (
-                  <Text key={i} style={{ fontSize: 8, fontFamily: fontFamily.regular, color: palette.faint }}>
-                    {t}
-                  </Text>
+      {hasStages && (
+        <Animated.View entering={FadeInDown.delay(80).duration(500)}>
+          <GlassCard radius={28} padding={20}>
+            <CardHeading icon="chart-timeline-variant" tint="lavender">Stages</CardHeading>
+            <Label size={8} em={0.1} color={palette.faint} style={{ marginTop: 4 }}>
+              Estimated from heart rate & movement
+            </Label>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+              <View style={{ height: 100, justifyContent: 'space-between', paddingVertical: 2 }}>
+                {STAGE_ROWS.map((r) => (
+                  <Label key={r} size={8} em={0.08} color={palette.faint}>
+                    {r}
+                  </Label>
                 ))}
               </View>
-            </View>
-          </View>
-        </GlassCard>
-      </Animated.View>
-
-      <Animated.View entering={FadeInDown.delay(160).duration(500)}>
-        <GlassCard radius={26} padding={{ horizontal: 20, vertical: 18 }} contentStyle={{ gap: 14 }}>
-          <StageBar segments={stageSegments} delay={400} />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            {legend.map((l) => (
-              <View key={l.label} style={{ gap: 3 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: l.color }} />
-                  <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
-                    {l.time}
-                  </Text>
+              <View style={{ flex: 1 }}>
+                <Hypnogram segments={hypnoSegments} height={104} delay={250} />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+                  {timeLabels.map((t, i) => (
+                    <Text key={i} style={{ fontSize: 8, fontFamily: fontFamily.regular, color: palette.faint }}>
+                      {t}
+                    </Text>
+                  ))}
                 </View>
-                <Label size={8} em={0.14} color={palette.faint}>
-                  {l.label}
-                </Label>
               </View>
-            ))}
-          </View>
-        </GlassCard>
-      </Animated.View>
+            </View>
+          </GlassCard>
+        </Animated.View>
+      )}
+
+      {hasStages && (
+        <Animated.View entering={FadeInDown.delay(160).duration(500)}>
+          <GlassCard radius={26} padding={{ horizontal: 20, vertical: 18 }} contentStyle={{ gap: 14 }}>
+            <StageBar segments={stageSegments} delay={400} />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              {legend.map((l) => (
+                <View key={l.label} style={{ gap: 3 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: l.color }} />
+                    <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
+                      {l.time}
+                    </Text>
+                  </View>
+                  <Label size={8} em={0.14} color={palette.faint}>
+                    {l.label}
+                  </Label>
+                </View>
+              ))}
+            </View>
+          </GlassCard>
+        </Animated.View>
+      )}
 
       <Animated.View
         entering={FadeInDown.delay(240).duration(500)}

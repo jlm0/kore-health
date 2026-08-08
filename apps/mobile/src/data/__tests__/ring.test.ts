@@ -116,14 +116,21 @@ describe('foldRingEvents — hrv_event windows', () => {
 });
 
 describe('foldRingEvents — temperature baseline and deviation', () => {
-  // Night for wake day D (a local midnight): a 23:00 sample on D−1
-  // (hour >= 20 → night hours, keyed to D via t + 12 h).
-  const nightSample = (wakeDay: number, temps: number[]) =>
-    ev('temp_event', wakeDay - HOUR, { temps_c: temps });
+  // Night for wake day D (a local midnight): samples from 23:00 on D−1
+  // (hour >= 20 → night hours, keyed to D via t + 12 h). A full night emits
+  // `count` events spaced 10 min apart — over the ≥20-sample wear gate.
+  const nightEvents = (wakeDay: number, temp: number, count = 20): RingEventLike[] =>
+    Array.from({ length: count }, (_, i) =>
+      ev('temp_event', wakeDay - HOUR + i * 10 * MIN, { temps_c: [temp] }),
+    );
 
-  it('filters implausible temps (keeps only 25–40 °C)', () => {
+  it('filters implausible probe temps (keeps only 25–40 °C)', () => {
     const wakeDay = localMidnight(NOW) - DAY;
-    const r = fold([timeSync(), nightSample(wakeDay, [20, 36, 45])]);
+    // Each event averages its probes: [20, 36, 45] → 36 °C.
+    const events = Array.from({ length: 20 }, (_, i) =>
+      ev('temp_event', wakeDay - HOUR + i * 10 * MIN, { temps_c: [20, 36, 45] }),
+    );
+    const r = fold([timeSync(), ...events]);
     expect(r.state.tempNights).toEqual([{ dayStart: wakeDay, meanC: 36 }]);
   });
 
@@ -133,49 +140,163 @@ describe('foldRingEvents — temperature baseline and deviation', () => {
     const d3 = localMidnight(NOW);
     const r = fold([
       timeSync(),
-      nightSample(d1, [36]),
-      nightSample(d2, [37]),
-      nightSample(d3, [39]),
+      ...nightEvents(d1, 34),
+      ...nightEvents(d2, 35),
+      ...nightEvents(d3, 36.5),
       // A daytime sample on d3 so its DaySummary row exists to carry the deviation.
       ev('spo2_event', d3 + 12 * HOUR, { spo2_percent: [97] }),
     ]);
     expect(r.state.tempNights).toEqual([
-      { dayStart: d1, meanC: 36 },
-      { dayStart: d2, meanC: 37 },
-      { dayStart: d3, meanC: 39 },
+      { dayStart: d1, meanC: 34 },
+      { dayStart: d2, meanC: 35 },
+      { dayStart: d3, meanC: 36.5 },
     ]);
     const temp = r.state.dataset.series.temp;
     const devAt = (wakeDay: number) =>
       temp.find((s) => s.t === bucketOf(wakeDay - HOUR))?.v;
     expect(devAt(d1)).toBe(0); // no baseline yet
-    expect(devAt(d2)).toBe(1); // 37 − median([36])
-    expect(devAt(d3)).toBe(2.5); // 39 − median([36, 37])
+    expect(devAt(d2)).toBe(1); // 35 − median([34])
+    expect(devAt(d3)).toBe(2); // 36.5 − median([34, 35])
     // DaySummary carries the same deviation.
     const day3 = r.state.dataset.days.find((d) => d.dayStart === d3);
-    expect(day3?.tempDeviation).toBe(2.5);
+    expect(day3?.tempDeviation).toBe(2);
   });
 
   it('ignores daytime samples (12:00–20:00) for nightly means', () => {
     const wakeDay = localMidnight(NOW) - DAY;
     const r = fold([
       timeSync(),
-      nightSample(wakeDay, [36]),
+      ...nightEvents(wakeDay, 36),
       ev('temp_event', wakeDay - 10 * HOUR, { temps_c: [30] }), // 14:00 prior day
     ]);
     expect(r.state.tempNights).toEqual([{ dayStart: wakeDay, meanC: 36 }]);
   });
 });
 
-describe('foldRingEvents — SpO2 is never invented', () => {
-  it('ignores raw spo2_r_pi R-ratio events entirely', () => {
+describe('foldRingEvents — temperature artifact gating', () => {
+  const nightEvents = (wakeDay: number, temp: number, count = 20): RingEventLike[] =>
+    Array.from({ length: count }, (_, i) =>
+      ev('temp_event', wakeDay - HOUR + i * 10 * MIN, { temps_c: [temp] }),
+    );
+
+  it('excludes implausible night means (charging/off-wrist heat) from the baseline', () => {
+    // Capture store showed night 1 at 37.8 °C (charging) vs 34–36 °C worn.
+    const d1 = localMidnight(NOW) - 2 * DAY;
+    const d2 = localMidnight(NOW) - DAY;
+    const d3 = localMidnight(NOW);
     const r = fold([
       timeSync(),
-      ev('spo2_r_pi', NOW - HOUR, { r_ratio: [1.1, 1.2], perfusion_index: [3, 4] }),
+      ...nightEvents(d1, 37.8), // charging artifact
+      ...nightEvents(d2, 34),
+      ...nightEvents(d3, 34.5),
+      ev('spo2_event', d3 + 12 * HOUR, { spo2_percent: [97] }),
     ]);
-    expect(r.state.dataset.series.spo2).toEqual([]);
+    // The artifact night never enters tempNights, so it can't be a baseline.
+    expect(r.state.tempNights).toEqual([
+      { dayStart: d2, meanC: 34 },
+      { dayStart: d3, meanC: 34.5 },
+    ]);
+    const temp = r.state.dataset.series.temp;
+    const devAt = (wakeDay: number) =>
+      temp.find((s) => s.t === bucketOf(wakeDay - HOUR))?.v;
+    expect(devAt(d2)).toBe(0); // no baseline yet (d1 gated out)
+    expect(devAt(d3)).toBe(0.5); // 34.5 − 34, NOT 34.5 − 37.8
   });
 
-  it('accepts summarized spo2_event samples (burst averaged to one grid point)', () => {
+  it('excludes nights with too few overnight samples', () => {
+    const wakeDay = localMidnight(NOW) - DAY;
+    const r = fold([timeSync(), ...nightEvents(wakeDay, 35, 5)]);
+    expect(r.state.tempNights).toEqual([]);
+  });
+
+  it('purges a previously persisted artifact night on refold', () => {
+    // Simulate a store written before the gating existed (37.8 °C night).
+    const artifactDay = localMidnight(NOW) - DAY;
+    const prior = emptyFoldState();
+    prior.tempNights = [{ dayStart: artifactDay, meanC: 37.8 }];
+    const r = fold([], prior);
+    expect(r.state.tempNights).toEqual([]);
+  });
+
+  it('keeps previously persisted real nights on refold', () => {
+    const d1 = localMidnight(NOW) - 2 * DAY;
+    const d2 = localMidnight(NOW) - DAY;
+    const first = fold([timeSync(), ...nightEvents(d1, 34.3), ...nightEvents(d2, 35.1)]);
+    const second = fold([], first.state);
+    expect(second.state.tempNights).toEqual(first.state.tempNights);
+  });
+});
+
+describe('foldRingEvents — SpO2 calibration (cooper quadratic)', () => {
+  // Real decoded spo2_r_pi_event payloads from
+  // docs/captures/ring-capture-2026-08-08.json (dump.0x8b, cooper ring).
+  const REAL_R = [0.673, 0.675, 0.676, 0.677];
+  const REAL_PI = [0.05, 0.05, 0.05, 0.05];
+
+  it('converts R-ratios to SpO2 % with the cooper quadratic, clamped [85, 100]', () => {
+    // −12.1·r² − 6.9·r + 106.3 at r = 0.732 (capture median) ≈ 94.8.
+    const at = NOW - HOUR;
+    const r = fold([
+      timeSync(),
+      ev('spo2_r_pi_event', at, { r: [0.732], perfusion_index: [0.05] }),
+    ]);
+    expect(r.state.dataset.series.spo2).toEqual([{ t: bucketOf(at), v: 94.8 }]);
+  });
+
+  it('converts a real captured burst and averages it into one grid point', () => {
+    const at = NOW - HOUR;
+    const r = fold([
+      timeSync(),
+      ev('spo2_r_pi_event', at, { r: REAL_R, perfusion_index: REAL_PI }),
+    ]);
+    // Per-sample: 96.18, 96.13, 96.10, 96.08 → mean rounds to 96.1.
+    expect(r.state.dataset.series.spo2).toEqual([{ t: bucketOf(at), v: 96.1 }]);
+    expect(r.eventsApplied).toBe(1); // time_sync anchors but is not "applied"
+  });
+
+  it('clamps extreme R-ratios to the [85, 100] output range', () => {
+    const b = bucketOf(NOW - HOUR);
+    const r = fold([
+      timeSync(),
+      // Capture range endpoints: r = 0.358 → >100, r = 1.288 → <85.
+      ev('spo2_r_pi_event', b + 10_000, { r: [0.358], perfusion_index: [0.05] }),
+      ev('spo2_r_pi_event', b + 20_000, { r: [1.288], perfusion_index: [0.05] }),
+    ]);
+    expect(r.state.dataset.series.spo2).toEqual([{ t: b, v: 92.5 }]); // mean(100, 85)
+  });
+
+  it('drops samples with no perfusion or a non-positive r', () => {
+    const at = NOW - HOUR;
+    const r = fold([
+      timeSync(),
+      ev('spo2_r_pi_event', at, {
+        r: [0.7, 0, 0.8],
+        perfusion_index: [0.05, 0.05, 0], // third sample: not perfused
+      }),
+      ev('spo2_r_pi_event', at + 10_000, { r: [0, 0], perfusion_index: [0, 0] }),
+    ]);
+    // Only r = 0.7 survives: −12.1·0.49 − 6.9·0.7 + 106.3 = 95.54 → 95.5.
+    expect(r.state.dataset.series.spo2).toEqual([{ t: bucketOf(at), v: 95.5 }]);
+    expect(r.eventsApplied).toBe(1); // the all-dead burst produces no grid point
+  });
+
+  it('fills DaySummary.spo2 from calibrated night values', () => {
+    const wakeDay = localMidnight(NOW);
+    const start = wakeDay - HOUR; // 23:00 prior day
+    const end = wakeDay + 7 * HOUR; // 07:00
+    const r = fold([
+      timeSync(),
+      ev('bedtime_period', NOW - 30 * MIN, {
+        bedtime_start_ds: dsAt(start),
+        bedtime_end_ds: dsAt(end),
+      }),
+      ev('spo2_r_pi_event', start + HOUR, { r: [0.732], perfusion_index: [0.05] }),
+    ]);
+    const day = r.state.dataset.days.find((d) => d.dayStart === wakeDay);
+    expect(day?.spo2).toBe(94.8);
+  });
+
+  it('still accepts summarized spo2_event samples (burst averaged to one grid point)', () => {
     const at = NOW - HOUR;
     const r = fold([timeSync(), ev('spo2_event', at, { spo2_percent: [96, 98, 50] })]);
     expect(r.state.dataset.series.spo2).toEqual([{ t: bucketOf(at), v: 97 }]);

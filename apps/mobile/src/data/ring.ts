@@ -141,6 +141,26 @@ function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
 }
 
+// R-ratio → SpO2 % via Oura's "SpO2 Simple" quadratic. Coefficients are
+// per-hardware; these are the cooper (COR_08) values documented in
+// third_party/open_oura/docs/spo2-calibration.md (from the decompiled app).
+// The per-sample result clamps to [85, 100]. Sanity: r = 0.732 → ≈ 94.8%.
+const SPO2_A = -12.1;
+const SPO2_B = -6.9;
+const SPO2_C = 106.3;
+
+function spo2FromR(r: number): number {
+  return clamp(SPO2_A * r * r + SPO2_B * r + SPO2_C, 85, 100);
+}
+
+// A night enters the temperature baseline only when it looks like real
+// on-finger night wear: enough overnight samples AND a plausible on-finger
+// mean. Charging/off-wrist nights (mean ≈ 37.8 °C from charger heat, or a
+// handful of ambient samples) would poison the baseline for the next week.
+const MIN_NIGHT_TEMP_SAMPLES = 20;
+const NIGHT_TEMP_MIN_C = 33;
+const NIGHT_TEMP_MAX_C = 37;
+
 function median(xs: number[]): number | null {
   if (xs.length === 0) return null;
   const s = [...xs].sort((a, b) => a - b);
@@ -203,9 +223,13 @@ export function foldRingEvents(input: {
   move.seed(prior.dataset.series.move);
   tempAbs.seed(prior.tempAbsSeries);
 
-  // Nightly absolute temp means (for the personal baseline).
+  // Nightly absolute temp means (for the personal baseline). Prior nights were
+  // validated when first persisted, so seed them at the sample-count gate;
+  // the mean-plausibility gate below still applies and purges stored artifacts.
   const nightAcc = new Map<number, { sum: number; count: number }>();
-  for (const n of prior.tempNights) nightAcc.set(n.dayStart, { sum: n.meanC, count: 1 });
+  for (const n of prior.tempNights) {
+    nightAcc.set(n.dayStart, { sum: n.meanC * MIN_NIGHT_TEMP_SAMPLES, count: MIN_NIGHT_TEMP_SAMPLES });
+  }
 
   // Sleep windows keyed by wake-day local midnight.
   const sleepWindows = new Map<number, SleepWindow>();
@@ -272,10 +296,29 @@ export function foldRingEvents(input: {
       }
       case 'spo2_event': {
         // Summarized SpO2 % samples at 1 Hz — average the burst into one grid
-        // point. (spo2_r_pi raw R-ratios are NOT converted: the R→SpO2 curve
-        // needs Oura's per-device calibration coefficients, which are
-        // proprietary. Without them any % we emitted would be invented.)
+        // point.
         const vals = numArray(d, 'spo2_percent').filter((v) => v >= 70 && v <= 100);
+        if (vals.length === 0) break;
+        spo2.add(t, vals.reduce((s, v) => s + v, 0) / vals.length);
+        eventsApplied++;
+        break;
+      }
+      case 'spo2_r_pi_event': {
+        // Raw overnight SpO2: per-sample R-ratio + perfusion index. Convert
+        // r → % with the cooper quadratic (see spo2FromR). Samples with no
+        // perfusion (pi <= 0) or a non-positive r are not measuring blood and
+        // are dropped; the calibration doc defines no finer PI threshold.
+        // Average the burst (4 samples over ~4 s) into one grid point.
+        const rs = numArray(d, 'r');
+        const pis = numArray(d, 'perfusion_index');
+        const vals: number[] = [];
+        for (let i = 0; i < rs.length; i++) {
+          const r = rs[i];
+          if (!(r > 0)) continue;
+          const pi = pis[i];
+          if (pi != null && !(pi > 0)) continue;
+          vals.push(spo2FromR(r));
+        }
         if (vals.length === 0) break;
         spo2.add(t, vals.reduce((s, v) => s + v, 0) / vals.length);
         eventsApplied++;
@@ -345,9 +388,15 @@ export function foldRingEvents(input: {
 
   // Temp baseline: for each night, the median of the up-to-7 preceding nightly
   // means (a robust personal baseline; 7 nights ≈ Oura's "past week" framing).
+  // Nights that fail the wear gates (too few samples, implausible mean) never
+  // enter tempNights, so they can't poison the baseline.
   const tempNights: TempNight[] = [...nightAcc.entries()]
+    .filter(([, a]) => a.count >= MIN_NIGHT_TEMP_SAMPLES)
     .map(([dayStart, a]) => ({ dayStart, meanC: round2(a.sum / a.count) }))
-    .filter((n) => n.dayStart >= trimStart)
+    .filter(
+      (n) =>
+        n.meanC >= NIGHT_TEMP_MIN_C && n.meanC <= NIGHT_TEMP_MAX_C && n.dayStart >= trimStart,
+    )
     .sort((a, b) => a.dayStart - b.dayStart);
   const baselineByNight = new Map<number, number>();
   for (let i = 0; i < tempNights.length; i++) {

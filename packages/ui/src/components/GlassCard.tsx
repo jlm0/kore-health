@@ -46,7 +46,10 @@ export function GlassCard({
   const body = (
     <View style={[styles.clip, { borderRadius: radius }]}>
       {Platform.OS === 'ios' ? (
-        <BlurView intensity={60} tint="extraLight" style={StyleSheet.absoluteFill} />
+        // True iOS glass material (not a plain gaussian tint): the thin light
+        // material picks up the backdrop washes behind the card, which is what
+        // makes the surface read as frosted glass instead of flat white.
+        <BlurView intensity={80} tint="systemThinMaterialLight" style={StyleSheet.absoluteFill} />
       ) : null}
       <View
         style={[

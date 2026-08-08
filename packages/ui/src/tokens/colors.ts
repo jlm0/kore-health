@@ -30,12 +30,12 @@ export const palette = {
 } as const;
 
 export const surfaces = {
-  // Near-solid white: the reference designs' cards are solid white floating on
-  // a light grey field — strong translucency over a flat backdrop just reads
-  // milky. The BlurView behind still frosts the edge.
-  card: 'rgba(255,255,255,0.86)',
+  // A light veil over the iOS thin material — the blur material provides the
+  // body of the glass; this just lifts it toward white. (Near-solid here
+  // would smother the material and read as flat plastic again.)
+  card: 'rgba(255,255,255,0.28)',
   cardBorder: 'rgba(255,255,255,0.9)',
-  cardFallback: 'rgba(255,255,255,0.92)',
+  cardFallback: 'rgba(255,255,255,0.78)',
   cardSheen: ['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.06)', 'rgba(255,255,255,0)'],
   track: 'rgba(35,39,47,0.06)',
   trackStrong: 'rgba(35,39,47,0.08)',

@@ -462,7 +462,7 @@ export default function MetricDetailScreen() {
                 {(['imperial', 'metric'] as Units[]).map((u) => (
                   <Pill
                     key={u}
-                    variant={units === u ? 'mint' : 'neutral'}
+                    variant={units === u ? 'ink' : 'neutral'}
                     em={0.1}
                     onPress={() => setUnits(u)}
                     accessibilityLabel={`Show temperatures in ${tempUnit(u)}`}>

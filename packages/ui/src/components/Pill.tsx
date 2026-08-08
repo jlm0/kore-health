@@ -10,6 +10,9 @@ const variants = {
   lavender: { bg: tints.lavender, color: iconTints.lavender.fg },
   peach: { bg: tints.peach, color: palette.peach.deep },
   neutral: { bg: surfaces.chipNeutral, color: palette.muted },
+  // Solid ink pill — the active segment in Day/Week/Month-style selectors
+  // (Soma convention: one dark pill on a neutral track, no hue in chrome).
+  ink: { bg: palette.ink, color: palette.white },
 } as const;
 
 // A Pill is only ~20 pt tall. This hitSlop lifts every interactive Pill to

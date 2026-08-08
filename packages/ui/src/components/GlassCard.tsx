@@ -46,7 +46,7 @@ export function GlassCard({
   const body = (
     <View style={[styles.clip, { borderRadius: radius }]}>
       {Platform.OS === 'ios' ? (
-        <BlurView intensity={48} tint="extraLight" style={StyleSheet.absoluteFill} />
+        <BlurView intensity={60} tint="extraLight" style={StyleSheet.absoluteFill} />
       ) : null}
       <View
         style={[

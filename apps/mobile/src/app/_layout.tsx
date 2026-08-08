@@ -1,11 +1,4 @@
 import {
-  Fraunces_300Light,
-  Fraunces_400Regular,
-  Fraunces_400Regular_Italic,
-  Fraunces_500Medium,
-  Fraunces_600SemiBold,
-} from '@expo-google-fonts/fraunces';
-import {
   Sora_200ExtraLight,
   Sora_300Light,
   Sora_400Regular,
@@ -52,11 +45,6 @@ export default function RootLayout() {
     Sora_400Regular,
     Sora_500Medium,
     Sora_600SemiBold,
-    Fraunces_300Light,
-    Fraunces_400Regular,
-    Fraunces_400Regular_Italic,
-    Fraunces_500Medium,
-    Fraunces_600SemiBold,
   });
 
   useEffect(() => {
@@ -89,7 +77,7 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#E8ECF2' },
+          contentStyle: { backgroundColor: '#F4F5F7' },
         }}
       />
     </>

@@ -1,9 +1,11 @@
+// Greyscale-first system: text and tracks are true neutrals (no blue cast),
+// screens are near-white, and hue lives in charts/rings/accents only.
 export const palette = {
-  ink: '#333947',
-  slate: '#5A6270',
-  muted: '#61697A',
-  faint: '#788093',
-  ghost: '#A9B0BF',
+  ink: '#23272F',
+  slate: '#4A4F58',
+  muted: '#5B6069',
+  faint: '#7A7F89',
+  ghost: '#A6AAB3',
   white: '#FFFFFF',
   mint: {
     light: '#7CCBB9',
@@ -28,15 +30,15 @@ export const palette = {
 } as const;
 
 export const surfaces = {
-  card: 'rgba(255,255,255,0.62)',
-  cardBorder: 'rgba(255,255,255,0.8)',
+  card: 'rgba(255,255,255,0.55)',
+  cardBorder: 'rgba(255,255,255,0.9)',
   cardFallback: 'rgba(255,255,255,0.72)',
-  cardSheen: ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.05)', 'rgba(255,255,255,0)'],
-  track: 'rgba(51,57,71,0.07)',
-  trackStrong: 'rgba(51,57,71,0.08)',
-  hairline: 'rgba(51,57,71,0.12)',
-  gridline: 'rgba(51,57,71,0.05)',
-  chipNeutral: 'rgba(51,57,71,0.05)',
+  cardSheen: ['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.06)', 'rgba(255,255,255,0)'],
+  track: 'rgba(35,39,47,0.06)',
+  trackStrong: 'rgba(35,39,47,0.08)',
+  hairline: 'rgba(35,39,47,0.1)',
+  gridline: 'rgba(35,39,47,0.045)',
+  chipNeutral: 'rgba(35,39,47,0.05)',
 } as const;
 
 export const tints = {
@@ -46,11 +48,14 @@ export const tints = {
   peach: 'rgba(239,181,140,0.16)',
 } as const;
 
+// Card tint gradients are dialed to a whisper: cards read as frosted white
+// glass; the tint prop still differentiates a metric at a glance without
+// painting the whole card.
 export const cardTints = {
-  mint: ['rgba(124,203,185,0.14)', 'rgba(124,203,185,0.02)'],
-  indigo: ['rgba(147,170,236,0.14)', 'rgba(147,170,236,0.02)'],
-  lavender: ['rgba(192,180,234,0.14)', 'rgba(192,180,234,0.02)'],
-  peach: ['rgba(242,203,172,0.16)', 'rgba(242,203,172,0.03)'],
+  mint: ['rgba(124,203,185,0.07)', 'rgba(124,203,185,0.01)'],
+  indigo: ['rgba(147,170,236,0.07)', 'rgba(147,170,236,0.01)'],
+  lavender: ['rgba(192,180,234,0.07)', 'rgba(192,180,234,0.01)'],
+  peach: ['rgba(242,203,172,0.08)', 'rgba(242,203,172,0.015)'],
 } as const;
 
 export type CardTint = keyof typeof cardTints;
@@ -80,12 +85,14 @@ export const stageColors = {
 
 export type StageKey = keyof typeof stageColors;
 
+// One neutral backdrop for every screen — hue belongs to data, not chrome.
+// Keys stay so screens can re-differentiate later without call-site changes.
 export const screenBase = {
-  home: '#CBD3EE',
-  sleep: '#BCC8EC',
-  readiness: '#BFE7C9',
-  activity: '#F6D8C5',
-  trends: '#F5DBDE',
+  home: '#F4F5F7',
+  sleep: '#F4F5F7',
+  readiness: '#F4F5F7',
+  activity: '#F4F5F7',
+  trends: '#F4F5F7',
 } as const;
 
 export type ScreenKey = keyof typeof screenBase;

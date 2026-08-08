@@ -14,8 +14,16 @@ export const CONNECT_TIMEOUT_MS = 30_000;
 // client.rs relies on the host stack's default MTU; ble-plx needs an explicit
 // request on Android (iOS auto-negotiates and ignores this).
 export const REQUEST_MTU = 185;
-// Quiet window for collecting responses, mirrors DEFAULT_QUIET in client.rs.
-export const RESPONSE_QUIET_MS = 1500;
+// Quiet window for collecting responses. Verified on-device: the simple
+// request/response ops (auth nonce + authenticate, featureStatus, feature-
+// Latest, syncTime, battery, capabilities, device info, check_sleep_analysis)
+// all get their complete answer — one or two frames — within a few hundred
+// ms, so 500ms of silence is a safe end-of-response signal (was 1500ms).
+// The multi-frame candidates are all covered: capabilities answers one frame
+// per page request, device-info/battery/serial one frame each, and get_event
+// batches use the even shorter BATCH_QUIET_MS below. The 15s cap stays as
+// the backstop for a chattering ring.
+export const RESPONSE_QUIET_MS = 500;
 // Shorter quiet window for get_event batch requests: the ring pauses
 // >1500ms between batches while it waits for the next get_event, so 400ms
 // of silence after the last frame is a safe end-of-batch signal — ~1.1s per

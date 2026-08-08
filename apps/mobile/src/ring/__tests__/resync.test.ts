@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
-import { dedupeEvents, hasInteriorDateGap } from '../resync';
+import { BATCH_QUIET_MS, RESPONSE_QUIET_MS } from '../constants';
+import { dedupeEvents, hasInteriorDateGap, shouldWaitForSleepAnalysis } from '../resync';
 
 // Tests for the pure deep-resync helpers in resync.ts: interior date-gap
 // detection (the deep-resync trigger) and event dedupe (the fold is not
@@ -57,5 +58,39 @@ describe('dedupeEvents', () => {
   it('keeps events with the same timestamp but different tags', () => {
     const out = dedupeEvents([ev(0x55, 100), ev(0x56, 100)]);
     expect(out).toHaveLength(2);
+  });
+});
+
+describe('shouldWaitForSleepAnalysis', () => {
+  it('never waits when analysis is complete or its progress is unknown', () => {
+    expect(shouldWaitForSleepAnalysis({ progress: 100, drainedEvents: 500, hasSleepEvents: false })).toBe(false);
+    expect(shouldWaitForSleepAnalysis({ progress: null, drainedEvents: 500, hasSleepEvents: false })).toBe(false);
+  });
+
+  it('waits when analysis is mid-flight and no sleep events arrived', () => {
+    expect(shouldWaitForSleepAnalysis({ progress: 40, drainedEvents: 500, hasSleepEvents: false })).toBe(true);
+    expect(shouldWaitForSleepAnalysis({ progress: 40, drainedEvents: 0, hasSleepEvents: false })).toBe(true);
+  });
+
+  it('never waits when the drain already delivered sleep events', () => {
+    expect(shouldWaitForSleepAnalysis({ progress: 40, drainedEvents: 500, hasSleepEvents: true })).toBe(false);
+  });
+
+  it('skips the wait on a near-empty ring stuck at progress=0 (nothing to analyze)', () => {
+    expect(shouldWaitForSleepAnalysis({ progress: 0, drainedEvents: 0, hasSleepEvents: false })).toBe(false);
+    expect(shouldWaitForSleepAnalysis({ progress: 0, drainedEvents: 10, hasSleepEvents: false })).toBe(false);
+  });
+
+  it('still waits at progress=0 when real history may be pending analysis', () => {
+    expect(shouldWaitForSleepAnalysis({ progress: 0, drainedEvents: 11, hasSleepEvents: false })).toBe(true);
+  });
+});
+
+describe('request quiet windows', () => {
+  it('uses the tuned quiet values verified on-device', () => {
+    // Small request/response ops answer in a few hundred ms; batches pause
+    // >1500ms between get_event calls.
+    expect(RESPONSE_QUIET_MS).toBe(500);
+    expect(BATCH_QUIET_MS).toBe(400);
   });
 });

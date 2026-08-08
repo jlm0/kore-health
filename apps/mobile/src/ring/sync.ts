@@ -4,7 +4,12 @@ import { useHealthStore, useLiveStore } from '../store/health';
 import { waitForBluetoothReady, withTimeout, describeBleError } from './bluetooth';
 import { OuraRingClient, type LatestValues } from './client';
 import { FEATURE, FEATURE_MODE, CONNECT_TIMEOUT_MS } from './constants';
-import { dedupeEvents, hasInteriorDateGap, DEEP_RESYNC_REACH_TOLERANCE_DS } from './resync';
+import {
+  dedupeEvents,
+  hasInteriorDateGap,
+  shouldWaitForSleepAnalysis,
+  DEEP_RESYNC_REACH_TOLERANCE_DS,
+} from './resync';
 import { BleTransport } from './transport';
 
 // Ring sync orchestration: connect to the paired ring → authenticate → sync
@@ -273,9 +278,20 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     // no sleep events arrived in this drain — poll progress (bounded, ≤10s)
     // and re-drain once so the freshly generated sleep events make THIS
     // sync's fold. Steady state (analysis complete, progress=100) costs
-    // nothing at all.
+    // nothing at all, and a near-empty ring stuck at progress=0 (nothing to
+    // analyze) skips the wait instead of burning the full bound every sync.
     const progress = outcome.sleepAnalysisProgress;
-    if (progress != null && progress < 100 && !events.some((e) => SLEEP_EVENT_TAGS.has(e.tag))) {
+    const waitForAnalysis = shouldWaitForSleepAnalysis({
+      progress,
+      drainedEvents: events.length,
+      hasSleepEvents: events.some((e) => SLEEP_EVENT_TAGS.has(e.tag)),
+    });
+    if (!waitForAnalysis && progress != null && progress < 100) {
+      console.log(
+        `[sync] sleep analysis idle (progress=${progress}, ${events.length} events drained — nothing to analyze) — skipping wait`,
+      );
+    }
+    if (waitForAnalysis) {
       try {
         console.log(
           `[sync] sleep analysis in progress (${progress}%), no sleep events in drain — waiting (bounded)`,

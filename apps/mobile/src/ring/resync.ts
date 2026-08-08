@@ -16,30 +16,20 @@ const DAY_MS = 86_400_000;
 export const DEEP_RESYNC_REACH_TOLERANCE_DS = 864_000;
 
 /**
- * Drain size (events) at or below which a sleepAnalysisProgress of 0 means
- * "nothing to analyze" rather than "analysis pending" — a factory-fresh /
- * near-empty ring reports progress=0 forever, and waiting for it would burn
- * the full bounded wait every sync.
- */
-export const NEAR_EMPTY_DRAIN_EVENTS = 10;
-
-/**
  * Whether to wait (bounded) for the ring's sleep analysis after a drain and
- * re-drain for the fresh sleep events. Waits only when analysis was actually
- * RUNNING at drain end (0 < progress < 100), or plausibly pending with real
- * history to chew on — and never when the drain already picked up sleep
- * events. A near-empty drain with progress=0 is a ring with nothing to
- * analyze: skip immediately.
+ * re-drain for the fresh sleep events. Firmware semantics of
+ * sleepAnalysisProgress (proven on-device): 0 = not started/idle (a ring
+ * that never starts on-demand analysis reports 0 INDEFINITELY), 1–99 =
+ * running, 100 = done. Waiting only ever helps when analysis is actually
+ * running, so progress=0 never waits — and neither does a drain that
+ * already picked up sleep events.
  */
 export function shouldWaitForSleepAnalysis(input: {
   progress: number | null;
-  drainedEvents: number;
   hasSleepEvents: boolean;
 }): boolean {
-  if (input.progress == null || input.progress >= 100) return false;
-  if (input.hasSleepEvents) return false;
-  if (input.progress === 0 && input.drainedEvents <= NEAR_EMPTY_DRAIN_EVENTS) return false;
-  return true;
+  if (input.progress == null || input.progress <= 0 || input.progress >= 100) return false;
+  return !input.hasSleepEvents;
 }
 
 /**

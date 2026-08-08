@@ -63,26 +63,24 @@ describe('dedupeEvents', () => {
 
 describe('shouldWaitForSleepAnalysis', () => {
   it('never waits when analysis is complete or its progress is unknown', () => {
-    expect(shouldWaitForSleepAnalysis({ progress: 100, drainedEvents: 500, hasSleepEvents: false })).toBe(false);
-    expect(shouldWaitForSleepAnalysis({ progress: null, drainedEvents: 500, hasSleepEvents: false })).toBe(false);
+    expect(shouldWaitForSleepAnalysis({ progress: 100, hasSleepEvents: false })).toBe(false);
+    expect(shouldWaitForSleepAnalysis({ progress: null, hasSleepEvents: false })).toBe(false);
   });
 
-  it('waits when analysis is mid-flight and no sleep events arrived', () => {
-    expect(shouldWaitForSleepAnalysis({ progress: 40, drainedEvents: 500, hasSleepEvents: false })).toBe(true);
-    expect(shouldWaitForSleepAnalysis({ progress: 40, drainedEvents: 0, hasSleepEvents: false })).toBe(true);
+  it('waits only when analysis is genuinely mid-flight (1–99) with no sleep events', () => {
+    expect(shouldWaitForSleepAnalysis({ progress: 40, hasSleepEvents: false })).toBe(true);
+    expect(shouldWaitForSleepAnalysis({ progress: 1, hasSleepEvents: false })).toBe(true);
+    expect(shouldWaitForSleepAnalysis({ progress: 99, hasSleepEvents: false })).toBe(true);
   });
 
   it('never waits when the drain already delivered sleep events', () => {
-    expect(shouldWaitForSleepAnalysis({ progress: 40, drainedEvents: 500, hasSleepEvents: true })).toBe(false);
+    expect(shouldWaitForSleepAnalysis({ progress: 40, hasSleepEvents: true })).toBe(false);
   });
 
-  it('skips the wait on a near-empty ring stuck at progress=0 (nothing to analyze)', () => {
-    expect(shouldWaitForSleepAnalysis({ progress: 0, drainedEvents: 0, hasSleepEvents: false })).toBe(false);
-    expect(shouldWaitForSleepAnalysis({ progress: 0, drainedEvents: 10, hasSleepEvents: false })).toBe(false);
-  });
-
-  it('still waits at progress=0 when real history may be pending analysis', () => {
-    expect(shouldWaitForSleepAnalysis({ progress: 0, drainedEvents: 11, hasSleepEvents: false })).toBe(true);
+  it('never waits at progress=0 — idle means not started, however much was drained', () => {
+    // Proven on-device: a ring that never starts on-demand analysis reports
+    // progress=0 indefinitely; waiting burns the full bounded wait per sync.
+    expect(shouldWaitForSleepAnalysis({ progress: 0, hasSleepEvents: false })).toBe(false);
   });
 });
 

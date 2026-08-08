@@ -274,22 +274,20 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
 
     // Need-based sleep-analysis settle (replaces the fixed 3s pre-drain
     // sleep): the batch summaries' sleepAnalysisProgress says whether the
-    // ring was still analyzing when the drain ended. Only then — and only if
-    // no sleep events arrived in this drain — poll progress (bounded, ≤10s)
-    // and re-drain once so the freshly generated sleep events make THIS
-    // sync's fold. Steady state (analysis complete, progress=100) costs
-    // nothing at all, and a near-empty ring stuck at progress=0 (nothing to
-    // analyze) skips the wait instead of burning the full bound every sync.
+    // ring was still analyzing when the drain ended (0 = idle, 1–99 =
+    // running, 100 = done). Only when genuinely mid-flight — and no sleep
+    // events arrived in this drain — poll progress (bounded, ≤10s) and
+    // re-drain once so the freshly generated sleep events make THIS sync's
+    // fold. Steady state costs nothing: progress=100 means done, and a ring
+    // stuck at progress=0 never starts on-demand analysis, so waiting would
+    // burn the full bound every sync for no benefit.
     const progress = outcome.sleepAnalysisProgress;
     const waitForAnalysis = shouldWaitForSleepAnalysis({
       progress,
-      drainedEvents: events.length,
       hasSleepEvents: events.some((e) => SLEEP_EVENT_TAGS.has(e.tag)),
     });
-    if (!waitForAnalysis && progress != null && progress < 100) {
-      console.log(
-        `[sync] sleep analysis idle (progress=${progress}, ${events.length} events drained — nothing to analyze) — skipping wait`,
-      );
+    if (progress === 0) {
+      console.log('[sync] sleep analysis idle (progress=0) — not waiting');
     }
     if (waitForAnalysis) {
       try {

@@ -28,4 +28,8 @@ export const haptics = {
   confirm: () => play((p) => p.strike()),
   /** Light tick while scrubbing across a chart. */
   tick: () => play((p) => p.flick()),
+  /** Outcome succeeded — sync completed, ring paired. */
+  success: () => play((p) => p.System.notificationSuccess()),
+  /** Outcome failed — sync error, unreachable ring. */
+  error: () => play((p) => p.System.notificationError()),
 };

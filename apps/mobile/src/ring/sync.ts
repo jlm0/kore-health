@@ -1,3 +1,4 @@
+import { haptics } from '@kore/ui';
 import { foldRingEvents, type RingEventLike } from '../data/ring';
 import { mergeLatestVitals } from '../data/vitals';
 import { useHealthStore, useLiveStore } from '../store/health';
@@ -465,9 +466,11 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     }
 
     store().setConnectionStatus('disconnected');
+    haptics.success();
   } catch (error) {
     console.log(`[sync] failed: ${describeBleError(error)}`);
     store().setConnectionStatus('disconnected', describeBleError(error));
+    haptics.error();
   } finally {
     try {
       await transport.disconnect();

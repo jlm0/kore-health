@@ -7,6 +7,7 @@ import {
   Screen,
   ScreenHeader,
   fontFamily,
+  haptics,
   palette,
   spacing,
 } from '@kore/ui';
@@ -261,6 +262,7 @@ export default function PairScreen() {
         setRingDeviceName(ring.name);
         stopScan();
         console.log('[pair] paired, starting first sync');
+        haptics.success();
         router.back();
         // Home shows the sync progress via connectionStatus.
         void syncRing();
@@ -411,7 +413,10 @@ export default function PairScreen() {
       <ScreenHeader title="Pair your ring" left={<BackButton onPress={() => router.back()} />} />
 
       <Pressable
-        onPress={() => router.push('/ring-debug')}
+        onPress={() => {
+          haptics.tap();
+          router.push('/ring-debug');
+        }}
         hitSlop={10}
         style={{ alignSelf: 'flex-start', paddingVertical: 9, marginVertical: -9 }}>
         <Label size={8} em={0.14} color={palette.faint}>
@@ -497,7 +502,10 @@ export default function PairScreen() {
             {infoBusy ? <ActivityIndicator size="small" color={palette.indigo.deep} /> : null}
           </View>
           <Pressable
-            onPress={forgetRing}
+            onPress={() => {
+              haptics.confirm();
+              forgetRing();
+            }}
             hitSlop={10}
             style={{ alignSelf: 'flex-start', paddingVertical: 9, marginVertical: -9 }}>
             <Text style={{ fontSize: 12, fontFamily: fontFamily.semiBold, color: palette.peach.deep }}>
@@ -510,6 +518,7 @@ export default function PairScreen() {
       {paired && !showOthers ? (
         <Pressable
           onPress={() => {
+            haptics.tap();
             setShowOthers(true);
             void startScan();
           }}
@@ -571,7 +580,10 @@ export default function PairScreen() {
               return (
                 <Pressable
                   key={ring.id}
-                  onPress={() => void onPick(ring)}
+                  onPress={() => {
+                    haptics.select();
+                    void onPick(ring);
+                  }}
                   disabled={busy}
                   style={({ pressed }) => ({
                     flexDirection: 'row',

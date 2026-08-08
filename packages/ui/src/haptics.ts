@@ -11,6 +11,9 @@ try {
   presets = null;
 }
 
+/** Whether the Pulsar native module loaded — false in tests/web/SSR. */
+export const hapticsAvailable = presets != null;
+
 function play(effect: (p: Presets) => void): void {
   try {
     if (presets) effect(presets);

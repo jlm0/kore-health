@@ -11,6 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
+import { hapticsAvailable } from '@kore/ui';
 import { registerBackgroundSync } from '@/ring/background';
 import { syncRing } from '@/ring/sync';
 import { useHealthStore } from '@/store/health';
@@ -20,6 +21,7 @@ import { useHealthStore } from '@/store/health';
 // the simulator). Stripped from release bundles by __DEV__ gating.
 if (__DEV__) {
   (globalThis as unknown as Record<string, unknown>).__koreStore = useHealthStore;
+  (globalThis as unknown as Record<string, unknown>).__koreHapticsAvailable = hapticsAvailable;
 }
 
 SplashScreen.preventAutoHideAsync();

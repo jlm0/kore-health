@@ -103,11 +103,21 @@ export default function MetricDetailScreen() {
   // Range-switched chart: Day = hourly means of today, Week = daily means
   // over 7 days, Month = weekly means over the 30-day window. Buckets with no
   // samples are dropped from the line (their avg is null) — never fabricated.
+  // Night-backed metrics (resting HR, HRV) chart NIGHT HOURS ONLY
+  // (20:00–12:00): the headline is an overnight resting value, so letting
+  // daytime readings into the same chart puts an active-HR spike next to a
+  // resting headline and reads as a contradiction.
   const rangeBuckets = useMemo(() => {
     if (!metric) return [];
     const series = tempAbsMode ? tempAbsSeries : dataset.series[metric.seriesId];
-    return bucketSeries(series, range, Date.now());
-  }, [metric, tempAbsMode, tempAbsSeries, dataset, range]);
+    const chartSeries = nightBacked
+      ? series.filter((s) => {
+          const h = new Date(s.t).getHours();
+          return h >= 20 || h < 12;
+        })
+      : series;
+    return bucketSeries(chartSeries, range, Date.now());
+  }, [metric, nightBacked, tempAbsMode, tempAbsSeries, dataset, range]);
   const chartPoints = rangeBuckets.filter((b) => b.avg != null);
   const chartData = chartPoints.map((b) => b.avg as number);
   const chartXValues = chartPoints.map((b) =>

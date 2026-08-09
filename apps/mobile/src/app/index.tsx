@@ -27,7 +27,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useDays, useDataset, useLatestSample, useMaturities, useToday, useUnits } from '@/data/hooks';
-import { fmtDate, hasTempBaselineForDay, latestNightSample } from '@/data/selectors';
+import { fmtDate, hasTempBaselineForDay, samplesWithinSleepWindows } from '@/data/selectors';
 import { tempUnit, toDisplayTemp, toDisplayTempDelta } from '@/data/units';
 import { syncRing } from '@/ring/sync';
 import { useHealthStore } from '@/store/health';
@@ -153,10 +153,13 @@ export default function HomeScreen() {
   // Card headlines: the LATEST measurement in each series (the right edge of
   // any chart of that metric) — users read home cards as current state, so a
   // nightly average here reads as wrong-or-stale. HRV/RHR use the freshest
-  // resting-domain (night-hours) sample: never a daytime reading posing as
-  // "resting". Each card stamps when its value was measured.
-  const hrvSample = latestNightSample(dataset.series.hrv);
-  const rhrSample = latestNightSample(dataset.series.hr);
+  // sample INSIDE A DETECTED SLEEP WINDOW: resting means "measured while you
+  // slept", never a daytime reading whatever the clock says. Each card stamps
+  // when its value was measured.
+  const hrvSleep = samplesWithinSleepWindows(dataset.series.hrv, days);
+  const rhrSleep = samplesWithinSleepWindows(dataset.series.hr, days);
+  const hrvSample = hrvSleep.length > 0 ? hrvSleep[hrvSleep.length - 1] : null;
+  const rhrSample = rhrSleep.length > 0 ? rhrSleep[rhrSleep.length - 1] : null;
 
   // Data-presence gates come from the central maturity model (NOW/TODAY/TREND).
   // Absent values render as numeric 0 (never an invented number) with the

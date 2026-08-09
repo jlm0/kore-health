@@ -8,31 +8,32 @@ import {
   hasNightData,
   hasTempBaselineForDay,
   hourlyMovement,
-  latestNightSample,
   latestPositiveDayValue,
   meanOf,
   movementByRange,
   normalize,
   rangeAxisLabels,
+  samplesWithinSleepWindows,
 } from '../selectors';
 import type { Dataset, DaySummary, MetricSample } from '../types';
 
-describe('latestNightSample', () => {
-  // Build a sample at a specific local hour today.
-  const at = (hour: number, v: number): MetricSample => {
-    const d = new Date();
-    d.setHours(hour, 0, 0, 0);
-    return { t: d.getTime(), v };
-  };
+describe('samplesWithinSleepWindows', () => {
+  const day = (start: number, end: number) =>
+    ({ sleep: { start, end } }) as unknown as DaySummary;
+  const s = (t: number): MetricSample => ({ t, v: 50 });
 
-  test('null when no sample falls in the resting domain (20:00–12:00)', () => {
-    expect(latestNightSample([])).toBeNull();
-    expect(latestNightSample([at(13, 70), at(16, 85)])).toBeNull();
+  test('empty when no sleep window exists', () => {
+    expect(samplesWithinSleepWindows([s(100)], [])).toEqual([]);
+    expect(samplesWithinSleepWindows([s(100)], [day(0, 0)])).toEqual([]);
   });
 
-  test('returns the freshest night-hours sample, skipping daytime ones', () => {
-    const night = at(6, 52);
-    expect(latestNightSample([at(23, 55), at(13, 85), night, at(14, 90)])).toEqual(night);
+  test('keeps only samples inside a sleep window — a 10 AM reading is out', () => {
+    // Last night 23:00 → 07:00 (ms).
+    const days = [day(23 * 3600_000, 31 * 3600_000)];
+    const asleep = s(26 * 3600_000); // 2 AM
+    const morning = s(30.5 * 3600_000); // 6:30 AM
+    const daytime = s(34.2 * 3600_000); // 10:12 AM — NOT resting
+    expect(samplesWithinSleepWindows([daytime, asleep, morning], days)).toEqual([asleep, morning]);
   });
 });
 

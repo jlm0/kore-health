@@ -24,8 +24,8 @@ import {
   bucketSeries,
   fmtClock,
   fmtDate,
-  latestNightSample,
   rangeAxisLabels,
+  samplesWithinSleepWindows,
   TIME_RANGE_OPTIONS,
   type TimeRange,
 } from '@/data/selectors';
@@ -50,9 +50,10 @@ export default function MetricDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const metric = METRICS[id as MetricId];
-  // HRV and resting HR are night-backed metrics: their data domain is the
-  // resting state (20:00–12:00), so both the headline and the chart use
-  // night-hours samples only — a daytime reading must never pose as "resting".
+  // HRV and resting HR are night-backed metrics: their data domain is actual
+  // sleep (detected sleep windows), so both the headline and the chart use
+  // sleep-window samples only — a daytime reading must never pose as
+  // "resting", whatever the clock says.
   const nightBacked = metric?.id === 'hrv' || metric?.id === 'rhr';
 
   const days = useDays();
@@ -95,35 +96,29 @@ export default function MetricDetailScreen() {
 
   // Headline = the LATEST measurement in the metric's own series — the right
   // edge of the chart below it, so number and line always tell the same
-  // linear-time story. Night-backed metrics take the latest RESTING-DOMAIN
-  // sample (20:00–12:00): never a nightly average (reads stale) and never a
-  // daytime reading posing as "resting".
+  // linear-time story. Night-backed metrics take the latest sample INSIDE A
+  // DETECTED SLEEP WINDOW: resting means "measured while you slept", not
+  // "measured at a night-ish clock hour" (a 10 AM reading is not resting).
   const seriesNow = tempAbsMode ? tempAbsSeries : dataset.series[metric?.seriesId ?? 'hrv'];
+  const sleepSeries = nightBacked ? samplesWithinSleepWindows(seriesNow, days) : null;
   const currentSample = tempAbsMode
     ? (seriesNow[seriesNow.length - 1] ?? null)
     : nightBacked
-      ? latestNightSample(seriesNow)
+      ? (sleepSeries![sleepSeries!.length - 1] ?? null)
       : (seriesNow[seriesNow.length - 1] ?? null);
   const current = currentSample?.v ?? null;
 
   // Range-switched chart: Day = hourly means of today, Week = daily means
   // over 7 days, Month = weekly means over the 30-day window. Buckets with no
   // samples are dropped from the line (their avg is null) — never fabricated.
-  // Night-backed metrics (resting HR, HRV) chart NIGHT HOURS ONLY
-  // (20:00–12:00): the headline is an overnight resting value, so letting
-  // daytime readings into the same chart puts an active-HR spike next to a
-  // resting headline and reads as a contradiction.
+  // Night-backed metrics (resting HR, HRV) chart SLEEP-WINDOW samples only —
+  // same resting domain as the headline, so chart and number can't disagree.
   const rangeBuckets = useMemo(() => {
     if (!metric) return [];
     const series = tempAbsMode ? tempAbsSeries : dataset.series[metric.seriesId];
-    const chartSeries = nightBacked
-      ? series.filter((s) => {
-          const h = new Date(s.t).getHours();
-          return h >= 20 || h < 12;
-        })
-      : series;
+    const chartSeries = nightBacked ? samplesWithinSleepWindows(series, days) : series;
     return bucketSeries(chartSeries, range, Date.now());
-  }, [metric, nightBacked, tempAbsMode, tempAbsSeries, dataset, range]);
+  }, [metric, nightBacked, tempAbsMode, tempAbsSeries, dataset, days, range]);
   const chartPoints = rangeBuckets.filter((b) => b.avg != null);
   const chartData = chartPoints.map((b) => b.avg as number);
   const chartXValues = chartPoints.map((b) =>

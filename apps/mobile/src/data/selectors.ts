@@ -243,18 +243,21 @@ export function latestPositiveDayValue(
 }
 
 /**
- * The latest sample in the resting domain (20:00–12:00 local) — the freshest
- * night-hours measurement, i.e. the right edge of a night-filtered chart.
- * Headlining with this keeps the big number and the line under it on the same
- * linear time axis: never a nightly average (reads stale), never a daytime
- * reading posing as "resting". Null when no such sample exists.
+ * Samples that fall inside any detected sleep window — the resting domain
+ * defined by when the ring says you actually slept, NOT by clock hours.
+ * (A 20:00–12:00 clock filter lets a 10 AM daytime reading pose as
+ * "resting"; a sleep window cannot.) Empty when no sleep window exists —
+ * callers render the honest empty state, never a daytime substitute.
  */
-export function latestNightSample(samples: readonly MetricSample[]): MetricSample | null {
-  for (let i = samples.length - 1; i >= 0; i--) {
-    const h = new Date(samples[i].t).getHours();
-    if (h >= 20 || h < 12) return samples[i];
-  }
-  return null;
+export function samplesWithinSleepWindows(
+  samples: readonly MetricSample[],
+  days: readonly DaySummary[],
+): MetricSample[] {
+  const windows = days
+    .filter((d) => d.sleep.start > 0 && d.sleep.end > d.sleep.start)
+    .map((d) => [d.sleep.start, d.sleep.end] as const);
+  if (windows.length === 0) return [];
+  return samples.filter((s) => windows.some(([a, b]) => s.t >= a && s.t <= b));
 }
 
 /** Rounded mean of the real (positive) values; null when none exist. */

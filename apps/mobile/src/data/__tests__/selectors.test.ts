@@ -8,6 +8,7 @@ import {
   hasNightData,
   hasTempBaselineForDay,
   hourlyMovement,
+  latestNightSample,
   latestPositiveDayValue,
   meanOf,
   movementByRange,
@@ -15,6 +16,25 @@ import {
   rangeAxisLabels,
 } from '../selectors';
 import type { Dataset, DaySummary, MetricSample } from '../types';
+
+describe('latestNightSample', () => {
+  // Build a sample at a specific local hour today.
+  const at = (hour: number, v: number): MetricSample => {
+    const d = new Date();
+    d.setHours(hour, 0, 0, 0);
+    return { t: d.getTime(), v };
+  };
+
+  test('null when no sample falls in the resting domain (20:00–12:00)', () => {
+    expect(latestNightSample([])).toBeNull();
+    expect(latestNightSample([at(13, 70), at(16, 85)])).toBeNull();
+  });
+
+  test('returns the freshest night-hours sample, skipping daytime ones', () => {
+    const night = at(6, 52);
+    expect(latestNightSample([at(23, 55), at(13, 85), night, at(14, 90)])).toEqual(night);
+  });
+});
 
 describe('latestPositiveDayValue', () => {
   const day = (restingHr: number) => ({ restingHr }) as DaySummary;

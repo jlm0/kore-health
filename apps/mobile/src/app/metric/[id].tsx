@@ -17,14 +17,14 @@ import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useDays, useDataset, useLatestSample, useMaturities, useTempAbsSeries, useUnits } from '@/data/hooks';
+import { useDays, useDataset, useMaturities, useTempAbsSeries, useUnits } from '@/data/hooks';
 import { type MetricGroup } from '@/data/maturity';
 import { METRICS, type MetricId } from '@/data/metrics';
 import {
   bucketSeries,
   fmtClock,
   fmtDate,
-  latestPositiveDayValue,
+  latestNightSample,
   rangeAxisLabels,
   TIME_RANGE_OPTIONS,
   type TimeRange,
@@ -50,14 +50,13 @@ export default function MetricDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const metric = METRICS[id as MetricId];
-  // HRV and resting HR are night-backed metrics: their headline is the latest
-  // nightly value (same selector the home card uses), not the freshest raw
-  // sample — a daytime HR reading must never pose as "resting" HR.
+  // HRV and resting HR are night-backed metrics: their data domain is the
+  // resting state (20:00–12:00), so both the headline and the chart use
+  // night-hours samples only — a daytime reading must never pose as "resting".
   const nightBacked = metric?.id === 'hrv' || metric?.id === 'rhr';
 
   const days = useDays();
   const dataset = useDataset();
-  const latest = useLatestSample(metric?.seriesId ?? 'hrv');
   const [range, setRange] = useState<TimeRange>('day');
 
   // Temp absolute mode: before a personal baseline exists (state 'collecting',
@@ -94,11 +93,18 @@ export default function MetricDetailScreen() {
     return days.map((d) => metric.dailyValue(d)).filter((v) => v > 0);
   }, [days, metric, hasSeries, tempAbsMode, tempNights, tempBaselineDays]);
 
-  const current = tempAbsMode
-    ? (tempAbsSeries[tempAbsSeries.length - 1]?.v ?? null)
+  // Headline = the LATEST measurement in the metric's own series — the right
+  // edge of the chart below it, so number and line always tell the same
+  // linear-time story. Night-backed metrics take the latest RESTING-DOMAIN
+  // sample (20:00–12:00): never a nightly average (reads stale) and never a
+  // daytime reading posing as "resting".
+  const seriesNow = tempAbsMode ? tempAbsSeries : dataset.series[metric?.seriesId ?? 'hrv'];
+  const currentSample = tempAbsMode
+    ? (seriesNow[seriesNow.length - 1] ?? null)
     : nightBacked
-      ? latestPositiveDayValue(days, metric!.dailyValue)
-      : latest;
+      ? latestNightSample(seriesNow)
+      : (seriesNow[seriesNow.length - 1] ?? null);
+  const current = currentSample?.v ?? null;
 
   // Range-switched chart: Day = hourly means of today, Week = daily means
   // over 7 days, Month = weekly means over the 30-day window. Buckets with no
@@ -228,7 +234,7 @@ export default function MetricDetailScreen() {
                 </Label>
               </View>
             }>
-            {nightBacked ? 'Latest night' : 'Current'}
+            {nightBacked ? 'Latest' : 'Current'}
           </CardHeading>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
             {current != null ? (
@@ -248,6 +254,13 @@ export default function MetricDetailScreen() {
               {displayUnit}
             </Text>
           </View>
+          {currentSample != null ? (
+            // Time context is explicit, not implied: this value is the latest
+            // measurement in the series — say when it was taken.
+            <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.faint }}>
+              {`${fmtDate(currentSample.t)} · ${fmtClock(currentSample.t)}`}
+            </Text>
+          ) : null}
           {tempAbsMode ? (
             <Text style={{ fontSize: 10, fontFamily: fontFamily.regular, color: palette.faint, lineHeight: 15 }}>
               Absolute skin temperature — your personal baseline builds over the first nights,

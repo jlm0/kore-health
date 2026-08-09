@@ -26,8 +26,8 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useDays, useLatestSample, useMaturities, useToday, useUnits } from '@/data/hooks';
-import { fmtDate, hasTempBaselineForDay, latestPositiveDayValue } from '@/data/selectors';
+import { useDays, useDataset, useLatestSample, useMaturities, useToday, useUnits } from '@/data/hooks';
+import { fmtDate, hasTempBaselineForDay, latestNightSample } from '@/data/selectors';
 import { tempUnit, toDisplayTemp, toDisplayTempDelta } from '@/data/units';
 import { syncRing } from '@/ring/sync';
 import { useHealthStore } from '@/store/health';
@@ -53,6 +53,14 @@ const hintText = {
 const chartSlot = {
   height: 26,
   justifyContent: 'center',
+} as const;
+
+// Measurement timestamp under a card value — the cards read as "current
+// state", so the time context must be explicit, never implied.
+const contextText = {
+  fontSize: 8,
+  fontFamily: fontFamily.regular,
+  color: palette.faint,
 } as const;
 
 function greeting(): string {
@@ -83,6 +91,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const today = useToday();
   const days = useDays();
+  const dataset = useDataset();
   const connectionStatus = useHealthStore((s) => s.connectionStatus);
   const syncError = useHealthStore((s) => s.syncError);
   const lastSyncAt = useHealthStore((s) => s.lastSyncAt);
@@ -141,11 +150,13 @@ export default function HomeScreen() {
   const rhr14 = days.slice(-14).map((d) => d.restingHr);
   const temp7 = days.slice(-7).map((d) => d.tempDeviation);
 
-  // Night-backed headlines: the latest REAL nightly value, not today's row —
-  // today is 0 until its overnight sync lands, and the metric screens
-  // headline the same selector so home and detail can never disagree.
-  const hrvLatest = latestPositiveDayValue(days, (d) => d.hrvAvg);
-  const rhrLatest = latestPositiveDayValue(days, (d) => d.restingHr);
+  // Card headlines: the LATEST measurement in each series (the right edge of
+  // any chart of that metric) — users read home cards as current state, so a
+  // nightly average here reads as wrong-or-stale. HRV/RHR use the freshest
+  // resting-domain (night-hours) sample: never a daytime reading posing as
+  // "resting". Each card stamps when its value was measured.
+  const hrvSample = latestNightSample(dataset.series.hrv);
+  const rhrSample = latestNightSample(dataset.series.hr);
 
   // Data-presence gates come from the central maturity model (NOW/TODAY/TREND).
   // Absent values render as numeric 0 (never an invented number) with the
@@ -362,9 +373,10 @@ export default function HomeScreen() {
               <CardHeading icon="heart-pulse" tint="mint" right={<Chevron size={7} />}>
                 HRV
               </CardHeading>
-              <MetricValue value={hrvLatest != null ? String(hrvLatest) : '0'} unit="ms" />
+              <MetricValue value={hrvSample != null ? String(Math.round(hrvSample.v)) : '0'} unit="ms" />
+              <Text style={contextText}>{hrvSample != null ? relTime(hrvSample.t) : ' '}</Text>
               <View style={chartSlot}>
-                {hrvLatest != null ? (
+                {hrvSample != null ? (
                   <Sparkline data={hrv14} height={22} color={palette.mint.base} delay={350} />
                 ) : (
                   <Text style={hintText} numberOfLines={2}>
@@ -383,9 +395,10 @@ export default function HomeScreen() {
               <CardHeading icon="heart" tint="indigo" right={<Chevron size={7} />}>
                 Resting HR
               </CardHeading>
-              <MetricValue value={rhrLatest != null ? String(rhrLatest) : '0'} unit="bpm" />
+              <MetricValue value={rhrSample != null ? String(Math.round(rhrSample.v)) : '0'} unit="bpm" />
+              <Text style={contextText}>{rhrSample != null ? relTime(rhrSample.t) : ' '}</Text>
               <View style={chartSlot}>
-                {rhrLatest != null ? (
+                {rhrSample != null ? (
                   <Sparkline data={rhr14} height={22} color={palette.indigo.base} delay={420} />
                 ) : (
                   <Text style={hintText} numberOfLines={2}>{mat.hr.copy.unlock}</Text>
@@ -417,6 +430,9 @@ export default function HomeScreen() {
                 }
                 unit={tempUnit(units)}
               />
+              <Text style={contextText}>
+                {tempAbsSeries.length > 0 ? relTime(tempAbsSeries[tempAbsSeries.length - 1].t) : ' '}
+              </Text>
               <View style={chartSlot}>
                 {tempDeviation != null ? (
                   <DotTrend data={temp7} height={22} delay={500} />
@@ -439,6 +455,11 @@ export default function HomeScreen() {
                 value={spo2Current != null ? String(Math.round(spo2Current)) : '0'}
                 unit="%"
               />
+              <Text style={contextText}>
+                {spo2Current != null && dataset.series.spo2.length > 0
+                  ? relTime(dataset.series.spo2[dataset.series.spo2.length - 1].t)
+                  : ' '}
+              </Text>
               <View style={chartSlot}>
                 {spo2Current != null ? (
                   <ProgressBar

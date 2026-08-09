@@ -242,6 +242,21 @@ export function latestPositiveDayValue(
   return null;
 }
 
+/**
+ * The latest sample in the resting domain (20:00–12:00 local) — the freshest
+ * night-hours measurement, i.e. the right edge of a night-filtered chart.
+ * Headlining with this keeps the big number and the line under it on the same
+ * linear time axis: never a nightly average (reads stale), never a daytime
+ * reading posing as "resting". Null when no such sample exists.
+ */
+export function latestNightSample(samples: readonly MetricSample[]): MetricSample | null {
+  for (let i = samples.length - 1; i >= 0; i--) {
+    const h = new Date(samples[i].t).getHours();
+    if (h >= 20 || h < 12) return samples[i];
+  }
+  return null;
+}
+
 /** Rounded mean of the real (positive) values; null when none exist. */
 export function avgPositive(values: readonly number[]): number | null {
   const real = values.filter((v) => v > 0);

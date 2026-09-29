@@ -26,6 +26,12 @@ export interface SleepSummary {
   awakeMin: number;
   lowestHr: number;
   peakHrv: number;
+  /**
+   * Where `stages` came from: 'ring' = the ring's own hypnogram (sleep_phase_*
+   * events), 'local' = the app's actigraphy heuristic. Absent on nights with
+   * no staging data (and on data persisted before this field existed).
+   */
+  stagesSource?: 'ring' | 'local';
 }
 
 export interface ActivitySummary {

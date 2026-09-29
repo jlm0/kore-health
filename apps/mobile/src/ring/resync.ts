@@ -5,6 +5,37 @@ import type { RingEventLike } from '../data/ring';
 // isolation.
 
 const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
+
+/**
+ * Interior stream-hole size that triggers an automatic deep resync. Six
+ * hours: healthy worn-ring captures are gap-free at the 3-min grid for days
+ * on end, while the proven stranded-data hole (2026-08-09) ran 8.9 h. Long
+ * enough that an unworn afternoon does not trigger a rebuild.
+ */
+export const STREAM_GAP_TRIGGER_MS = 6 * HOUR_MS;
+
+/**
+ * True when a full-cadence series (temp/move — 3-min grid) has an interior
+ * hole larger than STREAM_GAP_TRIGGER_MS between two EXISTING samples. This
+ * is the intra-day signature of events stranded below the sync cursor (the
+ * ring clock is re-aligned by syncTime every sync; when it had run ahead,
+ * newly recorded events get decisecond timestamps below the persisted cursor
+ * and the forward-only walk can never reach them). hasInteriorDateGap cannot
+ * see this — the day rows exist on both sides of the hole. Leading/trailing
+ * absence never counts: only holes with data on both sides.
+ */
+export function hasInteriorStreamGap(dataset: {
+  series: Record<string, readonly { t: number }[]>;
+}): boolean {
+  for (const id of ['temp', 'move']) {
+    const s = dataset.series[id] ?? [];
+    for (let i = 1; i < s.length; i++) {
+      if (s[i].t - s[i - 1].t > STREAM_GAP_TRIGGER_MS) return true;
+    }
+  }
+  return false;
+}
 
 /**
  * How close a deep rebuild's final cursor must get to the expected end (the

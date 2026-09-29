@@ -5,8 +5,11 @@
 # src/ring/sync.ts) and these behaviors are its contract.
 #
 # Key facts that shape the contract:
-#   - The ring does NOT compute Oura's 0–100 scores or a hypnogram; we derive
-#     our own from raw streams via documented heuristics.
+#   - The ring does NOT compute Oura's 0–100 scores; we derive our own from raw
+#     streams via documented heuristics.
+#   - The ring DOES run an on-device sleep analysis that can emit its own
+#     hypnogram (sleep_phase_* events); when it syncs we prefer it over the
+#     local actigraphy heuristic (stagesSource "ring" vs "local").
 #   - Ring event timestamps are ring-clock deciseconds; wall-clock mapping needs
 #     an anchor (time_sync events; the app calls syncTime before every drain).
 #   - The sync cursor is in ring-time deciseconds and persists per batch.
@@ -25,6 +28,17 @@ Feature: History sync
     Given a previous sync persisted cursor C
     When the next sync runs
     Then draining starts at C — no events before C are requested again
+
+  Scenario: Stranded data self-heals via an automatic deep resync
+    Given the persisted dataset shows stranded-data damage — a missing
+      interior date (> 1 day) OR an interior stream hole > 6 h in temp/move
+      with data on both sides (the cursor ran ahead of newly stamped events)
+    When the next sync runs
+    Then it drains from cursor 0 with forward probing and rebuilds the dataset
+    And the rebuild commits only if its walk reaches the old cursor (± 1 day)
+    And this auto-trigger fires at most once per app session (circuit breaker)
+    And a forced deep resync (ring-debug) bypasses the breaker, and replaces
+      days the ring no longer holds
 
   Scenario: Clock is synced before every drain
     Given any sync
@@ -94,10 +108,12 @@ Feature: Normalization onto the dataset grid
     # documented gap, not a bug — do not estimate steps from motion
 
   Scenario: Movement blends the ring's motion signals
-    Given motion_event, sleep_acm_period, and activity_information events
+    Given motion_event, sleep_acm_period, motion_period and activity_information events
     When folded
     Then move intensity is normalized to 0..1 per bucket using the documented
     blends (duty cycle + intensity nibbles; MAD/4; (MET−1)/8)
+    And motion_period adds one grid point (mean 2-bit level / 3) — its epoch
+    length is undocumented, so no intra-event placement is invented
 
   Scenario: Calories come from MET bins
     Given activity_information MET bins (assumed 1 min per bin — documented)
@@ -120,16 +136,24 @@ Feature: Aggregation over time
     And implausible windows are ignored
 
   Scenario: Sleep staging is a documented actigraphy heuristic
-    Given a sleep window with movement and HR data
+    Given a sleep window with movement and HR data covering ≥ half the window
     When the SleepSummary is built
     Then each 3-min epoch is staged: movement ≥ 0.12 → awake; still + HR near
     night minimum → deep; still + HR near night maximum → REM; else light
     And latency is the first run of 3 consecutive asleep epochs
     And efficiency = asleep / time-in-bed
+    And stagesSource is "local"
     And the UI labels stages as an estimate (from heart rate & movement)
 
-  Scenario: A window without HR data claims duration only
-    Given a sleep window with no usable HR (< 10 HR epochs — ring not measuring)
+  Scenario: The ring's own hypnogram is preferred when it syncs
+    Given sleep_phase_* events whose 30-s epoch span fits the bedtime window
+    When folded
+    Then stage segments anchor to the window and stagesSource is "ring"
+    And a hypnogram with an implausible span or no window is rejected
+    And ring staging survives later incremental folds (re-seeded from the store)
+
+  Scenario: A window without enough HR coverage claims duration only
+    Given a sleep window with < 10 HR epochs or HR in < half of its epochs
     When the SleepSummary is built
     Then it reports time-in-bed duration only: no stages, no efficiency, no latency
 

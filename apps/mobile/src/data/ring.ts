@@ -11,6 +11,8 @@ import {
   type DaySummary,
   type MetricSample,
   type SeriesId,
+  type SleepStage,
+  type SleepStageSegment,
 } from './types';
 
 // Pure mapping from decoded ring history events → dataset increments.
@@ -26,6 +28,11 @@ import {
 const MIN = 60_000;
 const HOUR = 60 * MIN;
 const DAY = 24 * HOUR;
+
+// Epoch length of the ring's own hypnogram (sleep_phase_* events): the ecore
+// hypnogram format is 30-second epochs (third_party/open_oura
+// crates/oura-analysis/src/ported/sleep.rs).
+const RING_STAGE_EPOCH_MS = 30_000;
 
 export interface RingEventLike {
   tag: number;
@@ -239,6 +246,16 @@ export function foldRingEvents(input: {
     }
   }
 
+  // Ring-sourced hypnograms keyed by wake-day local midnight. Re-seed from
+  // persisted days so incremental folds keep using ring staging for nights
+  // that already have it (instead of reverting to the heuristic).
+  const ringStagesByDay = new Map<number, SleepStageSegment[]>();
+  for (const d of prior.dataset.days) {
+    if (d.sleep.stagesSource === 'ring' && d.sleep.stages.length > 0) {
+      ringStagesByDay.set(d.dayStart, d.sleep.stages);
+    }
+  }
+
   const activityByDay: Record<string, DayActivityTotals> = { ...prior.activityByDay };
 
   // --- apply events ----------------------------------------------------------
@@ -342,6 +359,18 @@ export function foldRingEvents(input: {
         eventsApplied++;
         break;
       }
+      case 'motion_period': {
+        // Compact 2-bit motion-level timeline (levels 0–3). The per-epoch
+        // duration is undocumented in the decompile, so the event contributes
+        // its mean level as ONE grid point at the event timestamp — no
+        // invented intra-event placement.
+        const levels = numArray(d, 'motion_levels');
+        if (levels.length === 0) break;
+        const mean = levels.reduce((s, v) => s + v, 0) / levels.length;
+        move.add(t, clamp(mean / 3, 0, 1));
+        eventsApplied++;
+        break;
+      }
       case 'activity_information': {
         // State byte + per-bin MET levels. Bin duration is undocumented in the
         // decompile — we assume 1 minute per bin (documented assumption).
@@ -374,6 +403,44 @@ export function foldRingEvents(input: {
         const durH = (endMs - startMs) / HOUR;
         if (durH < 1 || durH > 16) break; // implausible window, ignore
         sleepWindows.set(nightKey(startMs), { startMs, endMs });
+        eventsApplied++;
+        break;
+      }
+      case 'sleep_phase_information':
+      case 'sleep_phase_details':
+      case 'sleep_phase_data': {
+        // The ring's own hypnogram: 2-bit stage codes decoded to phase names
+        // (deep/light/rem/awake), one per 30 s epoch. The event carries no
+        // absolute placement of its own, so the hypnogram is anchored to the
+        // night's bedtime window and REJECTED when the window is missing or
+        // the span is implausible for it — a misplaced hypnogram is worse
+        // than the local heuristic it replaces.
+        const phases = obj(d)?.['phases'];
+        if (!Array.isArray(phases) || phases.length < 10) break;
+        const key = nightKey(t);
+        const win = sleepWindows.get(key);
+        if (!win) break;
+        const span = phases.length * RING_STAGE_EPOCH_MS;
+        const winLen = win.endMs - win.startMs;
+        if (span < winLen * 0.75 || span > winLen * 1.33) break;
+        const segments: SleepStageSegment[] = [];
+        for (let i = 0; i < phases.length; i++) {
+          const stage = phases[i] as SleepStage;
+          if (stage !== 'deep' && stage !== 'light' && stage !== 'rem' && stage !== 'awake') {
+            continue;
+          }
+          const s = win.startMs + i * RING_STAGE_EPOCH_MS;
+          const e = Math.min(s + RING_STAGE_EPOCH_MS, win.endMs);
+          if (e <= s) break;
+          const last = segments[segments.length - 1];
+          if (last && last.stage === stage) {
+            last.end = e;
+          } else {
+            segments.push({ stage, start: s, end: e });
+          }
+        }
+        if (segments.length === 0) break;
+        ringStagesByDay.set(key, segments);
         eventsApplied++;
         break;
       }
@@ -438,6 +505,7 @@ export function foldRingEvents(input: {
     const day = buildDaySummary(maps, {
       dayStart,
       sleepWindow: sleepWindows.get(dayStart) ?? null,
+      ringStages: ringStagesByDay.get(dayStart) ?? null,
       tempNightMeanC: nightMeanByDay.get(dayStart) ?? null,
       tempBaselineC: baselineByNight.get(dayStart) ?? null,
       activity: activityByDay[String(dayStart)] ?? { activeCal: 0, activeMin: 0 },

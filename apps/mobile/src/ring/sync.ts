@@ -8,6 +8,7 @@ import { FEATURE, FEATURE_MODE, CONNECT_TIMEOUT_MS } from './constants';
 import {
   dedupeEvents,
   hasInteriorDateGap,
+  hasInteriorStreamGap,
   shouldWaitForSleepAnalysis,
   DEEP_RESYNC_REACH_TOLERANCE_DS,
 } from './resync';
@@ -52,6 +53,7 @@ const SLEEP_EVENT_TAGS = new Set([
   0x4e, // sleep_phase_details
   0x4f, // sleep_summary_3
   0x58, // sleep_summary_4
+  0x5a, // sleep_phase_data
   0x76, // bedtime_period
 ]);
 
@@ -245,19 +247,24 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     store().setConnectionStatus('syncing');
     const previousCursor = store().syncCursor;
     const forced = options?.forceDeepResync === true;
+    // Stranded-data detection, two signatures of the same forward-only-cursor
+    // failure: whole missing DAYS (hasInteriorDateGap) and intra-day stream
+    // holes > 6 h with data on both sides (hasInteriorStreamGap — the
+    // 2026-08-09 overnight hole, which date-gap detection could not see).
+    const dataset = store().dataset;
     const gapDetected =
-      store().dataset != null && hasInteriorDateGap(store().dataset!.days);
+      dataset != null && (hasInteriorDateGap(dataset.days) || hasInteriorStreamGap(dataset));
     const deep = forced || (gapDetected && !autoDeepResyncUsed);
     if (deep) {
       if (!forced) autoDeepResyncUsed = true;
       console.log(
-        `[sync] deep resync (${forced ? 'forced' : 'interior date gap'}): ` +
+        `[sync] deep resync (${forced ? 'forced' : 'interior date/stream gap'}): ` +
           `full rebuild from cursor 0, expected end >=${previousCursor}`,
       );
     } else {
       if (gapDetected) {
         console.log(
-          '[sync] interior date gap persists, but auto deep resync already ran this session — staying incremental',
+          '[sync] interior date/stream gap persists, but auto deep resync already ran this session — staying incremental',
         );
       }
       console.log(`[sync] draining events from cursor ${previousCursor}`);

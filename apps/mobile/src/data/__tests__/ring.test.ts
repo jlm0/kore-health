@@ -367,6 +367,86 @@ describe('foldRingEvents — bedtime windows', () => {
   });
 });
 
+describe('foldRingEvents — ring sleep phases (on-ring hypnogram)', () => {
+  const wakeDay = () => localMidnight(NOW);
+  const winStart = () => wakeDay() - HOUR; // 23:00 prior day
+  const winEnd = () => wakeDay() + 7 * HOUR; // 07:00 — an 8 h window
+
+  const bedtime = (): RingEventLike =>
+    ev('bedtime_period', NOW - 30 * MIN, {
+      bedtime_start_ds: dsAt(winStart()),
+      bedtime_end_ds: dsAt(winEnd()),
+    });
+
+  // 8 h window = 960 30-s epochs: 4 h light, 1 h deep, 1 h rem, 2 h light.
+  const phases = (): string[] => [
+    ...Array(480).fill('light'),
+    ...Array(120).fill('deep'),
+    ...Array(120).fill('rem'),
+    ...Array(240).fill('light'),
+  ];
+
+  it('anchors a plausible hypnogram to the bedtime window, sourced from the ring', () => {
+    const r = fold([
+      timeSync(),
+      bedtime(),
+      ev('sleep_phase_details', winEnd() + 30 * MIN, { header: 0, phases: phases() }),
+    ]);
+    const day = r.state.dataset.days.find((d) => d.dayStart === wakeDay());
+    expect(day?.sleep.stagesSource).toBe('ring');
+    expect(day?.sleep.deepMin).toBe(60);
+    expect(day?.sleep.remMin).toBe(60);
+    expect(day?.sleep.lightMin).toBe(360);
+    expect(day?.sleep.stages[0]).toEqual({ stage: 'light', start: winStart(), end: winStart() + 4 * HOUR });
+    expect(day?.sleep.stages[3]).toEqual({ stage: 'light', start: winStart() + 6 * HOUR, end: winEnd() });
+  });
+
+  it('rejects a hypnogram whose span is implausible for the window', () => {
+    const r = fold([
+      timeSync(),
+      bedtime(),
+      // 100 epochs = 50 min against an 8 h window — epoch assumption must be wrong.
+      ev('sleep_phase_information', winEnd() + 30 * MIN, { header: 0, phases: Array(100).fill('light') }),
+    ]);
+    const day = r.state.dataset.days.find((d) => d.dayStart === wakeDay());
+    expect(day?.sleep.stagesSource).not.toBe('ring');
+  });
+
+  it('drops a hypnogram with no bedtime window to anchor to', () => {
+    const r = fold([
+      timeSync(),
+      ev('sleep_phase_data', winEnd() + 30 * MIN, { header: 0, phases: phases() }),
+    ]);
+    const day = r.state.dataset.days.find((d) => d.dayStart === wakeDay());
+    expect(day == null || day.sleep.stagesSource !== 'ring').toBe(true);
+  });
+
+  it('keeps ring staging on a zero-event refold (seeded from persisted days)', () => {
+    const first = fold([
+      timeSync(),
+      bedtime(),
+      ev('sleep_phase_details', winEnd() + 30 * MIN, { header: 0, phases: phases() }),
+    ]);
+    const second = fold([], first.state);
+    const day = second.state.dataset.days.find((d) => d.dayStart === wakeDay());
+    expect(day?.sleep.stagesSource).toBe('ring');
+    expect(day?.sleep.deepMin).toBe(60);
+    expect(second.state).toEqual(first.state);
+  });
+});
+
+describe('foldRingEvents — motion_period', () => {
+  it('contributes the mean 2-bit level as a single grid point', () => {
+    const at = NOW - 2 * HOUR;
+    const r = fold([
+      timeSync(),
+      ev('motion_period', at, { period_type: 0, low_nibble: 3, motion_levels: [1, 2, 3, 0] }),
+    ]);
+    // mean(1,2,3,0) = 1.5 → 1.5/3 = 0.5
+    expect(r.state.dataset.series.move).toEqual([{ t: bucketOf(at), v: 0.5 }]);
+  });
+});
+
 describe('foldRingEvents — 30-day trim', () => {
   it('drops series, day rows, tempNights and activityByDay older than 30 days', () => {
     const old = NOW - 40 * DAY;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { BATCH_QUIET_MS, RESPONSE_QUIET_MS } from '../constants';
-import { dedupeEvents, hasInteriorDateGap, shouldWaitForSleepAnalysis } from '../resync';
+import { dedupeEvents, hasInteriorDateGap, hasInteriorStreamGap, shouldWaitForSleepAnalysis } from '../resync';
 
 // Tests for the pure deep-resync helpers in resync.ts: interior date-gap
 // detection (the deep-resync trigger) and event dedupe (the fold is not
@@ -32,6 +32,40 @@ describe('hasInteriorDateGap', () => {
   it('ignores unsorted input', () => {
     expect(hasInteriorDateGap(days('2026-08-06', '2026-07-27', '2026-07-26'))).toBe(true);
     expect(hasInteriorDateGap(days('2026-08-02', '2026-08-01'))).toBe(false);
+  });
+});
+
+describe('hasInteriorStreamGap', () => {
+  const GRID = 3 * 60_000;
+  // Series of contiguous 3-min samples over `hours`, starting at t0.
+  const series = (t0: number, hours: number) =>
+    Array.from({ length: (hours * 60) / 3 }, (_, i) => ({ t: t0 + i * GRID }));
+  const ds = (temp: { t: number }[], move: { t: number }[] = []) => ({
+    series: { temp, move },
+  });
+
+  it('is false for gap-free, empty and single-sample series', () => {
+    expect(hasInteriorStreamGap(ds(series(0, 48)))).toBe(false);
+    expect(hasInteriorStreamGap(ds([]))).toBe(false);
+    expect(hasInteriorStreamGap(ds([{ t: 0 }]))).toBe(false);
+  });
+
+  it('is false for holes under the 6 h trigger (e.g. an unworn afternoon)', () => {
+    const t0 = 0;
+    const s = [...series(t0, 4), ...series(t0 + 9 * 3_600_000, 4)]; // 5 h hole
+    expect(hasInteriorStreamGap(ds(s))).toBe(false);
+  });
+
+  it('detects the proven 8.9 h stranded-data hole (2026-08-09 overnight)', () => {
+    const t0 = 0;
+    const s = [...series(t0, 4), ...series(t0 + 4 * 3_600_000 + 8.9 * 3_600_000, 4)];
+    expect(hasInteriorStreamGap(ds(s))).toBe(true);
+  });
+
+  it('flags a hole in EITHER full-cadence series', () => {
+    const t0 = 0;
+    const gappy = [...series(t0, 4), ...series(t0 + 11 * 3_600_000, 4)]; // 7 h hole
+    expect(hasInteriorStreamGap(ds(series(0, 48), gappy))).toBe(true);
   });
 });
 

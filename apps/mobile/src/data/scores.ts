@@ -110,9 +110,12 @@ const WAKE_MOVE_THRESHOLD = 0.12;
  * it uses only signals the ring actually streams and is documented as a local
  * heuristic, not a validated sleep staging algorithm.
  *
- * Windows without usable HR (< 10 HR epochs — ring off-wrist or HR feature
- * off) return time-in-bed duration only: no stages, efficiency, or latency,
- * since movement alone cannot distinguish sleep from still wakefulness.
+ * Windows without usable HR return time-in-bed duration only: no stages,
+ * efficiency, or latency, since movement alone cannot distinguish sleep from
+ * still wakefulness. "Usable" means both at least 10 HR epochs AND coverage of
+ * at least half the window's epochs — a night with HR only in the final hour
+ * (ring gap, late drain) must not render the uncovered hours as a solid
+ * "light" block.
  */
 export function computeSleep(maps: SeriesMaps, window: SleepWindow | null): SleepSummary {
   if (!window || window.endMs - window.startMs < 30 * MIN) return emptySleep(window);
@@ -137,14 +140,20 @@ export function computeSleep(maps: SeriesMaps, window: SleepWindow | null): Slee
 
   const hrs = epochs.map((e) => e.hr).filter((v): v is number => v != null);
   const hrvs = epochs.map((e) => e.hrv).filter((v): v is number => v != null);
-  const hasHr = hrs.length >= 10;
+  // Staging needs HR across the whole window, not just somewhere in it: a
+  // window with HR in < half its epochs stages the uncovered epochs as
+  // invented "light" (observed 2026-08-09: an 8 h HR gap rendered as an 8 h
+  // light block with 97% efficiency and 0 min REM).
+  const hrCoverage = epochs.length > 0 ? hrs.length / epochs.length : 0;
+  const hasHr = hrs.length >= 10 && hrCoverage >= 0.5;
   const inBedMin = (window.endMs - window.startMs) / MIN;
 
   if (!hasHr) {
-    // The ring wasn't measuring during this window (off-wrist, HR feature
-    // off). Staging from movement alone classifies every still epoch as
-    // asleep and produces invented "100% efficiency" nights — so report
-    // time-in-bed only: no stages, no efficiency, no latency claims.
+    // The ring wasn't measuring (enough) during this window (off-wrist, HR
+    // feature off, or a data gap). Staging from movement alone classifies
+    // every still epoch as asleep and produces invented "100% efficiency"
+    // nights — so report time-in-bed only: no stages, no efficiency, no
+    // latency claims. HR extremes are still real and kept.
     return {
       start: window.startMs,
       end: window.endMs,
@@ -221,6 +230,43 @@ export function computeSleep(maps: SeriesMaps, window: SleepWindow | null): Slee
     awakeMin: Math.round(totals.awake),
     lowestHr: hrs.length ? Math.round(Math.min(...hrs)) : 0,
     peakHrv: hrvs.length ? Math.round(Math.max(...hrvs)) : 0,
+    stagesSource: 'local',
+  };
+}
+
+/**
+ * Sleep summary from the ring's own hypnogram (sleep_phase_* events, folded
+ * in ring.ts): stage totals come from the ring, HR/HRV extremes from the
+ * local epoch pass (the hypnogram carries no vitals). Latency is measured
+ * from the window start to the first asleep segment.
+ */
+function sleepFromRingStages(
+  stages: SleepStageSegment[],
+  window: SleepWindow,
+  stats: SleepSummary,
+): SleepSummary {
+  const totals: Record<SleepStage, number> = { deep: 0, rem: 0, light: 0, awake: 0 };
+  for (const s of stages) totals[s.stage] += (s.end - s.start) / MIN;
+  const asleepMin = totals.deep + totals.rem + totals.light;
+  const inBedMin = (window.endMs - window.startMs) / MIN;
+  const firstAsleep = stages.find((s) => s.stage !== 'awake');
+  const latencyMin = firstAsleep
+    ? Math.round(clamp((firstAsleep.start - window.startMs) / MIN, 0, 120))
+    : 0;
+  return {
+    start: window.startMs,
+    end: window.endMs,
+    durationMin: Math.round(asleepMin),
+    efficiency: Math.round(clamp((asleepMin / inBedMin) * 100, 0, 100)),
+    latencyMin,
+    stages,
+    deepMin: Math.round(totals.deep),
+    remMin: Math.round(totals.rem),
+    lightMin: Math.round(totals.light),
+    awakeMin: Math.round(totals.awake),
+    lowestHr: stats.lowestHr,
+    peakHrv: stats.peakHrv,
+    stagesSource: 'ring',
   };
 }
 
@@ -394,6 +440,8 @@ export function computeReadiness(input: {
 export interface DayContext {
   dayStart: number;
   sleepWindow: SleepWindow | null;
+  /** The ring's own hypnogram for this night (sleep_phase_* events), if synced. */
+  ringStages?: SleepStageSegment[] | null;
   /** This night's absolute mean skin temperature (°C), if measured. */
   tempNightMeanC: number | null;
   /** Personal baseline: median of up to 7 prior nightly means (°C). */
@@ -406,7 +454,13 @@ export interface DayContext {
 
 /** Assemble a full DaySummary for one day from the series maps + context. */
 export function buildDaySummary(maps: SeriesMaps, ctx: DayContext): DaySummary {
-  const sleep = computeSleep(maps, ctx.sleepWindow);
+  const heuristic = computeSleep(maps, ctx.sleepWindow);
+  // Prefer the ring's own staging when it synced; the heuristic is the
+  // fallback for nights the ring analysis never produced (or hasn't yet).
+  const sleep =
+    ctx.ringStages && ctx.ringStages.length > 0 && ctx.sleepWindow
+      ? sleepFromRingStages(ctx.ringStages, ctx.sleepWindow, heuristic)
+      : heuristic;
   const window = ctx.sleepWindow;
 
   const hrvNight = nightValues(maps.hrv, window);

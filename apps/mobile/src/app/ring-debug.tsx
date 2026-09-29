@@ -11,6 +11,7 @@ import {
 import { ensureBlePermissions, waitForBluetoothReady } from '@/ring/bluetooth';
 import { OuraRingClient, type RingEvent } from '@/ring/client';
 import { FEATURE, FEATURE_MODE } from '@/ring/constants';
+import { deepResync } from '@/ring/sync';
 import { BleTransport, type DiscoveredRing } from '@/ring/transport';
 import { useHealthStore } from '@/store/health';
 
@@ -204,6 +205,21 @@ export default function RingDebugScreen() {
     [run, log],
   );
 
+  // Full rebuild from cursor 0 — the only way to recover events stranded
+  // below the persisted cursor (e.g. after an interrupted drain). syncRing
+  // manages its own link, so drop this screen's connection first. NOTE: the
+  // rebuilt dataset replaces the old one — days the ring no longer holds
+  // (e.g. before a factory reset) are dropped.
+  const onDeepResync = useCallback(
+    () =>
+      run('deep resync (full rebuild from cursor 0)', async () => {
+        await linkRef.current?.transport.disconnect();
+        await deepResync();
+        log('dataset rebuilt from ring history — ring-forgotten days were dropped');
+      }),
+    [run, log],
+  );
+
   // Escape hatch for an orphaned key (key installed but unknown): send the raw
   // factory-reset frame (0x1a, per the Ring 3 protocol cheatsheet) and log any
   // response. Unauthenticated by nature — the ring must accept it without a
@@ -244,6 +260,7 @@ export default function RingDebugScreen() {
         <DebugButton label="Sync time" onPress={onSyncTime} disabled={busy} />
         <DebugButton label="Enable all features" onPress={onEnableFeatures} disabled={busy} />
         <DebugButton label="Sync events" onPress={onSyncEvents} disabled={busy} />
+        <DebugButton label="⚠ Deep resync" onPress={onDeepResync} disabled={busy} />
         <DebugButton label="⚠ Factory reset" onPress={onFactoryReset} disabled={busy} />
       </View>
       <Text style={styles.meta}>

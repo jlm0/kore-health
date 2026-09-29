@@ -133,6 +133,20 @@ describe('computeSleep — actigraphy staging heuristic', () => {
     expect(s.efficiency).toBe(0);
     expect(s.lowestHr).toBe(58);
   });
+
+  it('reports time-in-bed only when HR covers less than half the window', () => {
+    // 2026-08-09 regression: HR only in the final hour (20 pts — the old
+    // count-only ≥10 guard passed) staged 7 uncovered hours as an invented
+    // "light" block with 0 min REM and ~97% efficiency.
+    const hr: MetricSample[] = [];
+    for (let t = WIN_END - 60 * MIN; t < WIN_END; t += GRID) hr.push({ t, v: 62 });
+    const s = computeSleep(maps({ hr }), WINDOW);
+    expect(s.stages).toEqual([]);
+    expect(s.efficiency).toBe(0);
+    expect(s.durationMin).toBe(480);
+    expect(s.remMin).toBe(0);
+    expect(s.lowestHr).toBe(62);
+  });
 });
 
 describe('buildDaySummary — night-derived metrics', () => {
@@ -201,6 +215,51 @@ describe('buildDaySummary — night-derived metrics', () => {
     expect(day.activity.steps).toBe(0);
     expect(day.activity.kmEquiv).toBe(0);
     expect(day.activity.activeCal).toBe(300);
+  });
+});
+
+describe('buildDaySummary — ring-sourced hypnogram', () => {
+  it('prefers ring stages over the heuristic and marks stagesSource', () => {
+    const ringStages = [
+      { stage: 'light' as const, start: WIN_START, end: WIN_START + 4 * HOUR },
+      { stage: 'deep' as const, start: WIN_START + 4 * HOUR, end: WIN_START + 5 * HOUR },
+      { stage: 'rem' as const, start: WIN_START + 5 * HOUR, end: WIN_START + 6 * HOUR },
+      { stage: 'light' as const, start: WIN_START + 6 * HOUR, end: WIN_END },
+    ];
+    const day = buildDaySummary(maps({}), {
+      dayStart: WAKE_DAY,
+      sleepWindow: WINDOW,
+      ringStages,
+      tempNightMeanC: null,
+      tempBaselineC: null,
+      activity: EMPTY_ACTIVITY,
+      yesterday: EMPTY_ACTIVITY,
+      goalCal: 500,
+      priorDays: [],
+    });
+    expect(day.sleep.stagesSource).toBe('ring');
+    expect(day.sleep.stages).toEqual(ringStages);
+    expect(day.sleep.deepMin).toBe(60);
+    expect(day.sleep.remMin).toBe(60);
+    expect(day.sleep.lightMin).toBe(360);
+    expect(day.sleep.awakeMin).toBe(0);
+    expect(day.sleep.durationMin).toBe(480);
+    expect(day.sleep.efficiency).toBe(100);
+  });
+
+  it('falls back to the heuristic without ring stages', () => {
+    const day = buildDaySummary(maps({}), {
+      dayStart: WAKE_DAY,
+      sleepWindow: WINDOW,
+      ringStages: null,
+      tempNightMeanC: null,
+      tempBaselineC: null,
+      activity: EMPTY_ACTIVITY,
+      yesterday: EMPTY_ACTIVITY,
+      goalCal: 500,
+      priorDays: [],
+    });
+    expect(day.sleep.stagesSource).not.toBe('ring');
   });
 });
 

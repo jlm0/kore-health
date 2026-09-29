@@ -16,9 +16,10 @@ import { BleTransport } from './transport';
 
 // Ring sync orchestration: connect to the paired ring → authenticate → sync
 // clock → drain history events from the persisted cursor → fold into the
-// dataset → persist once → disconnect. Cursor progress is persisted per batch,
-// so a mid-sync failure keeps whatever was drained and the next sync resumes
-// there. Pairing (key install) happens on the pairing screen, not here.
+// dataset → persist → disconnect. Folded data and the cursor persist together
+// in chunks, so a mid-sync failure keeps every saved chunk and the next sync
+// resumes right after it. Pairing (key install) happens on the pairing screen,
+// not here.
 
 let syncing = false;
 // The running sync/live stream's link and stop request, so cancelSync() can end
@@ -37,6 +38,8 @@ const STALL_MESSAGE =
 let lastActivityAt = 0;
 let watchdog: ReturnType<typeof setInterval> | null = null;
 let unsubscribeActivity: (() => void) | null = null;
+// How often an incremental drain saves what it has folded so far.
+const CHUNK_SAVE_MS = 30_000;
 // Circuit breaker: an AUTO-triggered deep resync runs at most once per app
 // session — if the rebuild cannot complete (or the gap persists), later
 // syncs stay incremental instead of re-entering a rebuild loop (observed
@@ -253,6 +256,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
   const store = useHealthStore.getState;
   store().setConnectionStatus('connecting');
   const t0 = Date.now();
+  let saveDrainedChunk: (() => void) | null = null;
   try {
     // Gate on adapter readiness (permissions + PoweredOn) before any BLE op
     // so the first sync after app install cannot race the iOS prompt.
@@ -362,19 +366,55 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
       }
       console.log(`[sync] draining events from cursor ${previousCursor}`);
     }
-    const events: RingEventLike[] = [];
-    const pushEvent = (event: { tag: number; name: string; timestamp: number; decoded: unknown }) =>
-      events.push({ tag: event.tag, name: event.name, timestamp: event.timestamp, decoded: event.decoded });
+    // Incremental drains save folded events and the cursor together every
+    // CHUNK_SAVE_MS, so an interrupted sync keeps each saved chunk and re-drains
+    // only the rest (the fold is not idempotent: a cursor ahead of the saved
+    // data strands events, one behind it double-counts them). A chunk is saved
+    // only once it holds a time_sync event — without one the fold would anchor
+    // older events to "now". A deep resync commits only at the end.
+    let pending: RingEventLike[] = [];
+    let drainedTo = previousCursor;
+    let lastSaveAt = Date.now();
+    let sawSleepEvent = false;
+    const pushEvent = (event: { tag: number; name: string; timestamp: number; decoded: unknown }) => {
+      if (SLEEP_EVENT_TAGS.has(event.tag)) sawSleepEvent = true;
+      pending.push({ tag: event.tag, name: event.name, timestamp: event.timestamp, decoded: event.decoded });
+    };
+    const foldPending = (prior: boolean) =>
+      foldRingEvents({
+        prior:
+          prior && store().dataset != null
+            ? {
+                dataset: store().dataset!,
+                tempAbsSeries: store().tempAbsSeries,
+                tempNights: store().tempNights,
+                activityByDay: store().activityByDay,
+              }
+            : null,
+        events: dedupeEvents(pending),
+        goalCal: store().activityGoalCal,
+      });
+    const saveChunk = () => {
+      if (!pending.some((e) => e.name === 'time_sync')) return;
+      const result = foldPending(true);
+      store().applySyncResult(result.state, drainedTo);
+      console.log(`[sync] saved ${pending.length} events, cursor=${drainedTo}`);
+      pending = [];
+      lastSaveAt = Date.now();
+    };
+    if (!deep) saveDrainedChunk = saveChunk;
+    const onBatch = deep
+      ? undefined
+      : (nextCursor: number) => {
+          drainedTo = nextCursor;
+          if (Date.now() - lastSaveAt >= CHUNK_SAVE_MS) saveChunk();
+        };
     const shouldStop = () => stopRequest != null;
     draining = true;
     let outcome = await client.drainEvents(
       deep ? 0 : previousCursor,
       pushEvent,
-      // A deep resync must not move the persisted cursor mid-rebuild: if it
-      // is interrupted, the OLD dataset stays paired with the OLD cursor —
-      // never a stale dataset with a rewound cursor (which the next
-      // incremental sync would double-fold from).
-      deep ? undefined : (nextCursor) => store().setSyncCursor(nextCursor),
+      onBatch,
       // The old cursor is proof newer segments exist: let the walk probe
       // past early segment-boundary terminations to reach them.
       { expectEndAtLeast: deep ? previousCursor : undefined, shouldStop },
@@ -393,7 +433,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     const progress = outcome.sleepAnalysisProgress;
     const waitForAnalysis = shouldWaitForSleepAnalysis({
       progress,
-      hasSleepEvents: events.some((e) => SLEEP_EVENT_TAGS.has(e.tag)),
+      hasSleepEvents: sawSleepEvent,
     });
     if (progress === 0) {
       console.log('[sync] sleep analysis idle (progress=0) — not waiting');
@@ -411,12 +451,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
           console.log(`[sync] sleep analysis progress=${p ?? 'unknown'}`);
           if (p == null || p >= 100) break;
         }
-        const follow = await client.drainEvents(
-          outcome.nextCursor,
-          pushEvent,
-          deep ? undefined : (nextCursor) => store().setSyncCursor(nextCursor),
-          { shouldStop },
-        );
+        const follow = await client.drainEvents(outcome.nextCursor, pushEvent, onBatch, { shouldStop });
         console.log(`[sync] sleep follow-up drain: ${follow.eventsSynced} events`);
         batches += follow.batches;
         outcome = {
@@ -443,19 +478,21 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
         `[sync] deep resync incomplete (reached ${outcome.nextCursor} of ${previousCursor}) — keeping previous dataset`,
       );
     }
-    if (deepComplete) {
-      const uniqueEvents = dedupeEvents(events);
-      if (uniqueEvents.length !== events.length) {
-        console.log(
-          `[sync] dropped ${events.length - uniqueEvents.length} duplicate events from overlapping segments`,
-        );
+    if (stopRequest) {
+      // A stopped drain never reached the fresh time_sync at the end of the
+      // stream; save only a chunk that carries its own anchor.
+      if (!deep) saveChunk();
+    } else if (deepComplete) {
+      const duplicates = pending.length - dedupeEvents(pending).length;
+      if (duplicates > 0) {
+        console.log(`[sync] dropped ${duplicates} duplicate events from overlapping segments`);
       }
-      console.log(`[sync] drained ${uniqueEvents.length} events, folding`);
+      console.log(`[sync] drained ${pending.length - duplicates} events, folding`);
       // Diagnostic: event-type breakdown + computed day rows, so score/data
       // accuracy can be sanity-checked from the logs.
       const byName = new Map<string, number>();
       let metBins = 0;
-      for (const e of uniqueEvents) {
+      for (const e of pending) {
         byName.set(e.name, (byName.get(e.name) ?? 0) + 1);
         if (e.name === 'activity_information') {
           const mets = (e.decoded as Record<string, unknown> | null)?.met;
@@ -466,29 +503,12 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
         `[sync] event types: ${[...byName.entries()].sort((a, b) => b[1] - a[1]).map(([n, c]) => `${n}×${c}`).join(' ')}${metBins > 0 ? ` | met bins: ${metBins}` : ''}`,
       );
 
-      const result = foldRingEvents({
-        // Deep resync rebuilds from scratch — folding old events onto the
-        // existing (non-idempotent) fold state would double-count them.
-        prior:
-          !deep && store().dataset != null
-            ? {
-                dataset: store().dataset!,
-                tempAbsSeries: store().tempAbsSeries,
-                tempNights: store().tempNights,
-                activityByDay: store().activityByDay,
-              }
-            : null,
-        events: uniqueEvents,
-        goalCal: store().activityGoalCal,
-      });
-      // Single atomic commit → single AsyncStorage write for the whole sync.
-      store().applySyncResult(result.state);
-      if (deep) {
-        // Only now is it safe to move the cursor: the rebuilt dataset and
-        // the new cursor advance together.
-        store().setSyncCursor(outcome.nextCursor);
-        console.log(`[sync] deep resync committed, cursor=${outcome.nextCursor}`);
-      }
+      // Deep resync rebuilds from scratch — folding old events onto the
+      // existing (non-idempotent) fold state would double-count them.
+      const result = foldPending(!deep);
+      store().applySyncResult(result.state, outcome.nextCursor);
+      pending = [];
+      if (deep) console.log(`[sync] deep resync committed, cursor=${outcome.nextCursor}`);
       console.log(
         `[sync] done: ${result.eventsApplied} events applied, clock=${result.clockAnchor}, days=${result.state.dataset.days.length}`,
       );
@@ -515,6 +535,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
         console.log(`[sync] series ${id}: ${result.state.dataset.series[id].length} points`);
       }
     }
+    saveDrainedChunk = null;
 
     // History fills charts; featureLatest fills "right now". Read the ring's
     // cached latest HR + SpO2 while we're still connected. Best-effort: a
@@ -579,6 +600,11 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
       haptics.success();
     }
   } catch (error) {
+    try {
+      saveDrainedChunk?.();
+    } catch (saveError) {
+      console.log(`[sync] could not save drained events: ${describeBleError(saveError)}`);
+    }
     if (stopRequest) {
       console.log(`[sync] stopped: ${describeBleError(error)}`);
       store().setConnectionStatus('disconnected', stopRequest.errorMessage);

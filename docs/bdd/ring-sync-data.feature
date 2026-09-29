@@ -12,7 +12,8 @@
 #     local actigraphy heuristic (stagesSource "ring" vs "local").
 #   - Ring event timestamps are ring-clock deciseconds; wall-clock mapping needs
 #     an anchor (time_sync events; the app calls syncTime before every drain).
-#   - The sync cursor is in ring-time deciseconds and persists per batch.
+#   - The sync cursor is in ring-time deciseconds and persists only together
+#     with the folded data it covers (never ahead of it, never behind it).
 
 @sync
 Feature: History sync
@@ -21,7 +22,7 @@ Feature: History sync
     Given a freshly paired ring (sync cursor = 0)
     When sync runs
     Then events are drained in batches of up to 255 from cursor 0
-    And the cursor is persisted after EVERY batch (crash-safe resume)
+    And folded data + cursor are saved together about every 30 s (crash-safe resume)
     And the drain stops when the ring reports nothing left (bytesLeft = 0)
 
   Scenario: Incremental sync resumes at the cursor
@@ -52,17 +53,24 @@ Feature: History sync
     Then the newest event is treated as "now" (same fallback oura-cli uses)
     And the fold result records which anchor was used (time_sync | newest_event)
 
-  Scenario: Interrupted sync keeps its progress
-    Given a sync that completed 3 batches before the link dropped
+  Scenario: Interrupted sync keeps its saved progress
+    Given a long drain that saved a chunk, then lost the link (or was stopped)
     When the user syncs again
-    Then only events after the 3rd batch's cursor are requested
-    And already-folded data is preserved (fold seeds from the persisted dataset)
+    Then draining resumes right after the saved chunk
+    And events drained after it are requested again — never skipped
+    # a cursor ahead of the saved data strands events; one behind double-counts
 
-  Scenario: One atomic persist per sync
+  Scenario: A chunk is saved only with a clock anchor
+    Given an incremental drain whose events since the last save hold no time_sync
+    When the save interval passes (or the sync is stopped)
+    Then those events are not saved yet — they are folded later with an anchor
+    # without one the fold would place old events at "now"
+
+  Scenario: Atomic persists
     Given any sync
     When events are folded
-    Then AsyncStorage is written ONCE (atomic applySyncResult)
-    And no per-sample or per-batch dataset writes occur
+    Then each save writes data + cursor in ONE AsyncStorage write (applySyncResult)
+    And no per-sample or per-batch writes occur
 
 @normalization
 Feature: Normalization onto the dataset grid

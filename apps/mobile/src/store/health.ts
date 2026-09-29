@@ -73,10 +73,12 @@ interface HealthState {
   /** Fresh start: forget the ring and drop all synced data; keeps display preferences. */
   resetAll: () => void;
   setConnectionStatus: (status: ConnectionStatus, error?: string | null) => void;
-  setSyncCursor: (cursorDs: number) => void;
   setLatestVitals: (vitals: LatestVitals) => void;
-  /** Single atomic commit of a completed sync fold → one AsyncStorage write. */
-  applySyncResult: (result: RingFoldState) => void;
+  /**
+   * Atomic commit of folded events together with the cursor they were drained
+   * up to → one AsyncStorage write, so data and cursor can never disagree.
+   */
+  applySyncResult: (result: RingFoldState, syncCursor: number) => void;
 }
 
 // Everything derived from the paired ring. Replaying a ring's history from
@@ -122,10 +124,10 @@ export const useHealthStore = create<HealthState>()(
         set({ ...NO_RING, lastOpenedAt: null, connectionStatus: 'disconnected', syncError: null }),
       setConnectionStatus: (status, error = null) =>
         set({ connectionStatus: status, syncError: error }),
-      setSyncCursor: (cursorDs) => set({ syncCursor: cursorDs }),
       setLatestVitals: (vitals) => set({ latestVitals: vitals }),
-      applySyncResult: (result) =>
+      applySyncResult: (result, syncCursor) =>
         set({
+          syncCursor,
           dataset: result.dataset,
           tempAbsSeries: result.tempAbsSeries,
           tempNights: result.tempNights,

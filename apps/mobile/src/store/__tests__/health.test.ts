@@ -40,18 +40,19 @@ beforeEach(() => {
 });
 
 describe('useHealthStore — atomic sync persist', () => {
-  it('applySyncResult commits the fold with a single AsyncStorage write', () => {
+  it('applySyncResult commits the fold and its cursor in a single AsyncStorage write', () => {
     const result = emptyFoldState();
-    useHealthStore.getState().applySyncResult(result);
+    useHealthStore.getState().applySyncResult(result, 123456);
     expect(setItemCount).toBe(1);
     const s = useHealthStore.getState();
     expect(s.dataset).toEqual(result.dataset);
     expect(s.lastSyncAt).not.toBeNull();
+    expect(persistedState().syncCursor).toBe(123456);
   });
 
   it('persists only the sync/BLE state — never status, error, or live data', () => {
     useHealthStore.getState().setConnectionStatus('syncing');
-    useHealthStore.getState().applySyncResult(emptyFoldState());
+    useHealthStore.getState().applySyncResult(emptyFoldState(), 0);
     const keys = Object.keys(persistedState()).sort();
     expect(keys).toEqual([
       'activityByDay',
@@ -73,12 +74,6 @@ describe('useHealthStore — atomic sync persist', () => {
     expect(persistedState().liveHr).toBeUndefined();
   });
 
-  it('setSyncCursor persists cursor progress per batch', () => {
-    useHealthStore.getState().setSyncCursor(123456);
-    expect(setItemCount).toBe(1);
-    expect(persistedState().syncCursor).toBe(123456);
-  });
-
   it('setLatestVitals persists the latest readings (nulls stay null, never 0)', () => {
     useHealthStore.getState().setLatestVitals({ bpm: 58, spo2Percent: null });
     expect(persistedState().latestVitals).toEqual({ bpm: 58, spo2Percent: null });
@@ -89,7 +84,7 @@ describe('useHealthStore — forgetRing', () => {
   it('clears device id, auth key and sync cursor (new-user state)', () => {
     useHealthStore.getState().setRingDeviceId('DEVICE-1');
     useHealthStore.getState().setRingAuthKey('deadbeef');
-    useHealthStore.getState().setSyncCursor(999);
+    useHealthStore.getState().applySyncResult(emptyFoldState(), 999);
     useHealthStore.getState().forgetRing();
     const s = useHealthStore.getState();
     expect(s.ringDeviceId).toBeNull();

@@ -498,3 +498,25 @@ describe('foldRingEvents — refold stability and purity', () => {
     expect(JSON.parse(JSON.stringify(first.state))).toEqual(snapshot);
   });
 });
+
+describe('foldRingEvents — chunked sync saves', () => {
+  it('folding anchored chunks in order matches one fold of the whole drain', () => {
+    const early = [
+      timeSync(),
+      ev('activity_information', bucketOf(NOW - 6 * HOUR), { met: [5, 9] }),
+      ev('spo2_event', NOW - 5 * HOUR, { spo2_percent: [96] }),
+    ];
+    const late = [
+      timeSync(),
+      ev('activity_information', bucketOf(NOW - 2 * HOUR), { met: [3, 7] }),
+      ev('spo2_event', NOW - HOUR, { spo2_percent: [98] }),
+    ];
+    const whole = fold([...early, ...late]);
+    const chunked = fold(late, fold(early).state);
+    expect(chunked.state.activityByDay).toEqual(whole.state.activityByDay);
+    expect(chunked.state.dataset.series).toEqual(whole.state.dataset.series);
+    expect(chunked.state.dataset.days.map((d) => d.activity)).toEqual(
+      whole.state.dataset.days.map((d) => d.activity),
+    );
+  });
+});

@@ -70,6 +70,8 @@ interface HealthState {
   setUnits: (units: Units) => void;
   /** Unpair: drop the saved device + auth key and reset the history cursor. */
   forgetRing: () => void;
+  /** Fresh start: forget the ring and drop all synced data; keeps display preferences. */
+  resetAll: () => void;
   setConnectionStatus: (status: ConnectionStatus, error?: string | null) => void;
   setSyncCursor: (cursorDs: number) => void;
   setLatestVitals: (vitals: LatestVitals) => void;
@@ -102,6 +104,22 @@ export const useHealthStore = create<HealthState>()(
       setUnits: (units) => set({ units }),
       forgetRing: () =>
         set({ ringDeviceId: null, ringDeviceName: null, ringAuthKey: null, syncCursor: 0 }),
+      resetAll: () =>
+        set({
+          ringAuthKey: null,
+          ringDeviceId: null,
+          ringDeviceName: null,
+          dataset: null,
+          tempAbsSeries: [],
+          tempNights: [],
+          activityByDay: {},
+          syncCursor: 0,
+          lastSyncAt: null,
+          lastOpenedAt: null,
+          latestVitals: null,
+          connectionStatus: 'disconnected',
+          syncError: null,
+        }),
       setConnectionStatus: (status, error = null) =>
         set({ connectionStatus: status, syncError: error }),
       setSyncCursor: (cursorDs) => set({ syncCursor: cursorDs }),

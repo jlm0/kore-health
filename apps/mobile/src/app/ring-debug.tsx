@@ -2,6 +2,7 @@ import { BackButton, Screen, ScreenHeader, palette } from '@kore/ui';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Platform,
   Pressable,
   StyleSheet,
@@ -13,7 +14,7 @@ import { OuraRingClient, type RingEvent } from '@/ring/client';
 import { FEATURE, FEATURE_MODE } from '@/ring/constants';
 import { cancelSync, deepResync } from '@/ring/sync';
 import { BleTransport, type DiscoveredRing } from '@/ring/transport';
-import { useHealthStore } from '@/store/health';
+import { useHealthStore, useLiveStore } from '@/store/health';
 
 // Temporary verification tool for the ring link — not linked from app screens.
 
@@ -23,6 +24,7 @@ export default function RingDebugScreen() {
   const ringDeviceId = useHealthStore((s) => s.ringDeviceId);
   const setRingAuthKey = useHealthStore((s) => s.setRingAuthKey);
   const setRingDeviceId = useHealthStore((s) => s.setRingDeviceId);
+  const resetAll = useHealthStore((s) => s.resetAll);
 
   const [logs, setLogs] = useState<string[]>([]);
   const [rings, setRings] = useState<DiscoveredRing[]>([]);
@@ -246,6 +248,29 @@ export default function RingDebugScreen() {
     [run, link, log],
   );
 
+  const onResetKore = useCallback(() => {
+    Alert.alert(
+      'Reset Kore?',
+      'This forgets your ring and deletes all synced data on this phone. Your ring keeps its own history, so pairing again re-imports what it still stores.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: () =>
+            void run('reset Kore (forget ring + clear data)', async () => {
+              await cancelSync();
+              await linkRef.current?.transport.disconnect();
+              resetAll();
+              useLiveStore.getState().clearLiveHr();
+              setRings([]);
+              log('Kore reset — pair your ring again from Home');
+            }),
+        },
+      ],
+    );
+  }, [run, resetAll, log]);
+
   return (
     <Screen aura="home">
       <ScreenHeader title="Ring debug" left={<BackButton onPress={() => router.back()} />} />
@@ -266,6 +291,7 @@ export default function RingDebugScreen() {
         <DebugButton label="Sync events" onPress={onSyncEvents} disabled={busy} />
         <DebugButton label="⚠ Deep resync" onPress={onDeepResync} disabled={busy} />
         <DebugButton label="⚠ Factory reset" onPress={onFactoryReset} disabled={busy} />
+        <DebugButton label="⚠ Reset Kore" onPress={onResetKore} disabled={busy} />
       </View>
       <Text style={styles.meta}>
         key: {ringAuthKey ? `${ringAuthKey.slice(0, 8)}…` : 'none'} · device:{' '}

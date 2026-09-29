@@ -1,10 +1,12 @@
 import { BackButton, Screen, ScreenHeader, palette } from '@kore/ui';
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Platform,
   Pressable,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -13,6 +15,7 @@ import { ensureBlePermissions, waitForBluetoothReady } from '@/ring/bluetooth';
 import { OuraRingClient, type RingEvent } from '@/ring/client';
 import { FEATURE, FEATURE_MODE } from '@/ring/constants';
 import { cancelSync, deepResync } from '@/ring/sync';
+import { syncLogText } from '@/ring/syncLog';
 import { BleTransport, type DiscoveredRing } from '@/ring/transport';
 import { useHealthStore, useLiveStore } from '@/store/health';
 
@@ -248,6 +251,23 @@ export default function RingDebugScreen() {
     [run, link, log],
   );
 
+  const onShareLog = useCallback(async () => {
+    const s = useHealthStore.getState();
+    const version = Constants.expoConfig?.version ?? '?';
+    const build = Constants.expoConfig?.ios?.buildNumber;
+    const header = [
+      `Kore ${version}${build ? ` (${build})` : ''} · ${Platform.OS} ${Platform.Version}`,
+      `ring: ${s.ringDeviceId ? `paired (${s.ringDeviceName ?? s.ringDeviceId})` : 'not paired'} · cursor ${s.syncCursor}`,
+      `days: ${s.dataset?.days.length ?? 0} · last sync: ${s.lastSyncAt ? new Date(s.lastSyncAt).toISOString() : 'never'}`,
+      `status: ${s.connectionStatus}${s.syncError ? ` · error: ${s.syncError}` : ''}`,
+    ].join('\n');
+    try {
+      await Share.share({ message: `${header}\n\n${syncLogText() || '(no ring log yet)'}` });
+    } catch (e) {
+      log(`ERR share: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [log]);
+
   const onResetKore = useCallback(() => {
     Alert.alert(
       'Reset Kore?',
@@ -292,6 +312,7 @@ export default function RingDebugScreen() {
         <DebugButton label="⚠ Deep resync" onPress={onDeepResync} disabled={busy} />
         <DebugButton label="⚠ Factory reset" onPress={onFactoryReset} disabled={busy} />
         <DebugButton label="⚠ Reset Kore" onPress={onResetKore} disabled={busy} />
+        <DebugButton label="Share sync log" onPress={() => void onShareLog()} />
       </View>
       <Text style={styles.meta}>
         key: {ringAuthKey ? `${ringAuthKey.slice(0, 8)}…` : 'none'} · device:{' '}

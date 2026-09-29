@@ -14,7 +14,10 @@ import { AppState } from 'react-native';
 import { hapticsAvailable, palette } from '@kore/ui';
 import { registerBackgroundSync } from '@/ring/background';
 import { syncRing } from '@/ring/sync';
+import { installSyncLogCapture } from '@/ring/syncLog';
 import { useHealthStore } from '@/store/health';
+
+void installSyncLogCapture();
 
 // Dev-only handle so the Metro debugger can read/seed app state directly
 // (used by the visual design loop to mirror the phone's real dataset into

@@ -38,7 +38,7 @@ import {
 } from '@/data/selectors';
 import type { DaySummary } from '@/data/types';
 import { tempUnit, toDisplayTemp, toDisplayTempDelta } from '@/data/units';
-import { syncRing } from '@/ring/sync';
+import { cancelSync, syncRing } from '@/ring/sync';
 import { useHealthStore } from '@/store/health';
 
 function readinessStatus(score: number): string {
@@ -152,7 +152,11 @@ export default function HomeScreen() {
   // Dedicated sync button (header) — no paired ring → choosing one is the
   // pairing screen's job, not a blind scan-and-grab sync.
   const onSync = () => {
-    if (busy) return;
+    if (busy) {
+      haptics.tap();
+      void cancelSync();
+      return;
+    }
     if (!ringDeviceId) {
       router.push('/pair');
       return;
@@ -163,7 +167,6 @@ export default function HomeScreen() {
   // Bluetooth icon = ring management (pair, paired info, forget). Always
   // reachable — otherwise a stale saved id traps the user in failing syncs.
   const onManageRing = () => {
-    if (busy) return;
     router.push('/pair');
   };
 
@@ -270,8 +273,10 @@ export default function HomeScreen() {
             </Txt>
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
-            <GlassCircle onPress={onSync} accessibilityLabel={ringDeviceId ? 'Sync ring now' : 'Connect ring'}>
-              <MaterialCommunityIcons name="sync" size={16} color={busy ? palette.mint.base : palette.slate} />
+            <GlassCircle
+              onPress={onSync}
+              accessibilityLabel={busy ? 'Stop sync' : ringDeviceId ? 'Sync ring now' : 'Connect ring'}>
+              <MaterialCommunityIcons name={busy ? 'close' : 'sync'} size={16} color={palette.slate} />
             </GlassCircle>
             <GlassCircle onPress={onManageRing} accessibilityLabel="Manage ring">
               <MaterialCommunityIcons
@@ -301,11 +306,13 @@ export default function HomeScreen() {
             </View>
             <View style={{ maxWidth: 280, gap: 8 }}>
               <Txt role="title" align="center" style={{ fontSize: 22, lineHeight: 28 }}>
-                {ringDeviceId ? 'Ready to sync' : 'Three quick steps to pair'}
+                {!ringDeviceId ? 'Three quick steps to pair' : busy ? 'Syncing your ring' : 'Ready to sync'}
               </Txt>
               <Txt role="body" align="center">
                 {ringDeviceId
-                  ? 'Keep your ring nearby — Kore imports your nights, heart rate and temperature.'
+                  ? busy
+                    ? 'Keep Kore open and the ring nearby. The first sync can take a few minutes.'
+                    : 'Keep your ring nearby — Kore imports your nights, heart rate and temperature.'
                   : 'Kore talks to your Oura ring directly over Bluetooth. We’ll help you free it from the Oura app and find it nearby.'}
               </Txt>
               {syncError && !busy ? (
@@ -317,10 +324,10 @@ export default function HomeScreen() {
             <View style={{ flex: 1, justifyContent: 'flex-end', alignSelf: 'stretch' }}>
               <Button
                 size="lg"
-                haptic={ringDeviceId ? 'confirm' : 'tap'}
-                loading={busy}
+                variant={busy ? 'secondary' : 'primary'}
+                haptic={busy ? 'none' : ringDeviceId ? 'confirm' : 'tap'}
                 onPress={ringDeviceId ? onSync : () => router.push('/pair')}>
-                {ringDeviceId ? 'Sync now' : 'Set up my ring'}
+                {busy ? 'Stop sync' : ringDeviceId ? 'Sync now' : 'Set up my ring'}
               </Button>
             </View>
           </GlassCard>

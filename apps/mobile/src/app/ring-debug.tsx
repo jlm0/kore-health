@@ -11,7 +11,7 @@ import {
 import { ensureBlePermissions, waitForBluetoothReady } from '@/ring/bluetooth';
 import { OuraRingClient, type RingEvent } from '@/ring/client';
 import { FEATURE, FEATURE_MODE } from '@/ring/constants';
-import { deepResync } from '@/ring/sync';
+import { cancelSync, deepResync } from '@/ring/sync';
 import { BleTransport, type DiscoveredRing } from '@/ring/transport';
 import { useHealthStore } from '@/store/health';
 
@@ -44,6 +44,10 @@ export default function RingDebugScreen() {
   }, []);
 
   useEffect(() => {
+    if (useHealthStore.getState().connectionStatus !== 'disconnected') {
+      log('stopping the running sync so the console can use the ring');
+      void cancelSync().then(() => log('sync stopped'));
+    }
     ensureBlePermissions().then((granted) => {
       log(`BLE permissions: ${granted ? 'granted' : 'DENIED'}`);
       if (Platform.OS === 'ios') {

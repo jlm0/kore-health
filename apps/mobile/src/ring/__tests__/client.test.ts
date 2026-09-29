@@ -120,6 +120,25 @@ describe('drainEvents — batching and cursor advance', () => {
     expect(transport.writes.map((w) => w.startDs)).toEqual([0, 201]);
   });
 
+  it('ends the walk at the last completed batch once shouldStop turns true', async () => {
+    const transport = new MockTransport((startDs) => [
+      eventFrame(0x55, startDs + 10),
+      summaryFrame(1, 500),
+    ]);
+    const client = makeClient(transport);
+    let stop = false;
+    const outcome = await client.drainEvents(
+      0,
+      () => {},
+      () => {
+        stop = true;
+      },
+      { shouldStop: () => stop },
+    );
+    expect(outcome).toEqual({ eventsSynced: 1, nextCursor: 11, batches: 1, sleepAnalysisProgress: 100 });
+    expect(transport.writes.map((w) => w.startDs)).toEqual([0]);
+  });
+
   it('stops when a batch makes no progress even with bytesLeft>0', async () => {
     const transport = new MockTransport(() => [summaryFrame(0, 500)]);
     const client = makeClient(transport);

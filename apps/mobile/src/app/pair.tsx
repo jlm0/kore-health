@@ -21,7 +21,7 @@ import { JourneyStep } from '@/components/JourneyStep';
 import { waitForBluetoothReady, withTimeout, describeBleError, isPairingInfoRemoved } from '@/ring/bluetooth';
 import { OuraRingClient } from '@/ring/client';
 import { CONNECT_TIMEOUT_MS, FEATURE, FEATURE_MODE, SCAN_TIMEOUT_MS } from '@/ring/constants';
-import { syncRing } from '@/ring/sync';
+import { cancelSync, syncRing } from '@/ring/sync';
 import { BleTransport, type DiscoveredRing } from '@/ring/transport';
 import { useHealthStore } from '@/store/health';
 
@@ -119,6 +119,7 @@ export default function PairScreen() {
     setRings([]);
     setPhase('checking');
     try {
+      await cancelSync();
       await waitForBluetoothReady();
     } catch (e) {
       if (!mountedRef.current) return;
@@ -376,6 +377,7 @@ export default function PairScreen() {
     const client = new OuraRingClient(t);
     try {
       setInfoStep('Preparing Bluetooth…');
+      await cancelSync();
       await waitForBluetoothReady();
       if (!mountedRef.current) return;
 
@@ -573,7 +575,7 @@ export default function PairScreen() {
           <Pressable
             onPress={() => {
               haptics.confirm();
-              forgetRing();
+              void cancelSync().then(forgetRing);
             }}
             hitSlop={10}
             style={{ alignSelf: 'flex-start', paddingVertical: 9, marginVertical: -9 }}>

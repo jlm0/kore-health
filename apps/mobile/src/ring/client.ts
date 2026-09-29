@@ -80,6 +80,8 @@ export interface DrainOptions {
    * (never past the evidence) until it finds the next segment and resumes.
    */
   expectEndAtLeast?: number;
+  /** Checked before each batch request; true ends the walk at the last completed batch. */
+  shouldStop?: () => boolean;
 }
 
 export interface HeartRateSample {
@@ -437,6 +439,7 @@ export class OuraRingClient {
     };
     // Safety bound against a misbehaving ring that never reports drained.
     for (let i = 0; i < 100_000; i++) {
+      if (options?.shouldStop?.()) break;
       const t0 = Date.now();
       batches++;
       const packets = await this.request(

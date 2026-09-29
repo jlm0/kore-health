@@ -21,6 +21,13 @@ import { BleTransport } from './transport';
 // there. Pairing (key install) happens on the pairing screen, not here.
 
 let syncing = false;
+// The running sync/live stream's link and stop request, so cancelSync() can end
+// it from outside. errorMessage null = user stop (no error shown).
+let activeTransport: BleTransport | null = null;
+let stopRequest: { errorMessage: string | null } | null = null;
+let draining = false;
+let idle: Promise<void> = Promise.resolve();
+let markIdle: (() => void) | null = null;
 // Circuit breaker: an AUTO-triggered deep resync runs at most once per app
 // session — if the rebuild cannot complete (or the gap persists), later
 // syncs stay incremental instead of re-entering a rebuild loop (observed
@@ -56,6 +63,58 @@ const SLEEP_EVENT_TAGS = new Set([
   0x5a, // sleep_phase_data
   0x76, // bedtime_period
 ]);
+
+class SyncStopped extends Error {}
+
+function beginRun(transport: BleTransport): void {
+  syncing = true;
+  activeTransport = transport;
+  stopRequest = null;
+  idle = new Promise((resolve) => {
+    markIdle = resolve;
+  });
+}
+
+function endRun(): void {
+  syncing = false;
+  activeTransport = null;
+  stopRequest = null;
+  draining = false;
+  markIdle?.();
+  markIdle = null;
+}
+
+function throwIfStopped(): void {
+  if (stopRequest) throw new SyncStopped();
+}
+
+function requestStop(errorMessage: string | null): void {
+  if (!syncing || stopRequest) return;
+  stopRequest = { errorMessage };
+  console.log(`[sync] stop requested${errorMessage ? `: ${errorMessage}` : ''}`);
+  liveStop?.();
+  // Mid-drain the walk ends at its next batch boundary (≤15s) and keeps what it
+  // drained; anywhere else, dropping the link fails the pending BLE op at once.
+  if (draining) return;
+  const transport = activeTransport;
+  const deviceId = useHealthStore.getState().ringDeviceId;
+  if (deviceId) void transport?.cancelPending(deviceId);
+  void transport?.disconnect();
+}
+
+/**
+ * Stop the running sync or live HR stream; resolves once it has fully wound
+ * down (link closed, store settled). Resolves immediately when idle.
+ */
+export function cancelSync(): Promise<void> {
+  if (!syncing) {
+    const { connectionStatus, setConnectionStatus } = useHealthStore.getState();
+    if (connectionStatus !== 'disconnected') setConnectionStatus('disconnected');
+    return Promise.resolve();
+  }
+  requestStop(null);
+  return idle;
+}
 
 /** End an in-progress live HR stream early. No-op when none is running. */
 export function stopLiveHeartRate(): void {
@@ -160,25 +219,28 @@ async function authenticateClient(client: OuraRingClient): Promise<void> {
  */
 export async function syncRing(options?: SyncOptions): Promise<void> {
   if (syncing) return;
-  syncing = true;
-  const store = useHealthStore.getState;
-  store().setConnectionStatus('connecting');
   const transport = new BleTransport();
   const client = new OuraRingClient(transport);
+  beginRun(transport);
+  const store = useHealthStore.getState;
+  store().setConnectionStatus('connecting');
   const t0 = Date.now();
   try {
     // Gate on adapter readiness (permissions + PoweredOn) before any BLE op
     // so the first sync after app install cannot race the iOS prompt.
     console.log('[sync] waiting for bluetooth ready');
     await waitForBluetoothReady();
+    throwIfStopped();
 
     console.log('[sync] connecting');
     await connectWithRediscovery(transport);
+    throwIfStopped();
     store().setConnectionStatus('connected');
     const tConnected = Date.now();
 
     console.log('[sync] authenticating');
     await authenticateClient(client);
+    throwIfStopped();
     const tAuthed = Date.now();
 
     // Self-paired rings ship with measurement features OFF — the official app
@@ -243,6 +305,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
       console.log(`[sync] sleep analysis failed (non-fatal): ${describeBleError(sleepError)}`);
     }
     const tPrepared = Date.now();
+    throwIfStopped();
 
     store().setConnectionStatus('syncing');
     const previousCursor = store().syncCursor;
@@ -272,6 +335,8 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     const events: RingEventLike[] = [];
     const pushEvent = (event: { tag: number; name: string; timestamp: number; decoded: unknown }) =>
       events.push({ tag: event.tag, name: event.name, timestamp: event.timestamp, decoded: event.decoded });
+    const shouldStop = () => stopRequest != null;
+    draining = true;
     let outcome = await client.drainEvents(
       deep ? 0 : previousCursor,
       pushEvent,
@@ -282,7 +347,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
       deep ? undefined : (nextCursor) => store().setSyncCursor(nextCursor),
       // The old cursor is proof newer segments exist: let the walk probe
       // past early segment-boundary terminations to reach them.
-      deep ? { expectEndAtLeast: previousCursor } : undefined,
+      { expectEndAtLeast: deep ? previousCursor : undefined, shouldStop },
     );
     let batches = outcome.batches;
 
@@ -303,7 +368,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     if (progress === 0) {
       console.log('[sync] sleep analysis idle (progress=0) — not waiting');
     }
-    if (waitForAnalysis) {
+    if (waitForAnalysis && !stopRequest) {
       try {
         console.log(
           `[sync] sleep analysis in progress (${progress}%), no sleep events in drain — waiting (bounded)`,
@@ -320,6 +385,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
           outcome.nextCursor,
           pushEvent,
           deep ? undefined : (nextCursor) => store().setSyncCursor(nextCursor),
+          { shouldStop },
         );
         console.log(`[sync] sleep follow-up drain: ${follow.eventsSynced} events`);
         batches += follow.batches;
@@ -331,6 +397,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
         console.log(`[sync] sleep-analysis wait failed (non-fatal): ${describeBleError(sleepWaitError)}`);
       }
     }
+    draining = false;
     const tDrained = Date.now();
     // Commit guard: a deep rebuild whose walk could not get within a day of
     // the expected end is INCOMPLETE — committing it would replace a more
@@ -423,23 +490,25 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     // cached latest HR + SpO2 while we're still connected. Best-effort: a
     // ring off the finger answers with empty values and a failed read must
     // never fail the sync — empty means "no current value", not 0.
-    try {
-      const hrLatest = await client.featureLatest(FEATURE.DAYTIME_HR);
-      let spo2Latest: LatestValues | null = null;
+    if (!stopRequest) {
       try {
-        spo2Latest = await client.featureLatest(FEATURE.SPO2);
-      } catch (spo2Error) {
-        console.log(`[sync] featureLatest(SPO2) failed (non-fatal): ${describeBleError(spo2Error)}`);
+        const hrLatest = await client.featureLatest(FEATURE.DAYTIME_HR);
+        let spo2Latest: LatestValues | null = null;
+        try {
+          spo2Latest = await client.featureLatest(FEATURE.SPO2);
+        } catch (spo2Error) {
+          console.log(`[sync] featureLatest(SPO2) failed (non-fatal): ${describeBleError(spo2Error)}`);
+        }
+        const vitals = mergeLatestVitals(hrLatest, spo2Latest);
+        if (vitals) {
+          store().setLatestVitals(vitals);
+          console.log(`[sync] latest vitals: bpm=${vitals.bpm ?? '—'} spo2=${vitals.spo2Percent ?? '—'}`);
+        } else {
+          console.log('[sync] no latest vitals (ring not worn?)');
+        }
+      } catch (vitalsError) {
+        console.log(`[sync] featureLatest failed (non-fatal): ${describeBleError(vitalsError)}`);
       }
-      const vitals = mergeLatestVitals(hrLatest, spo2Latest);
-      if (vitals) {
-        store().setLatestVitals(vitals);
-        console.log(`[sync] latest vitals: bpm=${vitals.bpm ?? '—'} spo2=${vitals.spo2Percent ?? '—'}`);
-      } else {
-        console.log('[sync] no latest vitals (ring not worn?)');
-      }
-    } catch (vitalsError) {
-      console.log(`[sync] featureLatest failed (non-fatal): ${describeBleError(vitalsError)}`);
     }
     const tLatest = Date.now();
     // Per-sync timing profile — the verification channel for lifecycle cost.
@@ -456,7 +525,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     // history drain + persisted-store dump, all prefixed [audit] in the logs.
     // Expensive (minutes of ring radio time), so it runs at most once per app
     // session unless re-armed via runAuditOnNextSync().
-    if (__DEV__) {
+    if (__DEV__ && !stopRequest) {
       if (auditArmed || !auditRanThisSession) {
         auditArmed = false;
         auditRanThisSession = true;
@@ -472,12 +541,23 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
       }
     }
 
-    store().setConnectionStatus('disconnected');
-    haptics.success();
+    if (stopRequest) {
+      console.log('[sync] stopped after saving drained events');
+      store().setConnectionStatus('disconnected', stopRequest.errorMessage);
+    } else {
+      store().setConnectionStatus('disconnected');
+      haptics.success();
+    }
   } catch (error) {
-    console.log(`[sync] failed: ${describeBleError(error)}`);
-    store().setConnectionStatus('disconnected', describeBleError(error));
-    haptics.error();
+    if (stopRequest) {
+      console.log(`[sync] stopped: ${describeBleError(error)}`);
+      store().setConnectionStatus('disconnected', stopRequest.errorMessage);
+      if (stopRequest.errorMessage) haptics.error();
+    } else {
+      console.log(`[sync] failed: ${describeBleError(error)}`);
+      store().setConnectionStatus('disconnected', describeBleError(error));
+      haptics.error();
+    }
   } finally {
     try {
       await transport.disconnect();
@@ -485,7 +565,7 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
       // Link may already be down.
     }
     transport.destroy();
-    syncing = false;
+    endRun();
   }
 }
 
@@ -507,16 +587,18 @@ export async function deepResync(): Promise<void> {
  */
 export async function streamLiveHeartRate(durationSeconds = 60): Promise<void> {
   if (syncing) return;
-  syncing = true;
-  const store = useHealthStore.getState;
-  store().setConnectionStatus('connecting');
   const transport = new BleTransport();
   const client = new OuraRingClient(transport);
+  beginRun(transport);
+  const store = useHealthStore.getState;
+  store().setConnectionStatus('connecting');
   try {
     await waitForBluetoothReady();
     await connectWithRediscovery(transport);
+    throwIfStopped();
     store().setConnectionStatus('connected');
     await authenticateClient(client);
+    throwIfStopped();
     useLiveStore.getState().clearLiveHr();
     let stopped = false;
     liveStop = () => {
@@ -529,9 +611,12 @@ export async function streamLiveHeartRate(durationSeconds = 60): Promise<void> {
       },
       () => stopped,
     );
-    store().setConnectionStatus('disconnected');
+    store().setConnectionStatus('disconnected', stopRequest?.errorMessage ?? null);
   } catch (error) {
-    store().setConnectionStatus('disconnected', describeBleError(error));
+    store().setConnectionStatus(
+      'disconnected',
+      stopRequest ? stopRequest.errorMessage : describeBleError(error),
+    );
   } finally {
     try {
       await transport.disconnect();
@@ -540,6 +625,6 @@ export async function streamLiveHeartRate(durationSeconds = 60): Promise<void> {
     }
     transport.destroy();
     liveStop = null;
-    syncing = false;
+    endRun();
   }
 }

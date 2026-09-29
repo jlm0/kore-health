@@ -96,7 +96,7 @@ Feature: Reconnection (returning user)
   Scenario: Ring management is always reachable
     Given any pairing state — none, paired, or a stale saved id
     When the user taps the Bluetooth icon in the home header
-    Then the pairing screen opens (scan, paired-ring card, Forget)
+    Then the pairing screen opens (scan, paired-ring card, Forget) — even mid-sync
     # without this, a stale saved id traps the user in failing one-tap syncs
     # with no way back to the scan list
 
@@ -162,9 +162,17 @@ Feature: Reconnection (returning user)
 
   Scenario: Forget ring returns to new-user state
     Given a paired ring
-    When the user taps "Forget this ring"
-    Then ringDeviceId, ringAuthKey, and the sync cursor are cleared
+    When the user taps "Forget this ring" and confirms
+    Then any running sync is stopped first
+    And ringDeviceId, ringAuthKey, the sync cursor and the ring's synced data are cleared
     And the app behaves as a new user on the next sync attempt
+    # re-pairing replays history from cursor 0; kept data would double-count
+
+  Scenario: Reset Kore from the debug console
+    Given a tester whose app is in a bad state
+    When they tap "Reset Kore" in the debug console and confirm
+    Then any running sync is stopped, the ring is forgotten and all synced data cleared
+    And units and the activity goal are kept
 
   Scenario: Same ring, different phone
     Given a ring paired on the user's iPhone

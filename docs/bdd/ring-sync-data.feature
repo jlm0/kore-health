@@ -66,6 +66,23 @@ Feature: History sync
     Then those events are not saved yet — they are folded later with an anchor
     # without one the fold would place old events at "now"
 
+  Scenario: A running sync can be stopped
+    Given a sync in progress
+    When the user taps "Stop sync" (header or empty-state button)
+    Then the drain ends at its next batch boundary and saves an anchored chunk
+    And no error is shown
+    And opening the pairing screen's ring actions or the debug console also stops it
+
+  Scenario: A stalled sync gives up
+    Given a sync that receives nothing from the ring for 2 minutes
+    Then it stops with "Ring stopped responding" instead of staying on Syncing…
+
+  Scenario: Testers can share the sync log
+    Given ring log lines captured on the phone (last 1500, kept across force-quits)
+    When a tester taps "Share sync log" in the debug console
+    Then the log is shared with an app/sync status header
+    And auth keys are redacted
+
   Scenario: Atomic persists
     Given any sync
     When events are folded

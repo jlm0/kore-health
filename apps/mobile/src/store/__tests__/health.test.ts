@@ -81,7 +81,7 @@ describe('useHealthStore — atomic sync persist', () => {
 });
 
 describe('useHealthStore — forgetRing', () => {
-  it('clears device id, auth key and sync cursor (new-user state)', () => {
+  it('clears device id, auth key, sync cursor and synced data (new-user state)', () => {
     useHealthStore.getState().setRingDeviceId('DEVICE-1');
     useHealthStore.getState().setRingAuthKey('deadbeef');
     useHealthStore.getState().applySyncResult(emptyFoldState(), 999);
@@ -90,10 +90,31 @@ describe('useHealthStore — forgetRing', () => {
     expect(s.ringDeviceId).toBeNull();
     expect(s.ringAuthKey).toBeNull();
     expect(s.syncCursor).toBe(0);
+    expect(s.dataset).toBeNull();
+    expect(s.lastSyncAt).toBeNull();
     const p = persistedState();
     expect(p.ringDeviceId).toBeNull();
     expect(p.ringAuthKey).toBeNull();
     expect(p.syncCursor).toBe(0);
+    expect(p.dataset).toBeNull();
+  });
+});
+
+describe('useHealthStore — resetAll', () => {
+  it('forgets the ring and clears data and status but keeps display preferences', () => {
+    useHealthStore.getState().setUnits('metric');
+    useHealthStore.getState().setRingDeviceId('DEVICE-1');
+    useHealthStore.getState().applySyncResult(emptyFoldState(), 42);
+    useHealthStore.getState().setConnectionStatus('syncing', 'stuck');
+    useHealthStore.getState().resetAll();
+    const s = useHealthStore.getState();
+    expect(s.ringDeviceId).toBeNull();
+    expect(s.dataset).toBeNull();
+    expect(s.syncCursor).toBe(0);
+    expect(s.connectionStatus).toBe('disconnected');
+    expect(s.syncError).toBeNull();
+    expect(s.units).toBe('metric');
+    expect(s.activityGoalCal).toBe(500);
   });
 });
 

@@ -28,6 +28,15 @@ let stopRequest: { errorMessage: string | null } | null = null;
 let draining = false;
 let idle: Promise<void> = Promise.resolve();
 let markIdle: (() => void) | null = null;
+// Stall watchdog: every ring frame and stage change counts as activity. The
+// longest silent stretch by design is connect with name re-discovery (~80s).
+const STALL_LIMIT_MS = 120_000;
+const STALL_CHECK_MS = 5_000;
+const STALL_MESSAGE =
+  'Ring stopped responding — no data for 2 minutes. Keep the ring nearby and try again';
+let lastActivityAt = 0;
+let watchdog: ReturnType<typeof setInterval> | null = null;
+let unsubscribeActivity: (() => void) | null = null;
 // Circuit breaker: an AUTO-triggered deep resync runs at most once per app
 // session — if the rebuild cannot complete (or the gap persists), later
 // syncs stay incremental instead of re-entering a rebuild loop (observed
@@ -66,6 +75,10 @@ const SLEEP_EVENT_TAGS = new Set([
 
 class SyncStopped extends Error {}
 
+function noteActivity(): void {
+  lastActivityAt = Date.now();
+}
+
 function beginRun(transport: BleTransport): void {
   syncing = true;
   activeTransport = transport;
@@ -73,9 +86,23 @@ function beginRun(transport: BleTransport): void {
   idle = new Promise((resolve) => {
     markIdle = resolve;
   });
+  noteActivity();
+  unsubscribeActivity = transport.subscribe(noteActivity);
+  watchdog = setInterval(() => {
+    if (Date.now() - lastActivityAt < STALL_LIMIT_MS) return;
+    if (stopRequest) {
+      void activeTransport?.disconnect();
+      return;
+    }
+    requestStop(STALL_MESSAGE, { force: true });
+  }, STALL_CHECK_MS);
 }
 
 function endRun(): void {
+  if (watchdog) clearInterval(watchdog);
+  watchdog = null;
+  unsubscribeActivity?.();
+  unsubscribeActivity = null;
   syncing = false;
   activeTransport = null;
   stopRequest = null;
@@ -88,14 +115,15 @@ function throwIfStopped(): void {
   if (stopRequest) throw new SyncStopped();
 }
 
-function requestStop(errorMessage: string | null): void {
+function requestStop(errorMessage: string | null, options?: { force?: boolean }): void {
   if (!syncing || stopRequest) return;
   stopRequest = { errorMessage };
   console.log(`[sync] stop requested${errorMessage ? `: ${errorMessage}` : ''}`);
   liveStop?.();
   // Mid-drain the walk ends at its next batch boundary (≤15s) and keeps what it
-  // drained; anywhere else, dropping the link fails the pending BLE op at once.
-  if (draining) return;
+  // drained; anywhere else (or when forced), dropping the link fails the
+  // pending BLE op at once.
+  if (draining && !options?.force) return;
   const transport = activeTransport;
   const deviceId = useHealthStore.getState().ringDeviceId;
   if (deviceId) void transport?.cancelPending(deviceId);
@@ -233,8 +261,10 @@ export async function syncRing(options?: SyncOptions): Promise<void> {
     throwIfStopped();
 
     console.log('[sync] connecting');
+    noteActivity();
     await connectWithRediscovery(transport);
     throwIfStopped();
+    noteActivity();
     store().setConnectionStatus('connected');
     const tConnected = Date.now();
 

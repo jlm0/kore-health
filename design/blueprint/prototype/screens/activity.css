@@ -1,0 +1,41 @@
+.activity-hero__top {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-6);
+}
+
+.activity-hero__ring {
+  --score: 21;
+}
+
+.activity-hero__body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--app-space-1);
+}
+
+.activity .activity-hero__goal {
+  --value: 0.202;
+  margin-top: var(--app-space-2);
+}
+
+.activity-hero__stats {
+  padding-top: var(--app-space-4);
+  border-top: 1px solid var(--app-color-border-strong);
+}
+
+.activity .activity-movement__range {
+  margin-top: var(--app-space-2);
+}
+
+.activity[data-blueprint-state="populated"] .activity-header--empty,
+.activity[data-blueprint-state="populated"] .k-empty,
+.activity[data-blueprint-state="empty"] .activity-header--populated,
+.activity[data-blueprint-state="empty"] .activity-hero,
+.activity[data-blueprint-state="empty"] .activity-movement,
+.activity[data-blueprint-state="empty"] .activity-inactive,
+.activity[data-blueprint-state="empty"] .activity-week {
+  display: none;
+}

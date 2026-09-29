@@ -1,0 +1,33 @@
+[data-blueprint-primitive="stat-block"] {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  color: var(--app-color-foreground);
+}
+
+.stat-block__value {
+  font-size: 22px;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.stat-block__label {
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+}
+
+[data-blueprint-primitive="stat-block"] small small,
+[data-blueprint-primitive="stat-block"] b b {
+  font: inherit;
+}
+
+[data-blueprint-primitive="stat-block"][data-blueprint-variant="center"] {
+  align-items: center;
+}
+
+[data-blueprint-primitive="stat-block"][data-blueprint-variant="center"] .stat-block__value {
+  font-size: 20px;
+}

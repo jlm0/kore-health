@@ -1,0 +1,32 @@
+[data-blueprint-primitive="tooltip"] {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  margin: var(--app-space-2) 0;
+  padding: var(--app-space-1) var(--app-space-2);
+  border-radius: var(--app-radius-md);
+  color: var(--app-color-background);
+  background: var(--app-color-foreground);
+  box-shadow: var(--app-shadow-md);
+  font: var(--app-type-label);
+  white-space: nowrap;
+}
+
+[data-blueprint-primitive="tooltip"]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+[data-blueprint-primitive="tooltip"][data-blueprint-state="top"]::after {
+  bottom: -4px;
+}
+
+[data-blueprint-primitive="tooltip"][data-blueprint-state="bottom"]::after {
+  top: -4px;
+}

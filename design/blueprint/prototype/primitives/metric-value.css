@@ -1,0 +1,44 @@
+[data-blueprint-primitive="metric-value"] {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--app-color-foreground);
+}
+
+.metric-value__value {
+  font: var(--app-type-figure);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.metric-value__unit {
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+}
+
+.metric-value__unit:empty {
+  display: none;
+}
+
+[data-blueprint-primitive="metric-value"][data-blueprint-variant="compact"] .metric-value__value {
+  font-size: 26px;
+}
+
+[data-blueprint-primitive="metric-value"][data-blueprint-variant="hero"] {
+  gap: 6px;
+}
+
+[data-blueprint-primitive="metric-value"][data-blueprint-variant="hero"] .metric-value__value {
+  font-size: 48px;
+  font-weight: 300;
+  line-height: 1.1;
+}
+
+[data-blueprint-primitive="metric-value"][data-blueprint-variant="hero"] .metric-value__unit {
+  font: var(--app-type-body);
+}
+
+.metric-value__unit small,
+.metric-value__value b {
+  font: inherit;
+}

@@ -27,7 +27,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scalePoints, type ChartPoint } from '../charts/buildPath';
 import { haptics } from '../haptics';
-import { fontFamily, palette, surfaces } from '../tokens';
+import { fontFamily, palette, surfaces, type } from '../tokens';
 
 // --- range morph -------------------------------------------------------------
 // When the data series changes (day ↔ week ↔ month, or a fresh sync), the line
@@ -334,7 +334,7 @@ export function Sparkline({
           </Canvas>
         )}
         {scrubPoint && scrub != null && (
-          <View pointerEvents="none" style={[styles.tooltip, { left: tooltipLeft, top: -36 }]}>
+          <View pointerEvents="none" style={[styles.tooltip, { left: tooltipLeft, top: -40 }]}>
             <Text style={styles.tooltipValue}>
               {formatValue ? formatValue(stableData[scrub]) : String(stableData[scrub])}
             </Text>
@@ -374,11 +374,10 @@ const styles = StyleSheet.create({
   xRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 6,
+    marginTop: 8,
   },
   axisLabel: {
-    fontSize: 8,
-    fontFamily: fontFamily.regular,
+    ...type.micro,
     color: palette.faint,
   },
   yMax: {
@@ -405,12 +404,12 @@ const styles = StyleSheet.create({
     transform: [{ translateX: '-50%' }],
   },
   tooltipValue: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: fontFamily.medium,
     color: palette.ink,
   },
   tooltipLabel: {
-    fontSize: 8,
+    fontSize: 11,
     fontFamily: fontFamily.regular,
     color: palette.faint,
   },

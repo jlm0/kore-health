@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "1.0.0",
+  "project": {
+    "id": "kore-health",
+    "name": "Kore Health",
+    "description": "Kore Health — a ring-wearable health companion (Expo / React Native, Oura ring over BLE). French Porcelain base, Umbra ink, and brand-filled summary cards (sage, Penna, periwinkle, Hudson) tiled with tight 6pt gutters; white cards hold charts and lists. Summary first on home; charts and ranges are disclosed on each detail screen.",
+    "owner": "app-owned",
+    "sourceRoot": "/Users/jordy/Documents/GitHub/kore-health/design/blueprint"
+  },
+  "defaultBoardId": "primitives",
+  "boards": [
+    {
+      "id": "primitives",
+      "kind": "primitives",
+      "name": "Primitives",
+      "description": "@kore/ui design system: brand palette tokens (French Porcelain, Hudson, Penna, Country Rubble, Farmer's Market, Umbra), sentence-case type with an 11pt floor, flat brand-filled and white cards, and the governed primitives screens compose."
+    },
+    {
+      "id": "screens",
+      "kind": "screens",
+      "name": "Screens",
+      "description": "The Kore user journey on one page. Each row is one route, read top to bottom in the order a person meets it (home, pairing, score details, trends, metric details, debug); columns read left to right as that route's states, from first run to fully populated."
+    }
+  ],
+  "framePresets": [
+    {
+      "id": "phone",
+      "name": "Phone",
+      "type": "mobile",
+      "width": 393,
+      "height": 852,
+      "safeArea": {
+        "top": 59,
+        "right": 0,
+        "bottom": 34,
+        "left": 0
+      }
+    },
+    {
+      "id": "phone-full",
+      "name": "Phone Full Scroll",
+      "type": "mobile",
+      "width": 393,
+      "height": 1180,
+      "safeArea": {
+        "top": 59,
+        "right": 0,
+        "bottom": 34,
+        "left": 0
+      }
+    },
+    {
+      "id": "phone-long",
+      "name": "Phone Long Scroll",
+      "type": "mobile",
+      "width": 393,
+      "height": 1640,
+      "safeArea": {
+        "top": 59,
+        "right": 0,
+        "bottom": 34,
+        "left": 0
+      }
+    }
+  ],
+  "prototypeHost": {
+    "assetRoots": [
+      "prototype/assets"
+    ],
+    "network": "deny",
+    "scripts": "none"
+  }
+}

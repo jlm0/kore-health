@@ -1,0 +1,35 @@
+.trends-group {
+  margin: var(--app-space-4) 0 var(--app-space-1);
+  padding: 0 var(--app-space-3);
+  color: var(--app-color-muted);
+  font: var(--app-type-label);
+}
+
+.trends-populated:first-of-type .trends-group {
+  margin-top: 0;
+}
+
+.trends-card > .k-caption {
+  margin-top: 0;
+}
+
+.trends-heat__grid {
+  --heat-1: 0.08;
+  --heat-2: 0.875;
+  --heat-3: 0.916;
+  --heat-4: 0.916;
+  --heat-5: 1;
+  --heat-6: 0.875;
+  --heat-7: 0.875;
+}
+
+.trends[data-blueprint-state="populated"] .k-empty,
+.trends[data-blueprint-state="populated"] .trends-header--empty,
+.trends[data-blueprint-state="empty"] .trends-header--populated,
+.trends[data-blueprint-state="empty"] .trends-populated {
+  display: none;
+}
+
+.trends-header {
+  display: contents;
+}

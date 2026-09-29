@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, type TextStyle, View, type ViewStyle } from 'react-native';
-import { fontFamily, fontSize, letterSpacing, palette } from '../tokens';
+import { fontFamily, letterSpacing, palette, surfaces, type, type TypeRole } from '../tokens';
 
 interface LabelProps {
   children: string;
@@ -9,20 +9,23 @@ interface LabelProps {
   color?: string;
   weight?: keyof typeof fontFamily;
   align?: TextStyle['textAlign'];
+  numberOfLines?: number;
   style?: TextStyle;
 }
 
 export function Label({
   children,
-  size = fontSize.label,
-  em = 0.18,
+  size = type.label.fontSize,
+  em = 0,
   color = palette.muted,
-  weight = 'semiBold',
+  weight = 'medium',
   align,
+  numberOfLines,
   style,
 }: LabelProps) {
   return (
     <Text
+      numberOfLines={numberOfLines}
       style={[
         {
           fontSize: size,
@@ -33,7 +36,38 @@ export function Label({
         },
         style,
       ]}>
-      {children.toUpperCase()}
+      {children}
+    </Text>
+  );
+}
+
+interface TextRoleProps {
+  role: TypeRole;
+  children: React.ReactNode;
+  color?: string;
+  align?: TextStyle['textAlign'];
+  numberOfLines?: number;
+  style?: TextStyle;
+}
+
+const ROLE_COLOR: Record<TypeRole, string> = {
+  heroFigure: palette.ink,
+  display: palette.ink,
+  title: palette.ink,
+  figure: palette.ink,
+  heading: palette.ink,
+  body: palette.slate,
+  label: palette.muted,
+  caption: palette.muted,
+  micro: palette.faint,
+};
+
+export function Txt({ role, children, color, align, numberOfLines, style }: TextRoleProps) {
+  return (
+    <Text
+      numberOfLines={numberOfLines}
+      style={[type[role], { color: color ?? ROLE_COLOR[role], textAlign: align }, style]}>
+      {children}
     </Text>
   );
 }
@@ -46,28 +80,40 @@ interface MetricValueProps {
   color?: string;
   unitColor?: string;
   weight?: keyof typeof fontFamily;
+  variant?: 'default' | 'compact' | 'hero';
   style?: ViewStyle;
 }
+
+const METRIC_SIZE = { default: 32, compact: 26, hero: 48 } as const;
 
 export function MetricValue({
   value,
   unit,
-  size = fontSize.value,
-  unitSize = 10,
+  size,
+  unitSize,
   color = palette.ink,
   unitColor = palette.muted,
-  weight = 'displayLight',
+  weight = 'light',
+  variant = 'default',
   style,
 }: MetricValueProps) {
+  const s = size ?? METRIC_SIZE[variant];
+  const u = unitSize ?? (variant === 'hero' ? type.body.fontSize : type.caption.fontSize);
   return (
-    <View style={[styles.valueRow, style]}>
-      <Text style={{ fontSize: size, fontFamily: fontFamily[weight], color, lineHeight: size * 1.25 }}>
+    <View style={[styles.valueRow, { gap: variant === 'hero' ? 6 : 4 }, style]}>
+      <Text
+        style={{
+          fontSize: s,
+          fontFamily: fontFamily[weight],
+          color,
+          lineHeight: s * 1.15,
+          letterSpacing: -0.02 * s,
+          fontVariant: ['tabular-nums'],
+        }}>
         {value}
       </Text>
       {unit != null && (
-        <Text style={{ fontSize: unitSize, fontFamily: fontFamily.regular, color: unitColor }}>
-          {unit}
-        </Text>
+        <Text style={{ fontSize: u, fontFamily: fontFamily.regular, color: unitColor }}>{unit}</Text>
       )}
     </View>
   );
@@ -81,29 +127,60 @@ interface StatBlockProps {
   style?: ViewStyle;
 }
 
-export function StatBlock({ value, label, size = fontSize.statMd, align = 'flex-start', style }: StatBlockProps) {
+export function StatBlock({ value, label, size = 22, align = 'flex-start', style }: StatBlockProps) {
   return (
     <View style={[{ alignItems: align, gap: 2 }, style]}>
       <Text
         style={{
           fontSize: size,
-          fontFamily: fontFamily.displayLight,
+          fontFamily: fontFamily.light,
           color: palette.ink,
-          lineHeight: size * 1.25,
+          lineHeight: size * 1.2,
+          letterSpacing: -0.02 * size,
+          fontVariant: ['tabular-nums'],
         }}>
         {value}
       </Text>
-      <Label size={8} em={0.16} color={palette.faint} style={{ marginTop: -2 }}>
+      <Text style={[type.caption, { color: palette.muted, textAlign: align === 'center' ? 'center' : 'left' }]}>
         {label}
-      </Label>
+      </Text>
     </View>
   );
+}
+
+/** Horizontal row of equal-width stats under a hairline. */
+export function StatRow({ children, divided = true }: { children: React.ReactNode; divided?: boolean }) {
+  return (
+    <View style={[styles.statRow, divided && styles.divided]}>
+      {React.Children.map(children, (child) => (child == null ? null : <View style={styles.statCell}>{child}</View>))}
+    </View>
+  );
+}
+
+export function Hairline({ style }: { style?: ViewStyle }) {
+  return <View style={[styles.hairline, style]} />;
 }
 
 const styles = StyleSheet.create({
   valueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 4,
+  },
+  statRow: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  statCell: {
+    flex: 1,
+    minWidth: 0,
+  },
+  divided: {
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: surfaces.hairline,
+  },
+  hairline: {
+    height: 1,
+    backgroundColor: surfaces.hairline,
   },
 });

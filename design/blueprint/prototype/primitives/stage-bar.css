@@ -1,0 +1,16 @@
+[data-blueprint-primitive="stage-bar"] {
+  display: flex;
+  height: 10px;
+  gap: 2px;
+}
+
+.stage-bar__seg {
+  display: block;
+  min-width: 0;
+  border-radius: var(--app-radius-full);
+}
+
+.stage-bar__seg--deep { flex: var(--stage-deep, 78) 1 0; background: var(--app-hue-stage-deep); }
+.stage-bar__seg--rem { flex: var(--stage-rem, 96) 1 0; background: var(--app-hue-stage-rem); }
+.stage-bar__seg--light { flex: var(--stage-light, 180) 1 0; background: var(--app-hue-stage-light); }
+.stage-bar__seg--awake { flex: var(--stage-awake, 30) 1 0; background: var(--app-hue-stage-awake); }

@@ -1,0 +1,129 @@
+.sleep-summary__top {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-6);
+}
+
+.sleep-summary__ring {
+  --score: 87;
+}
+
+.sleep-summary__body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--app-space-1);
+}
+
+.sleep-summary__duration {
+  margin: 0;
+  color: var(--app-color-foreground);
+  font-size: 40px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.sleep-summary__duration small {
+  margin-left: 1px;
+  color: var(--app-color-muted);
+  font: var(--app-type-body);
+}
+
+.sleep-summary__stats {
+  padding-top: var(--app-space-4);
+  border-top: 1px solid var(--app-color-border-strong);
+}
+
+.sleep-breakdown__bar {
+  --stage-deep: 87;
+  --stage-rem: 51;
+  --stage-light: 243;
+  --stage-awake: 63;
+}
+
+.sleep-breakdown__legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--app-space-4) var(--app-space-6);
+  margin: 0;
+}
+
+.sleep-breakdown__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-1);
+}
+
+.sleep-breakdown__item dt {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.sleep-breakdown__item dd {
+  display: flex;
+  margin: 0;
+  align-items: baseline;
+  gap: var(--app-space-2);
+}
+
+.sleep-breakdown__item dd b {
+  color: var(--app-color-foreground);
+  font-size: 20px;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.sleep-breakdown__item dd small {
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+}
+
+.sleep-legend__dot--deep { background: var(--app-hue-stage-deep); }
+.sleep-legend__dot--rem { background: var(--app-hue-stage-rem); }
+.sleep-legend__dot--light { background: var(--app-hue-stage-light); }
+.sleep-legend__dot--awake { background: var(--app-hue-stage-awake); }
+
+.sleep-vital .sparkline__dot {
+  r: 1.6px;
+}
+
+.sleep-stages__chart {
+  display: flex;
+  gap: var(--app-space-3);
+}
+
+.sleep-stages__rows {
+  display: flex;
+  height: 104px;
+  box-sizing: border-box;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.sleep-stages__plot {
+  min-width: 0;
+  flex: 1;
+}
+
+.sleep-stages__times {
+  display: flex;
+  margin-top: var(--app-space-2);
+  justify-content: space-between;
+  color: var(--app-color-faint);
+  font: var(--app-type-micro);
+}
+
+.sleep[data-blueprint-state="populated"] .sleep-header--empty,
+.sleep[data-blueprint-state="populated"] .k-empty,
+.sleep[data-blueprint-state="empty"] .sleep-header--populated,
+.sleep[data-blueprint-state="empty"] .sleep-summary,
+.sleep[data-blueprint-state="empty"] .sleep-breakdown,
+.sleep[data-blueprint-state="empty"] .sleep-stages,
+.sleep[data-blueprint-state="empty"] .sleep-vitals {
+  display: none;
+}

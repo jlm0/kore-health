@@ -1,0 +1,54 @@
+[data-blueprint-primitive="label"] {
+  display: inline-block;
+  color: var(--app-color-muted);
+  font: var(--app-type-label);
+  letter-spacing: var(--app-tracking-label);
+  white-space: nowrap;
+}
+
+[data-blueprint-primitive="label"] * {
+  font-style: normal;
+}
+
+[data-blueprint-primitive="label"][data-blueprint-variant="wide"] {
+  color: var(--app-color-foreground);
+  letter-spacing: var(--app-tracking-label-wide);
+}
+
+[data-blueprint-primitive="label"][data-blueprint-variant="sub"],
+[data-blueprint-primitive="label"][data-blueprint-variant="date"] {
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+  letter-spacing: var(--app-tracking-label-status);
+}
+
+[data-blueprint-primitive="label"][data-blueprint-variant="status"],
+[data-blueprint-primitive="label"][data-blueprint-variant="stat"] {
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+  letter-spacing: var(--app-tracking-label-status);
+}
+
+[data-blueprint-primitive="label"][data-blueprint-variant="score-sm"] {
+  font: var(--app-type-caption);
+}
+
+[data-blueprint-primitive="label"][data-blueprint-variant="row"] {
+  color: var(--app-color-slate);
+  font: var(--app-type-caption);
+  letter-spacing: var(--app-tracking-label-tight);
+}
+
+[data-blueprint-primitive="label"][data-blueprint-variant="axis"],
+[data-blueprint-primitive="label"][data-blueprint-variant="day"],
+[data-blueprint-primitive="label"][data-blueprint-variant="tiny"] {
+  color: var(--app-color-faint);
+  font: var(--app-type-micro);
+  letter-spacing: var(--app-tracking-label-tight);
+}
+
+[data-blueprint-primitive="label"][data-blueprint-variant="note"] {
+  color: var(--app-color-faint);
+  font: var(--app-type-caption);
+  white-space: normal;
+}

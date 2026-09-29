@@ -6,14 +6,18 @@ import {
   Pill,
   Screen,
   ScreenHeader,
+  Txt,
   fontFamily,
   haptics,
   palette,
   spacing,
+  surfaces,
+  type,
 } from '@kore/ui';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, Pressable, Text, View } from 'react-native';
+import { JourneyStep } from '@/components/JourneyStep';
 import { waitForBluetoothReady, withTimeout, describeBleError, isPairingInfoRemoved } from '@/ring/bluetooth';
 import { OuraRingClient } from '@/ring/client';
 import { CONNECT_TIMEOUT_MS, FEATURE, FEATURE_MODE, SCAN_TIMEOUT_MS } from '@/ring/constants';
@@ -22,6 +26,22 @@ import { BleTransport, type DiscoveredRing } from '@/ring/transport';
 import { useHealthStore } from '@/store/health';
 
 type ScanPhase = 'checking' | 'scanning' | 'results' | 'error';
+
+// Guided prep before discovery: a ring still bonded to the Oura app or to
+// iOS must be released first, and a ring on its charger stays awake to scan.
+type PrepStep = 'oura' | 'remove' | 'charger';
+
+async function openBluetoothSettings(): Promise<void> {
+  try {
+    if (Platform.OS === 'android') {
+      await Linking.sendIntent('android.settings.BLUETOOTH_SETTINGS');
+      return;
+    }
+    await Linking.openURL('App-Prefs:Bluetooth');
+  } catch {
+    await Linking.openSettings();
+  }
+}
 
 // Last successful ring-info read, cached in component state only — it is
 // display-only, so it deliberately stays out of the persisted store.
@@ -68,6 +88,11 @@ export default function PairScreen() {
   const [showOthers, setShowOthers] = useState(false);
 
   const paired = ringDeviceId != null && ringAuthKey != null;
+
+  const [prepHistory, setPrepHistory] = useState<PrepStep[]>(() => (paired ? [] : ['oura']));
+  const prepStep = prepHistory.length > 0 ? prepHistory[prepHistory.length - 1] : null;
+  const prepActiveRef = useRef(prepStep != null);
+  prepActiveRef.current = prepStep != null;
 
   const transportRef = useRef<BleTransport | null>(null);
   const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -130,7 +155,7 @@ export default function PairScreen() {
     // Only auto-scan when there's nothing paired — a paired screen is about
     // YOUR ring, not an invitation to re-pair it. (Forgetting flips paired →
     // false and re-runs this, dropping straight into discovery.)
-    if (!paired) void startScan();
+    if (!paired && !prepActiveRef.current) void startScan();
     return () => {
       mountedRef.current = false;
       if (scanTimerRef.current) clearTimeout(scanTimerRef.current);
@@ -408,9 +433,68 @@ export default function PairScreen() {
     }
   }, [busy, infoBusy, paired, ringDeviceId, stopScan]);
 
+  const goToPrep = (next: PrepStep) => setPrepHistory((h) => [...h, next]);
+  const onBack = () => {
+    if (prepHistory.length > 1) {
+      setPrepHistory((h) => h.slice(0, -1));
+      return;
+    }
+    router.back();
+  };
+  const onFindRing = () => {
+    setPrepHistory([]);
+    void startScan();
+  };
+
+  if (prepStep != null) {
+    return (
+      <Screen aura="home" gap={spacing.gridGap}>
+        <ScreenHeader title="Pair your ring" left={<BackButton onPress={onBack} />} />
+        {prepStep === 'oura' ? (
+          <JourneyStep
+            step={1}
+            total={3}
+            tint="indigo"
+            art="stepOura"
+            title={{ lead: 'Has this ring been used with ', strong: 'the Oura app', tail: '?' }}
+            body="A ring set up in Oura is locked to that app, so it needs a reset before Kore can pair with it."
+            primary={{ label: 'Yes, it has', onPress: () => goToPrep('remove') }}
+            secondary={{ label: 'No, it’s new or already reset', onPress: () => goToPrep('charger') }}
+          />
+        ) : prepStep === 'remove' ? (
+          <JourneyStep
+            step={2}
+            total={3}
+            tint="lavender"
+            art="stepRemove"
+            title={{ lead: 'Free it from ', strong: 'Oura and your phone' }}
+            body="Do these once, then Kore takes it from here."
+            checklist={[
+              'Remove the ring in the Oura app',
+              'Forget it in Settings → Bluetooth',
+              'If it’s still locked, Kore can factory-reset it',
+            ]}
+            primary={{ label: 'Done, continue', onPress: () => goToPrep('charger') }}
+            secondary={{ label: 'Open Bluetooth settings', onPress: () => void openBluetoothSettings() }}
+          />
+        ) : (
+          <JourneyStep
+            step={3}
+            total={3}
+            tint="peach"
+            art="stepCharger"
+            title={{ lead: 'Place your ring ', strong: 'on its charger' }}
+            body="Charging keeps the ring awake so Kore can find it fast. Keep your phone close."
+            primary={{ label: 'Find my ring', onPress: onFindRing }}
+          />
+        )}
+      </Screen>
+    );
+  }
+
   return (
     <Screen aura="home" gap={spacing.gridGap}>
-      <ScreenHeader title="Pair your ring" left={<BackButton onPress={() => router.back()} />} />
+      <ScreenHeader title="Pair your ring" left={<BackButton onPress={onBack} />} />
 
       <Pressable
         onPress={() => {
@@ -418,23 +502,19 @@ export default function PairScreen() {
           router.push('/ring-debug');
         }}
         hitSlop={10}
-        style={{ alignSelf: 'flex-start', paddingVertical: 9, marginVertical: -9 }}>
-        <Label size={8} em={0.14} color={palette.faint}>
-          Having trouble? Open the debug console →
-        </Label>
+        style={{ alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 9, marginVertical: -9 }}>
+        <Txt role="caption">Having trouble? Open the debug console →</Txt>
       </Pressable>
 
       {paired ? (
-        <GlassCard radius={24} padding={16} tint="mint" contentStyle={{ gap: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <GlassCard radius={28} padding={20} tint="mint" contentStyle={{ gap: 14 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
             <IconBadge name="bluetooth-connect" tint="mint" size={36} />
             <View style={{ flex: 1, gap: 3 }}>
-              <Label size={9} em={0.18}>Your ring</Label>
-              <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.slate }}>
-                {shortId(ringDeviceId)}
-              </Text>
+              <Label>Your ring</Label>
+              <Txt role="body">{shortId(ringDeviceId)}</Txt>
             </View>
-            <Pill variant="mint" em={0.16}>Paired</Pill>
+            <Pill variant="mint" style={{ alignSelf: 'center' }}>Paired</Pill>
           </View>
           {ringInfo ? (
             <View style={{ gap: 4 }}>
@@ -457,13 +537,10 @@ export default function PairScreen() {
                 <View
                   key={label}
                   style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
-                  <Text
-                    style={{ fontSize: 12, fontFamily: fontFamily.regular, color: palette.muted }}>
-                    {label}
-                  </Text>
+                  <Txt role="caption">{label}</Txt>
                   <Text
                     style={{
-                      fontSize: 12,
+                      ...type.caption,
                       fontFamily: fontFamily.semiBold,
                       color: palette.ink,
                       flexShrink: 1,
@@ -476,23 +553,15 @@ export default function PairScreen() {
             </View>
           ) : null}
           {infoError ? (
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: fontFamily.regular,
-                color: palette.peach.deep,
-                lineHeight: 18,
-              }}>
+            <Txt role="caption" color={palette.destructive}>
               {infoError}
-            </Text>
+            </Txt>
           ) : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Pill
               variant="indigo"
-              em={0.16}
               onPress={() => void onReadInfo()}
-              disabled={busy || infoBusy}
-              style={busy || infoBusy ? { opacity: 0.5 } : undefined}>
+              disabled={busy || infoBusy}>
               {infoBusy
                 ? (infoStep ?? 'Reading…')
                 : ringInfo
@@ -508,7 +577,7 @@ export default function PairScreen() {
             }}
             hitSlop={10}
             style={{ alignSelf: 'flex-start', paddingVertical: 9, marginVertical: -9 }}>
-            <Text style={{ fontSize: 12, fontFamily: fontFamily.semiBold, color: palette.peach.deep }}>
+            <Text style={[type.caption, { fontFamily: fontFamily.semiBold, color: palette.destructive }]}>
               Forget this ring
             </Text>
           </Pressable>
@@ -524,53 +593,35 @@ export default function PairScreen() {
           }}
           hitSlop={10}
           style={{ alignSelf: 'center', paddingVertical: 9, marginVertical: -9 }}>
-          <Label size={8} em={0.14} color={palette.faint}>
-            Pair a different ring →
-          </Label>
+          <Txt role="caption">Pair a different ring →</Txt>
         </Pressable>
       ) : null}
 
       {!paired || showOthers ? (
-      <GlassCard radius={24} padding={16} contentStyle={{ gap: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Label size={9} em={0.18}>Nearby rings</Label>
+      <GlassCard radius={28} padding={16} contentStyle={{ gap: 14 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 }}>
+          <Label color={palette.ink}>Nearby rings</Label>
           {phase === 'checking' || phase === 'scanning' ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <ActivityIndicator size="small" color={palette.mint.deep} />
-              <Label size={8} em={0.14} color={palette.faint}>
-                {phase === 'checking' ? 'Preparing Bluetooth…' : 'Scanning…'}
-              </Label>
+              <Txt role="caption">{phase === 'checking' ? 'Preparing Bluetooth…' : 'Scanning…'}</Txt>
             </View>
           ) : null}
         </View>
 
         {phase === 'error' ? (
           <View style={{ alignItems: 'center', gap: 10, paddingVertical: 8 }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: fontFamily.regular,
-                color: palette.peach.deep,
-                textAlign: 'center',
-                lineHeight: 18,
-              }}>
+            <Txt role="body" align="center" color={palette.destructive}>
               {scanError}
-            </Text>
-            <Pill variant="mint" em={0.18} onPress={() => void startScan()}>Try again</Pill>
+            </Txt>
+            <Pill variant="mint" onPress={() => void startScan()}>Try again</Pill>
           </View>
         ) : rings.length === 0 && phase === 'results' ? (
           <View style={{ alignItems: 'center', gap: 10, paddingVertical: 8 }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: fontFamily.regular,
-                color: palette.slate,
-                textAlign: 'center',
-                lineHeight: 18,
-              }}>
-              No rings found — make sure the ring is nearby and awake
-            </Text>
-            <Pill variant="mint" em={0.18} onPress={() => void startScan()}>Rescan</Pill>
+            <Txt role="body" align="center">
+              No rings found — make sure the ring is on its charger and nearby
+            </Txt>
+            <Pill variant="mint" onPress={() => void startScan()}>Rescan</Pill>
           </View>
         ) : (
           <View style={{ gap: 8 }}>
@@ -588,28 +639,27 @@ export default function PairScreen() {
                   style={({ pressed }) => ({
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 12,
-                    borderRadius: 16,
-                    paddingHorizontal: 12,
-                    paddingVertical: 10,
-                    backgroundColor: 'rgba(255,255,255,0.55)',
+                    gap: 14,
+                    borderRadius: 20,
+                    paddingLeft: 12,
+                    paddingRight: 16,
+                    paddingVertical: 12,
+                    backgroundColor: surfaces.well,
                     opacity: busy && !isAttempt ? 0.4 : pressed ? 0.7 : 1,
                   })}>
                   <IconBadge name="ring" tint="indigo" size={32} />
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={{ fontSize: 14, fontFamily: fontFamily.semiBold, color: palette.ink }}>
+                  <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                    <Text numberOfLines={1} style={[type.body, { fontFamily: fontFamily.semiBold, color: palette.ink }]}>
                       {ring.name}
                     </Text>
-                    <Text style={{ fontSize: 11, fontFamily: fontFamily.regular, color: palette.muted }}>
-                      {shortId(ring.id)}
-                    </Text>
+                    <Txt role="caption">{shortId(ring.id)}</Txt>
                   </View>
                   {isAttempt && busy ? (
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <ActivityIndicator size="small" color={palette.indigo.deep} />
-                      <Text style={{ fontSize: 11, fontFamily: fontFamily.regular, color: palette.slate }}>
-                        {step}
-                      </Text>
+                      <Txt role="caption" color={palette.slate}>
+                        {step ?? ''}
+                      </Txt>
                     </View>
                   ) : (
                     <View style={{ alignItems: 'flex-end', gap: 3 }}>
@@ -627,28 +677,21 @@ export default function PairScreen() {
                           />
                         ))}
                       </View>
-                      <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.muted }}>
+                      <Txt role="micro" color={palette.muted}>
                         {ring.rssi != null ? `${s.label} · ${ring.rssi} dBm` : s.label}
-                      </Text>
+                      </Txt>
                     </View>
                   )}
                 </Pressable>
               );
             })}
             {phase === 'scanning' ? (
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontFamily: fontFamily.regular,
-                  color: palette.faint,
-                  textAlign: 'center',
-                }}>
+              <Txt role="caption" align="center">
                 Keep your ring close — results appear as they are found
-              </Text>
+              </Txt>
             ) : (
               <Pill
                 variant="neutral"
-                em={0.18}
                 onPress={() => void startScan()}
                 disabled={busy}
                 style={{ alignSelf: 'center' }}>
@@ -660,32 +703,17 @@ export default function PairScreen() {
 
         {pairError ? (
           <View style={{ alignItems: 'center', gap: 8 }}>
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: fontFamily.regular,
-                color: palette.peach.deep,
-                textAlign: 'center',
-                lineHeight: 18,
-              }}>
+            <Txt role="body" align="center" color={palette.destructive}>
               {pairError}
-            </Text>
+            </Txt>
             {pairError.includes('set_auth_key') ? (
               <>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontFamily: fontFamily.regular,
-                    color: palette.slate,
-                    textAlign: 'center',
-                    lineHeight: 18,
-                  }}>
+                <Txt role="body" align="center">
                   This ring already holds an auth key nobody knows. Factory-reset it to wipe the
                   key, then pair again.
-                </Text>
+                </Txt>
                 <Pill
                   variant="peach"
-                  em={0.18}
                   onPress={() => attempt && void onFactoryReset(attempt)}
                   disabled={resetBusy || !attempt}>
                   {resetBusy ? 'Resetting…' : 'Factory-reset ring'}
@@ -693,21 +721,13 @@ export default function PairScreen() {
               </>
             ) : null}
             {resetNote ? (
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontFamily: fontFamily.regular,
-                  color: palette.muted,
-                  textAlign: 'center',
-                  lineHeight: 16,
-                }}>
+              <Txt role="caption" align="center">
                 {resetNote}
-              </Text>
+              </Txt>
             ) : null}
             {attempt ? (
               <Pill
                 variant="mint"
-                em={0.18}
                 onPress={() => void onPick(attempt)}
                 disabled={busy || resetBusy}>
                 Retry pairing

@@ -1,0 +1,59 @@
+[data-blueprint-primitive="radio"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  color: var(--app-color-foreground);
+  font: var(--app-type-body);
+}
+
+.radio__box {
+  display: inline-flex;
+  width: var(--app-size-icon-sm);
+  height: var(--app-size-icon-sm);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid var(--app-color-border-strong);
+  border-radius: var(--app-radius-full);
+  background: var(--app-color-surface);
+  transition: border-color var(--app-motion-state);
+}
+
+.radio__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--app-radius-full);
+  background: var(--app-color-primary);
+  opacity: 0;
+  transition: opacity var(--app-motion-state);
+}
+
+[data-blueprint-primitive="radio"][data-blueprint-state="on"] .radio__box,
+[data-blueprint-primitive="radio"][data-blueprint-state="disabled-on"] .radio__box {
+  border-color: var(--app-color-primary);
+}
+
+[data-blueprint-primitive="radio"][data-blueprint-state="on"] .radio__dot,
+[data-blueprint-primitive="radio"][data-blueprint-state="disabled-on"] .radio__dot {
+  opacity: 1;
+}
+
+[data-blueprint-primitive="radio"][data-blueprint-state="focus"] .radio__box,
+[data-blueprint-primitive="radio"]:focus-visible .radio__box {
+  outline: 2px solid var(--app-color-focus-ring);
+  outline-offset: 2px;
+}
+
+[data-blueprint-primitive="radio"][data-blueprint-state="disabled"],
+[data-blueprint-primitive="radio"][data-blueprint-state="disabled-on"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radio__box,
+  .radio__dot {
+    transition: none;
+  }
+}

@@ -1,0 +1,100 @@
+[data-blueprint-primitive="select"] {
+  display: grid;
+  gap: var(--app-space-1);
+  color: var(--app-color-foreground);
+  font: var(--app-type-body);
+}
+
+.select__field {
+  display: flex;
+  min-height: var(--app-size-control-md);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-2);
+  box-sizing: border-box;
+  padding: 0 var(--app-space-3);
+  border: 1px solid var(--app-color-border-strong);
+  border-radius: var(--app-radius-md);
+  background: var(--app-color-surface);
+  transition:
+    border-color var(--app-motion-state),
+    box-shadow var(--app-motion-state);
+}
+
+.select__value {
+  display: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-blueprint-primitive="select"][data-blueprint-state="placeholder"] .select__value--placeholder {
+  display: inline;
+  color: var(--app-color-muted);
+}
+
+[data-blueprint-primitive="select"][data-blueprint-state="value"] .select__value--value,
+[data-blueprint-primitive="select"][data-blueprint-state="open"] .select__value--value,
+[data-blueprint-primitive="select"][data-blueprint-state="disabled"] .select__value--value {
+  display: inline;
+}
+
+.select__chevron {
+  width: var(--app-size-icon-sm);
+  height: var(--app-size-icon-sm);
+  flex: none;
+  color: var(--app-color-muted);
+  transition: transform var(--app-motion-state);
+}
+
+[data-blueprint-primitive="select"][data-blueprint-state="open"] .select__field {
+  border-color: var(--app-color-focus-ring);
+  box-shadow: 0 0 0 1px var(--app-color-focus-ring);
+}
+
+[data-blueprint-primitive="select"][data-blueprint-state="open"] .select__chevron {
+  transform: rotate(180deg);
+}
+
+.select__list {
+  display: none;
+  gap: 1px;
+  padding: var(--app-space-1);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-color-surface-raised);
+  box-shadow: var(--app-shadow-md);
+}
+
+[data-blueprint-primitive="select"][data-blueprint-state="open"] .select__list {
+  display: grid;
+}
+
+.select__option {
+  display: block;
+  padding: var(--app-space-2);
+  border-radius: var(--app-radius-sm);
+  color: var(--app-color-foreground);
+  font: var(--app-type-body);
+}
+
+.select__option--active,
+.select__option:hover {
+  background-image: linear-gradient(var(--app-color-hover), var(--app-color-hover));
+}
+
+.select__option--active {
+  font-weight: 500;
+}
+
+[data-blueprint-primitive="select"][data-blueprint-state="disabled"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .select__field,
+  .select__chevron {
+    transition: none;
+  }
+}

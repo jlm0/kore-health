@@ -313,8 +313,8 @@ export function fmtClock(ms: number): string {
 
 export function fmtDate(ms: number, withDay = false): string {
   const d = new Date(ms);
-  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-  const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const base = `${months[d.getMonth()]} ${d.getDate()}`;
-  return withDay ? `${days[d.getDay()]} · ${base}` : base;
+  return withDay ? `${days[d.getDay()]}, ${base}` : base;
 }

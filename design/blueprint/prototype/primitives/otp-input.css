@@ -1,0 +1,69 @@
+[data-blueprint-primitive="otp-input"] {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.otp-input__cell {
+  position: relative;
+  display: inline-flex;
+  width: var(--app-size-control-md);
+  height: var(--app-size-control-lg);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid var(--app-color-border-strong);
+  border-radius: var(--app-radius-md);
+  color: var(--app-color-foreground);
+  background: var(--app-color-surface);
+  font: var(--app-type-title);
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color var(--app-motion-state),
+    box-shadow var(--app-motion-state);
+}
+
+.otp-input__digit {
+  opacity: 0;
+}
+
+[data-blueprint-primitive="otp-input"][data-blueprint-state="filled"] .otp-input__digit,
+[data-blueprint-primitive="otp-input"][data-blueprint-state="focused"] .otp-input__cell:nth-child(-n + 2) .otp-input__digit {
+  opacity: 1;
+}
+
+[data-blueprint-primitive="otp-input"][data-blueprint-state="focused"] .otp-input__cell:nth-child(3) {
+  border-color: var(--app-color-focus-ring);
+  box-shadow: 0 0 0 1px var(--app-color-focus-ring);
+}
+
+[data-blueprint-primitive="otp-input"][data-blueprint-state="focused"] .otp-input__cell:nth-child(3)::after {
+  content: "";
+  position: absolute;
+  width: 1px;
+  height: var(--app-size-icon-md);
+  background: var(--app-color-foreground);
+  animation: bp-otp-caret 1.1s steps(1) infinite;
+}
+
+@keyframes bp-otp-caret {
+  0%,
+  54% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .otp-input__cell {
+    transition: none;
+  }
+
+  [data-blueprint-primitive="otp-input"][data-blueprint-state="focused"] .otp-input__cell:nth-child(3)::after {
+    animation: none;
+  }
+}

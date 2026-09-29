@@ -13,7 +13,7 @@ interface GlassCircleProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function GlassCircle({ size = 32, children, onPress, accessibilityLabel, style }: GlassCircleProps) {
+export function GlassCircle({ size = 36, children, onPress, accessibilityLabel, style }: GlassCircleProps) {
   const Wrapper = onPress ? Pressable : View;
   return (
     <Wrapper
@@ -37,7 +37,7 @@ export function GlassCircle({ size = 32, children, onPress, accessibilityLabel, 
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: 'rgba(255,255,255,0.55)',
+              backgroundColor: surfaces.circleFill,
               borderRadius: size / 2,
               borderWidth: 1,
               borderColor: surfaces.cardBorder,

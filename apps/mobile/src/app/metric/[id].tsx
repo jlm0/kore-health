@@ -3,6 +3,9 @@ import {
   BackButton,
   CardHeading,
   GlassCard,
+  HeaderMeta,
+  HeadingAvg,
+  HeadingStatus,
   Label,
   Pill,
   RangeSelector,
@@ -10,8 +13,12 @@ import {
   ScreenHeader,
   Sparkline,
   StatBlock,
+  StatRow,
+  Txt,
+  brandInk,
   fontFamily,
   palette,
+  surfaces,
 } from '@kore/ui';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
@@ -182,7 +189,8 @@ export default function MetricDetailScreen() {
     });
   };
 
-  const rgb = hexToRgb(metric.color);
+  const chartColor = brandInk[metric.tint];
+  const chartRgb = hexToRgb(chartColor);
   // Temp display conversion: the store stays in °C — absolute readings use
   // °F = °C×9/5+32, deviations the Δ rule (×9/5, no offset). Other metrics
   // pass through untouched. Temp keeps 1 decimal in both units/modes.
@@ -211,123 +219,99 @@ export default function MetricDetailScreen() {
       <ScreenHeader
         title={metric.title}
         left={<BackButton onPress={() => router.back()} />}
-        right={<Label size={10} em={0.14}>{fmtDate(Date.now())}</Label>}
+        right={<HeaderMeta>{fmtDate(Date.now())}</HeaderMeta>}
       />
 
       <Animated.View entering={FadeInDown.delay(40).duration(500)}>
-        <GlassCard radius={28} padding={20} tint={metric.tint} contentStyle={{ gap: 4 }}>
-          <CardHeading
-            icon={metric.icon}
-            tint={metric.tint}
-            right={
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <View
-                  style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: metric.color }}
-                />
-                <Label size={8} em={0.12} color={palette.faint}>
-                  {nightBacked ? 'Night' : 'Live'}
-                </Label>
-              </View>
-            }>
-            {nightBacked ? 'Latest' : 'Current'}
-          </CardHeading>
+        <GlassCard tint={metric.tint} contentStyle={{ gap: 4 }}>
+          <View style={{ marginBottom: 12 }}>
+            <CardHeading
+              icon={metric.icon}
+              tint={metric.tint}
+              right={<HeadingStatus label={nightBacked ? 'Night' : 'Live'} color={chartColor} />}>
+              {nightBacked ? 'Latest' : 'Current'}
+            </CardHeading>
+          </View>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
             {current != null ? (
               <AnimatedNumber
                 value={toDisplay(current)}
                 decimals={metric.decimals}
                 signed={tempAbsMode ? false : metric.signed}
-                size={44}
-                weight="displayLight"
+                size={48}
+                weight="light"
               />
             ) : (
-              <Text style={{ fontSize: 44, fontFamily: fontFamily.displayLight, color: palette.ink }}>
+              <Text style={{ fontSize: 48, fontFamily: fontFamily.light, color: palette.ink }}>
                 {(0).toFixed(metric.decimals)}
               </Text>
             )}
-            <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.muted }}>
+            <Txt role="body" color={palette.muted}>
               {displayUnit}
-            </Text>
+            </Txt>
           </View>
           {currentSample != null ? (
             // Time context is explicit, not implied: this value is the latest
             // measurement in the series — say when it was taken.
-            <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.faint }}>
+            <Txt role="micro" color={palette.muted}>
               {`${fmtDate(currentSample.t)} · ${fmtClock(currentSample.t)}`}
-            </Text>
+            </Txt>
           ) : null}
           {tempAbsMode ? (
-            <Text style={{ fontSize: 10, fontFamily: fontFamily.regular, color: palette.faint, lineHeight: 15 }}>
+            <Txt role="caption" style={{ marginTop: 4 }}>
               Absolute skin temperature — your personal baseline builds over the first nights,
               then this switches to deviation.
-            </Text>
+            </Txt>
           ) : null}
           {nightBacked && current == null ? (
             // A 0 here means "no overnight measurement yet" — say so, or the
             // 0 next to a daytime-HR chart below reads as broken.
-            <Text style={{ fontSize: 10, fontFamily: fontFamily.regular, color: palette.faint, lineHeight: 15 }}>
+            <Txt role="caption" style={{ marginTop: 4 }}>
               {maturity?.copy.unlock ??
                 'Measured during sleep — wear the ring tonight to get your first reading.'}
-            </Text>
+            </Txt>
           ) : null}
+          <View style={{ marginTop: 20, paddingTop: 24, borderTopWidth: 1, borderTopColor: surfaces.hairline }}>
+            {chartData.length >= 1 ? (
+              <Sparkline
+                data={chartData}
+                height={110}
+                color={chartColor}
+                strokeWidth={2}
+                dot="end"
+                fillGradient={[`rgba(${chartRgb},0.2)`, `rgba(${chartRgb},0)`]}
+                delay={250}
+                duration={1300}
+                interactive
+                xLabels={chartXLabels}
+                xValues={chartXValues}
+                formatValue={fmt}
+                yLabels={[fmt(Math.min(...chartData)), fmt(Math.max(...chartData))]}
+              />
+            ) : (
+              <Txt role="body">No samples in this range yet — sync your ring to fill this chart.</Txt>
+            )}
+          </View>
           <RangeSelector
             options={TIME_RANGE_OPTIONS}
             value={range}
             onChange={setRange}
-            style={{ marginTop: 12 }}
+            style={{ marginTop: 16 }}
           />
-          {chartData.length >= 1 ? (
-            <Sparkline
-              data={chartData}
-              height={110}
-              color={metric.color}
-              strokeWidth={2}
-              dot="end"
-              fillGradient={[`rgba(${rgb},0.22)`, `rgba(${rgb},0)`]}
-              delay={250}
-              duration={1300}
-              interactive
-              xLabels={chartXLabels}
-              xValues={chartXValues}
-              formatValue={fmt}
-              yLabels={[fmt(Math.min(...chartData)), fmt(Math.max(...chartData))]}
-              style={{ marginTop: 10 }}
-            />
-          ) : (
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: fontFamily.regular,
-                color: palette.slate,
-                lineHeight: 18,
-                marginTop: 10,
-              }}>
-              No samples in this range yet — sync your ring to fill this chart.
-            </Text>
-          )}
         </GlassCard>
       </Animated.View>
 
       {metric.seriesId === 'hr' ? (
         <Animated.View entering={FadeInDown.delay(80).duration(500)}>
-          <GlassCard radius={28} padding={20} tint={metric.tint} contentStyle={{ gap: 10 }}>
+          <GlassCard tint={metric.tint} contentStyle={{ gap: 16 }}>
             <CardHeading
               icon="heart"
               tint={metric.tint}
               right={
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <View
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: 3,
-                      backgroundColor: liveStreaming ? palette.mint.deep : palette.faint,
-                    }}
-                  />
-                  <Label size={8} em={0.12} color={palette.faint}>
-                    {liveStreaming ? 'Streaming' : liveConnecting ? 'Starting' : 'Idle'}
-                  </Label>
-                </View>
+                <HeadingStatus
+                  label={liveStreaming ? 'Streaming' : liveConnecting ? 'Starting' : 'Idle'}
+                  color={liveStreaming ? palette.success : palette.faint}
+                />
               }>
               Live heart rate
             </CardHeading>
@@ -335,53 +319,39 @@ export default function MetricDetailScreen() {
               <>
                 {liveHr.length > 0 ? (
                   <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-                    <AnimatedNumber value={liveBpm} size={44} weight="displayLight" />
-                    <Text
-                      style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.muted }}>
+                    <AnimatedNumber value={liveBpm} size={48} weight="light" />
+                    <Txt role="body" color={palette.muted}>
                       bpm
-                    </Text>
+                    </Txt>
                   </View>
                 ) : null}
                 {liveBeats.length >= 2 ? (
                   <Sparkline
                     data={liveBeats}
                     height={48}
-                    color={metric.color}
+                    color={chartColor}
                     strokeWidth={2}
                     dot="end"
-                    fillGradient={[`rgba(${rgb},0.22)`, `rgba(${rgb},0)`]}
+                    fillGradient={[`rgba(${chartRgb},0.2)`, `rgba(${chartRgb},0)`]}
                     duration={400}
                   />
                 ) : (
                   // No big 0 bpm here — 0 is a reading, not a placeholder.
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontFamily: fontFamily.regular,
-                      color: palette.faint,
-                      lineHeight: 16,
-                    }}>
+                  <Txt role="caption">
                     {liveConnecting
                       ? 'Connecting to your ring…'
                       : 'Waiting for the first beat — keep the ring snug on your finger.'}
-                  </Text>
+                  </Txt>
                 )}
               </>
             ) : (
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontFamily: fontFamily.regular,
-                  color: palette.slate,
-                  lineHeight: 18,
-                }}>
+              <Txt role="body">
                 Start a 60-second session to watch your heart rate beat by beat — keep the ring on
                 your finger.
-              </Text>
+              </Txt>
             )}
             <Pill
               variant={liveStreaming ? 'peach' : 'mint'}
-              em={0.16}
               onPress={onToggleLive}
               disabled={liveConnecting}
               style={{ alignSelf: 'flex-start' }}>
@@ -394,78 +364,46 @@ export default function MetricDetailScreen() {
                     : 'Start live (60 s)'}
             </Pill>
             {liveError != null && !liveSession ? (
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontFamily: fontFamily.regular,
-                  color: palette.peach.deep,
-                  lineHeight: 16,
-                }}>
+              <Txt role="caption" color={palette.destructive}>
                 {liveError}
-              </Text>
+              </Txt>
             ) : null}
           </GlassCard>
         </Animated.View>
       ) : null}
 
       <Animated.View entering={FadeInDown.delay(120).duration(500)}>
-        <GlassCard radius={28} padding={20} contentStyle={{ gap: 6 }}>
+        <GlassCard contentStyle={{ gap: 16 }}>
           <CardHeading
             icon="trending-up"
             tint={metric.tint}
-            right={
-              showTrend ? (
-                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-                  <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
-                    {fmt(stats.avg)}
-                  </Text>
-                  <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.muted }}>
-                    avg
-                  </Text>
-                </View>
-              ) : undefined
-            }>
-            30-Day Trend
+            right={showTrend ? <HeadingAvg value={fmt(stats.avg)} /> : undefined}>
+            30-day trend
           </CardHeading>
           {showTrend ? (
             <>
               <Sparkline data={daily} height={72} color={metric.color} delay={450} />
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
+              <StatRow>
                 <StatBlock value={fmt(stats.min)} label="Low" size={20} align="center" />
                 <StatBlock value={fmt(stats.avg)} label="Average" size={20} align="center" />
                 <StatBlock value={fmt(stats.max)} label="High" size={20} align="center" />
-              </View>
+              </StatRow>
             </>
           ) : (
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: fontFamily.regular,
-                color: palette.slate,
-                lineHeight: 18,
-                marginTop: 4,
-              }}>
+            <Txt role="body">
               {trend.trendReady
                 ? 'No daily trend yet — it builds up as you sync your ring over the coming days.'
                 : (trend.copy.unlock ?? trend.copy.none)}
-            </Text>
+            </Txt>
           )}
         </GlassCard>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(200).duration(500)}>
-        <GlassCard radius={26} padding={20} contentStyle={{ gap: 10 }}>
-          <Label size={9} em={0.18}>About</Label>
-          <Text
-            style={{
-              fontSize: 12,
-              fontFamily: fontFamily.regular,
-              color: palette.slate,
-              lineHeight: 19,
-            }}>
-            {metric.insight}
-          </Text>
-          <Pill variant="neutral" em={0.08}>{rangeLabel}</Pill>
+        <GlassCard radius={28} contentStyle={{ gap: 16 }}>
+          <Label>About</Label>
+          <Txt role="body">{metric.insight}</Txt>
+          <Pill variant="neutral">{rangeLabel}</Pill>
           {isTemp ? (
             <View
               style={{
@@ -474,13 +412,12 @@ export default function MetricDetailScreen() {
                 justifyContent: 'space-between',
                 marginTop: 4,
               }}>
-              <Label size={9} em={0.18}>Units</Label>
+              <Label>Units</Label>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {(['imperial', 'metric'] as Units[]).map((u) => (
                   <Pill
                     key={u}
                     variant={units === u ? 'ink' : 'neutral'}
-                    em={0.1}
                     onPress={() => setUnits(u)}
                     accessibilityLabel={`Show temperatures in ${tempUnit(u)}`}>
                     {tempUnit(u)}

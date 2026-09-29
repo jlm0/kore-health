@@ -3,7 +3,8 @@ import {
   BarChart,
   CardHeading,
   GlassCard,
-  IconBadge,
+  HeaderMeta,
+  HeadingAvg,
   Label,
   MetricValue,
   ProgressBar,
@@ -13,10 +14,12 @@ import {
   ScreenHeader,
   Sparkline,
   StatBlock,
+  StatRow,
+  Txt,
   fontFamily,
   gradients,
   palette,
-  surfaces,
+  progressGradients,
 } from '@kore/ui';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
@@ -73,7 +76,7 @@ export default function ActivityScreen() {
       <Screen aura="activity">
         <ScreenHeader title="Activity" left={<BackButton onPress={() => router.back()} />} />
         <EmptyDataCard
-          icon="fire"
+          art="activity"
           tint="peach"
           title="No activity yet"
           message={MATURITY_COPY.activity.empty}
@@ -103,109 +106,96 @@ export default function ActivityScreen() {
       <ScreenHeader
         title="Activity"
         left={<BackButton onPress={() => router.back()} />}
-        right={<Label size={10} em={0.14}>{fmtDate(today.dayStart)}</Label>}
+        right={<HeaderMeta>{fmtDate(today.dayStart)}</HeaderMeta>}
       />
 
       <Animated.View entering={FadeInDown.delay(40).duration(500)}>
-        <GlassCard radius={28} padding={22} tint="peach" contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 22 }}>
-          <IconBadge name="fire" tint="peach" style={{ position: 'absolute', top: 16, right: 16 }} />
-          <ScoreRing size={118} value={hasTodayActivity ? today.activityScore : 0} colors={gradients.activity} strokeWidth={8}>
-            <Text style={{ fontSize: 30, fontFamily: fontFamily.displayLight, color: hasTodayActivity ? palette.ink : palette.muted }}>
-              {hasTodayActivity ? today.activityScore : '0'}
-            </Text>
-            <Label size={8} em={0.18}>Score</Label>
-          </ScoreRing>
-          <View style={{ gap: 12 }}>
-            {/* Steps/KM are never measured (see computeActivity in scores.ts)
-                — a hardcoded 0, not an invented estimate. */}
-            <StatBlock value="0" label="Steps" />
-            <StatBlock
-              value={today.activity.activeCal > 0 ? String(today.activity.activeCal) : '0'}
-              label="Active Cal"
-            />
-            <StatBlock value="0" label="KM Equiv" />
+        <GlassCard tint="peach" contentStyle={{ gap: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 24 }}>
+            <ScoreRing size={118} value={hasTodayActivity ? today.activityScore : 0} colors={gradients.activity} strokeWidth={8}>
+              <Text style={{ fontSize: 30, fontFamily: fontFamily.light, color: hasTodayActivity ? palette.ink : palette.muted }}>
+                {hasTodayActivity ? today.activityScore : '0'}
+              </Text>
+              <Txt role="caption">Score</Txt>
+            </ScoreRing>
+            <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+              <Label>Active calories</Label>
+              <MetricValue
+                variant="hero"
+                value={today.activity.activeCal > 0 ? String(today.activity.activeCal) : '0'}
+                unit="cal"
+              />
+              {showGoal ? (
+                <>
+                  <Txt role="caption">
+                    {`${Math.round(goalPct * 100)}% of your ${today.activity.goalCal} cal goal`}
+                  </Txt>
+                  <ProgressBar
+                    progress={goalPct}
+                    colors={progressGradients.activity}
+                    delay={450}
+                    style={{ marginTop: 8 }}
+                  />
+                </>
+              ) : (
+                <Txt role="caption">{`Goal ${today.activity.goalCal} cal`}</Txt>
+              )}
+            </View>
           </View>
+          {/* Steps/distance are never measured (see computeActivity in
+              scores.ts) — a hardcoded 0, not an invented estimate. */}
+          <StatRow>
+            <StatBlock value="0" label="Steps" />
+            <StatBlock value="0 km" label="Distance" />
+          </StatRow>
         </GlassCard>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.delay(80).duration(500)}>
-        <GlassCard radius={28} padding={20}>
+        <GlassCard contentStyle={{ gap: 16 }}>
           <CardHeading icon="walk" tint="peach">Movement</CardHeading>
-          <RangeSelector
-            options={TIME_RANGE_OPTIONS}
-            value={range}
-            onChange={setRange}
-            style={{ marginTop: 12 }}
-          />
           <BarChart
             data={movement}
             height={70}
             colorFor={movementColor}
             delay={250}
             xLabels={rangeAxisLabels(range, anchorMs)}
-            style={{ marginTop: 12 }}
+          />
+          <RangeSelector
+            options={TIME_RANGE_OPTIONS}
+            value={range}
+            onChange={setRange}
+            style={{ marginTop: 8 }}
           />
         </GlassCard>
       </Animated.View>
 
-      <Animated.View
-        entering={FadeInDown.delay(160).duration(500)}
-        style={{ flexDirection: 'row', gap: 13 }}>
-        <GlassCard radius={24} padding={16} tint="mint" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
-          <CardHeading icon="target" tint="mint">Goal</CardHeading>
-          {showGoal ? (
-            <>
-              <MetricValue value={String(Math.round(goalPct * 100))} unit="%" />
-              <ProgressBar progress={goalPct} colors={gradients.activity} delay={450} style={{ marginTop: 8 }} />
-              <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.faint, marginTop: 2 }}>
-                {today.activity.activeCal} / {today.activity.goalCal} cal
-              </Text>
-            </>
-          ) : (
-            <MetricValue value="0" unit="%" />
-          )}
-        </GlassCard>
-        <GlassCard radius={24} padding={16} tint="lavender" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
-          <CardHeading icon="timer-sand" tint="lavender">Inactive</CardHeading>
-          <MetricValue
-            value={hasTodayActivity ? fmtHoursMinutes(today.activity.inactiveMin) : '0:00'}
-            unit="hrs"
-          />
-          {hasTodayActivity ? (
-            <ProgressBar
-              progress={today.activity.inactiveMin / 300}
-              colors={palette.ghost}
-              delay={520}
-              style={{ marginTop: 8 }}
+      <Animated.View entering={FadeInDown.delay(120).duration(500)}>
+        <GlassCard tint="lavender" contentStyle={{ gap: 16 }}>
+          <CardHeading icon="timer-sand" tint="lavender">Inactive time</CardHeading>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+            <MetricValue
+              value={hasTodayActivity ? fmtHoursMinutes(today.activity.inactiveMin) : '0:00'}
+              unit="hrs"
             />
-          ) : null}
-          <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.faint, marginTop: 2 }}>
-            alerts off
-          </Text>
+            <Txt role="caption">inactivity alerts off</Txt>
+          </View>
         </GlassCard>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(240).duration(500)}>
-        <GlassCard
-          radius={24}
-          padding={{ horizontal: 20, vertical: 16 }}
-          contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-          <Label size={9} em={0.18}>7 Days</Label>
-          <Sparkline
-            data={weekScores}
-            height={34}
-            color={palette.peach.mid}
-            delay={600}
-            style={{ flex: 1 }}
-          />
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-            <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
-              {weekAvg ?? '0'}
-            </Text>
-            <Text style={{ fontSize: 9, fontFamily: fontFamily.regular, color: palette.muted }}>
-              avg
-            </Text>
-          </View>
+      <Animated.View entering={FadeInDown.delay(160).duration(500)}>
+        <GlassCard contentStyle={{ gap: 16 }}>
+          <CardHeading
+            icon="calendar-week"
+            tint="peach"
+            right={weekAvg != null ? <HeadingAvg value={String(weekAvg)} /> : undefined}>
+            Last 7 days
+          </CardHeading>
+          {weekScores.length >= 2 ? (
+            <Sparkline data={weekScores} height={34} color={palette.peach.mid} delay={600} />
+          ) : (
+            <Txt role="caption">The week builds as you wear your ring each day.</Txt>
+          )}
         </GlassCard>
       </Animated.View>
     </Screen>

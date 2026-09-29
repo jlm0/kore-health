@@ -1,0 +1,65 @@
+.card-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--app-font-sans);
+}
+
+.card-heading em,
+.screen-header em {
+  font-style: normal;
+}
+
+.card-heading__title {
+  flex: 1;
+  min-width: 0;
+  color: var(--app-color-foreground);
+  font: var(--app-type-heading);
+}
+
+.card-heading [data-blueprint-slot="icon"] {
+  display: inline-flex;
+}
+
+.card-heading__avg {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.card-heading__avg b {
+  color: var(--app-color-foreground);
+  font: var(--app-type-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-heading__avg small {
+  color: var(--app-color-muted);
+  font: var(--app-type-micro);
+}
+
+.card-heading__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.card-heading__dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--app-radius-full);
+  background: var(--card-heading-dot, var(--app-hue-mint));
+}
+
+.card-heading__status em {
+  color: var(--app-color-faint);
+  font: var(--app-type-caption);
+  font-style: normal;
+}
+
+.card-heading:not([data-blueprint-state="chevron"]) .card-heading__chevron,
+.card-heading:not([data-blueprint-state="avg"]) .card-heading__avg,
+.card-heading:not([data-blueprint-state="status"]) .card-heading__status {
+  display: none;
+}

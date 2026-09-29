@@ -1,0 +1,114 @@
+.glass {
+  --glass-fill-from: var(--app-color-surface);
+  --glass-fill-to: var(--app-color-surface);
+  position: relative;
+  box-sizing: border-box;
+  border-radius: var(--app-radius-xl);
+  color: var(--app-color-foreground);
+  background: linear-gradient(180deg, var(--glass-fill-from), var(--glass-fill-to));
+  box-shadow: var(--app-shadow-md);
+}
+
+.glass--mint,
+.glass.icon-tint-mint,
+.glass[data-blueprint-variant="mint"],
+.glass[data-blueprint-variant="status-accent"] {
+  --glass-fill-from: var(--app-tint-card-mint-from);
+  --glass-fill-to: var(--app-tint-card-mint-to);
+}
+
+.glass--indigo,
+.glass.icon-tint-indigo,
+.glass[data-blueprint-variant="indigo"] {
+  --glass-fill-from: var(--app-tint-card-indigo-from);
+  --glass-fill-to: var(--app-tint-card-indigo-to);
+}
+
+.glass--lavender,
+.glass.icon-tint-lavender,
+.glass[data-blueprint-variant="lavender"] {
+  --glass-fill-from: var(--app-tint-card-lavender-from);
+  --glass-fill-to: var(--app-tint-card-lavender-to);
+}
+
+.glass--peach,
+.glass.icon-tint-peach,
+.glass[data-blueprint-variant="peach"] {
+  --glass-fill-from: var(--app-tint-card-peach-from);
+  --glass-fill-to: var(--app-tint-card-peach-to);
+}
+
+.glass--brand {
+  --ring-track: var(--app-color-circle-fill);
+  background:
+    linear-gradient(180deg, var(--app-color-sheen-top), var(--app-color-sheen-mid) 40%),
+    linear-gradient(180deg, var(--glass-fill-from), var(--glass-fill-to));
+  box-shadow: none;
+}
+
+.glass--brand [data-blueprint-primitive="icon-badge"][data-blueprint-variant] {
+  --icon-tint-from: var(--app-color-circle-fill);
+  --icon-tint-to: var(--app-color-circle-fill);
+  --icon-tint-fg: var(--app-color-foreground);
+  border-color: transparent;
+}
+
+.glass--brand [data-blueprint-primitive="badge"][data-blueprint-variant] {
+  color: var(--app-color-foreground);
+  background: var(--app-color-circle-fill);
+}
+
+.glass--brand [data-blueprint-primitive="segmented-control"] {
+  background: var(--app-color-circle-fill);
+}
+
+.glass--mint [data-blueprint-primitive="sparkline"][data-blueprint-variant] { --spark-color: var(--app-hue-mint-deep); }
+.glass--indigo [data-blueprint-primitive="sparkline"][data-blueprint-variant] { --spark-color: var(--app-hue-indigo-deep); }
+.glass--lavender [data-blueprint-primitive="sparkline"][data-blueprint-variant] { --spark-color: var(--app-hue-indigo-deep); }
+.glass--peach [data-blueprint-primitive="sparkline"][data-blueprint-variant] { --spark-color: var(--app-hue-peach-deep); }
+
+.glass--brand [data-blueprint-primitive="chevron"] {
+  border-color: var(--app-color-slate);
+}
+
+.glass--r22 {
+  border-radius: var(--app-radius-stat);
+}
+
+.glass--r24,
+.glass--r26 {
+  border-radius: var(--app-radius-tile);
+}
+
+.glass--r28 {
+  border-radius: var(--app-radius-xl);
+}
+
+.glass__chevron {
+  position: absolute;
+  top: var(--app-space-6);
+  right: var(--app-space-6);
+}
+
+.glass--pressable {
+  cursor: pointer;
+  transition: transform var(--app-motion-press), box-shadow var(--app-motion-press);
+}
+
+.glass--pressable:hover {
+  box-shadow: var(--app-shadow-lg);
+}
+
+.glass--brand.glass--pressable:hover {
+  box-shadow: none;
+  filter: brightness(1.02);
+}
+
+.glass--pressable:focus-visible {
+  outline: 2px solid var(--app-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.glass--pressable:active {
+  transform: scale(0.98);
+}

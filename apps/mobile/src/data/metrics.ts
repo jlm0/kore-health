@@ -51,10 +51,10 @@ export const METRICS: Record<MetricId, MetricConfig> = {
   },
   temp: {
     id: 'temp',
-    title: 'Body Temp',
+    title: 'Body temp',
     unit: '°C',
     seriesId: 'temp',
-    color: palette.mint.base,
+    color: palette.lavender.base,
     icon: 'thermometer',
     tint: 'lavender',
     decimals: 1,

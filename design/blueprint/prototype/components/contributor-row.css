@@ -1,0 +1,19 @@
+.contributor-row {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-row);
+}
+
+.contributor-row__label {
+  display: block;
+  width: 104px;
+  flex: none;
+}
+
+.contributor-row__bar {
+  flex: 1;
+}
+
+.contributor-row[data-blueprint-state="warn"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-peach-light), var(--app-hue-peach-deep));
+}

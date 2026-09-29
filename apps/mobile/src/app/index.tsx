@@ -1,33 +1,42 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   AnimatedNumber,
-  CardHeading,
+  Button,
   Chevron,
-  DotTrend,
   GlassCard,
   GlassCircle,
   IconBadge,
+  Illustration,
   Label,
   MetricValue,
   Pill,
-  ProgressBar,
   RingIcon,
   Screen,
   ScoreRing,
-  ScreenHeader,
-  Sparkline,
+  Txt,
   fontFamily,
   gradients,
   haptics,
   palette,
   spacing,
+  surfaces,
+  type,
+  type IconBadgeName,
+  type IconTint,
 } from '@kore/ui';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useDays, useDataset, useLatestSample, useMaturities, useToday, useUnits } from '@/data/hooks';
-import { fmtDate, hasTempBaselineForDay, samplesWithinSleepWindows } from '@/data/selectors';
+import {
+  avgPositive,
+  fmtDate,
+  fmtDuration,
+  hasTempBaselineForDay,
+  samplesWithinSleepWindows,
+} from '@/data/selectors';
+import type { DaySummary } from '@/data/types';
 import { tempUnit, toDisplayTemp, toDisplayTempDelta } from '@/data/units';
 import { syncRing } from '@/ring/sync';
 import { useHealthStore } from '@/store/health';
@@ -38,30 +47,27 @@ function readinessStatus(score: number): string {
   return 'Recover';
 }
 
-// Small caption shown in place of a trend that isn't ready yet — copy comes
-// from the central maturity module, never invented per screen.
-const hintText = {
-  fontSize: 9,
-  fontFamily: fontFamily.regular,
-  color: palette.faint,
-  lineHeight: 13,
-} as const;
+function readinessClause(score: number): string {
+  if (score >= 85) return 'readiness is optimal';
+  if (score >= 70) return 'readiness is good';
+  return 'take it easy today';
+}
 
-// Fixed-height bottom slot for the home metric cards: chart, hint text, or
-// empty — the slot is ALWAYS rendered so all four cards keep identical heights
-// in every data state.
-const chartSlot = {
-  height: 26,
-  justifyContent: 'center',
-} as const;
-
-// Measurement timestamp under a card value — the cards read as "current
-// state", so the time context must be explicit, never implied.
-const contextText = {
-  fontSize: 8,
-  fontFamily: fontFamily.regular,
-  color: palette.faint,
-} as const;
+// One grounded sentence under the readiness ring: last night's HRV against
+// the prior week's measured nights. No prior week → no sentence.
+function readinessInsight(today: DaySummary, days: readonly DaySummary[]): string | null {
+  if (today.hrvAvg <= 0) return null;
+  const prior = avgPositive(days.slice(-8, -1).map((d) => d.hrvAvg));
+  if (prior == null) return null;
+  const ratio = today.hrvAvg / prior;
+  if (ratio < 0.95) {
+    return `HRV is a little under your ${prior} ms average. A steady day will help you recover.`;
+  }
+  if (ratio > 1.05) {
+    return `HRV is above your ${prior} ms average — a good day to push a little.`;
+  }
+  return `HRV is right on your ${prior} ms average.`;
+}
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -87,6 +93,51 @@ function shortReason(error: string): string {
   return first.length > 40 ? `${first.slice(0, 37)}…` : first;
 }
 
+interface VitalRowProps {
+  icon: IconBadgeName;
+  tint: IconTint;
+  name: string;
+  sub: string;
+  value: string;
+  unit: string;
+  href: Href;
+  first?: boolean;
+}
+
+function VitalRow({ icon, tint, name, sub, value, unit, href, first = false }: VitalRowProps) {
+  const router = useRouter();
+  return (
+    <Pressable
+      onPress={() => {
+        haptics.tap();
+        router.push(href);
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={`${name}: ${value} ${unit}`}
+      style={({ pressed }) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        minHeight: 60,
+        borderTopWidth: first ? 0 : 1,
+        borderTopColor: surfaces.hairline,
+        opacity: pressed ? 0.6 : 1,
+      })}>
+      <IconBadge name={icon} tint={tint} size={26} />
+      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+        <Text numberOfLines={1} style={[type.body, { fontFamily: fontFamily.medium, color: palette.ink }]}>
+          {name}
+        </Text>
+        <Txt role="micro" numberOfLines={1}>
+          {sub}
+        </Txt>
+      </View>
+      <MetricValue value={value} unit={unit} size={22} />
+      <Chevron size={7} />
+    </Pressable>
+  );
+}
+
 export default function HomeScreen() {
   const router = useRouter();
   const today = useToday();
@@ -103,7 +154,6 @@ export default function HomeScreen() {
   const onSync = () => {
     if (busy) return;
     if (!ringDeviceId) {
-      haptics.tap();
       router.push('/pair');
       return;
     }
@@ -114,15 +164,14 @@ export default function HomeScreen() {
   // reachable — otherwise a stale saved id traps the user in failing syncs.
   const onManageRing = () => {
     if (busy) return;
-    haptics.tap();
     router.push('/pair');
   };
 
   // Status element: always visible without tapping, reflects sync health —
   // never "Connected" (we don't hold a persistent link; connect → sync →
-  // disconnect by design). Tapping opens ring management.
+  // disconnect by design).
   const statusText = !ringDeviceId
-    ? 'Connect ring'
+    ? 'Not connected'
     : busy
       ? connectionStatus === 'syncing'
         ? 'Syncing…'
@@ -133,29 +182,22 @@ export default function HomeScreen() {
           ? `Synced ${relTime(lastSyncAt)}`
           : 'Not synced yet';
   const statusColor = !ringDeviceId
-    ? palette.slate
+    ? palette.faint
     : busy
       ? palette.mint.base
       : syncError
-        ? palette.peach.deep
+        ? palette.destructive
         : lastSyncAt
-          ? palette.mint.deep
+          ? palette.success
           : palette.faint;
   // "Current" SpO2: the freshest of live/latest-vitals/last synced sample —
-  // null when the ring has never reported one (SpO2 is never invented), in
-  // which case the card shows a numeric 0, never an invented value.
+  // null when the ring has never reported one (SpO2 is never invented).
   const spo2Current = useLatestSample('spo2');
 
-  const hrv14 = days.slice(-14).map((d) => d.hrvAvg);
-  const rhr14 = days.slice(-14).map((d) => d.restingHr);
-  const temp7 = days.slice(-7).map((d) => d.tempDeviation);
-
-  // Card headlines: the LATEST measurement in each series (the right edge of
-  // any chart of that metric) — users read home cards as current state, so a
-  // nightly average here reads as wrong-or-stale. HRV/RHR use the freshest
-  // sample INSIDE A DETECTED SLEEP WINDOW: resting means "measured while you
-  // slept", never a daytime reading whatever the clock says. Each card stamps
-  // when its value was measured.
+  // Card headlines: the LATEST measurement in each series. HRV/RHR use the
+  // freshest sample INSIDE A DETECTED SLEEP WINDOW: resting means "measured
+  // while you slept", never a daytime reading whatever the clock says. Each
+  // row stamps when its value was measured.
   const hrvSleep = samplesWithinSleepWindows(dataset.series.hrv, days);
   const rhrSleep = samplesWithinSleepWindows(dataset.series.hr, days);
   const hrvSample = hrvSleep.length > 0 ? hrvSleep[hrvSleep.length - 1] : null;
@@ -163,20 +205,15 @@ export default function HomeScreen() {
 
   // Data-presence gates come from the central maturity model (NOW/TODAY/TREND).
   // Absent values render as numeric 0 (never an invented number) with the
-  // group's unlock copy beside them: HRV/RHR/readiness are night-derived and
-  // stay 0 until the first overnight sync; the sleep ring waits for a detected
-  // sleep window today.
+  // group's unlock copy beside them.
   const mat = useMaturities();
   const hasNight = mat.readiness.state === 'ready';
   const hasSleep = today != null && today.sleep.durationMin > 0;
-  // Activity score is 0-computed when nothing was ever measured — the group's
-  // maturity gate decides, exactly like the activity screen's empty state.
   const hasActivity = mat.activity.state === 'ready';
 
-  // Temp: until a personal baseline exists (state 'collecting'), deviation is
-  // 0 by design — show the real absolute skin temperature instead of "+0.0".
-  // Even in state 'ready', tonight may have no baseline-backed reading (ring
-  // not worn): fall back to the absolute value then, never the fake 0.
+  // Temp: until a personal baseline exists, deviation is 0 by design — show
+  // the real absolute skin temperature instead of "+0.0". Even when ready,
+  // tonight may have no baseline-backed reading: fall back to absolute then.
   const tempAbsSeries = useHealthStore((s) => s.tempAbsSeries);
   const tempNights = useHealthStore((s) => s.tempNights);
   const tempLatestAbs = tempAbsSeries.length > 0 ? tempAbsSeries[tempAbsSeries.length - 1].v : null;
@@ -185,138 +222,136 @@ export default function HomeScreen() {
       ? today.tempDeviation
       : null;
   const units = useUnits();
-  // Deviation (Δ rule) when baseline-backed, otherwise the absolute reading.
   const tempDisplay =
     tempDeviation != null
       ? toDisplayTempDelta(tempDeviation, units)
       : tempLatestAbs != null
         ? toDisplayTemp(tempLatestAbs, units)
         : null;
+  const tempValue =
+    tempDisplay != null
+      ? tempDeviation != null
+        ? `${tempDisplay >= 0 ? '+' : ''}${tempDisplay.toFixed(1)}`
+        : tempDisplay.toFixed(1)
+      : '0.0';
+
+  const insight = today != null && hasNight ? readinessInsight(today, days) : null;
+  const sleepDur = today != null ? fmtDuration(today.sleep.durationMin) : null;
+
+  const greetingStrong =
+    today == null
+      ? ringDeviceId
+        ? 'let’s sync your ring'
+        : 'let’s connect your ring'
+      : hasNight
+        ? readinessClause(today.readiness)
+        : 'here’s today so far';
 
   return (
     <Screen aura="home" gap={spacing.gridGap}>
-      <ScreenHeader
-        left={
-          <View style={{ gap: 3 }}>
-            <Text style={{ fontSize: 27, fontFamily: fontFamily.displayLight, color: palette.ink }}>
-              {greeting()}
-            </Text>
-            <Label size={9} em={0.16}>{fmtDate(Date.now(), true)}</Label>
-            {/* Status line: display only — syncing happens from the dedicated
-                Sync button in the header (or automatically on foreground). */}
-            <View
-              accessibilityLabel={`Ring status: ${statusText}`}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 5,
-                alignSelf: 'flex-start',
-              }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: statusColor }} />
-              <Label size={8} em={0.14} color={syncError && !busy ? palette.peach.deep : palette.faint}>
-                {statusText}
-              </Label>
-            </View>
+      <View style={{ paddingHorizontal: 12, paddingBottom: 20 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 24,
+          }}>
+          <View
+            accessibilityLabel={`Ring status: ${statusText}`}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: statusColor }} />
+            <Txt
+              role="caption"
+              numberOfLines={1}
+              color={syncError && !busy ? palette.destructive : palette.muted}
+              style={{ flexShrink: 1 }}>
+              {statusText}
+            </Txt>
           </View>
-        }
-        right={
-          <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
-            {/* Icon + label form one 48×48 target: the column is 32+3+label ≈ 44
-                pt tall + 2 pt slop each side, and 8 pt horizontal hitSlop brings
-                the 32 pt width to 48 (the shared floor — see ui/touch.ts). */}
-            <Pressable
-              onPress={onSync}
-              disabled={busy}
-              hitSlop={{ top: 2, bottom: 2, left: 8, right: 8 }}
-              accessibilityRole="button"
-              accessibilityLabel={ringDeviceId ? 'Sync ring now' : 'Connect ring'}
-              style={{ alignItems: 'center', gap: 3 }}>
-              <GlassCircle size={32}>
-                <MaterialCommunityIcons
-                  name="sync"
-                  size={14}
-                  color={busy ? palette.mint.base : palette.slate}
-                />
-              </GlassCircle>
-              <Label size={7} em={0.12} color={palette.faint}>{busy ? 'Syncing' : 'Sync'}</Label>
-            </Pressable>
-            <Pressable
-              onPress={onManageRing}
-              hitSlop={{ top: 2, bottom: 2, left: 8, right: 8 }}
-              accessibilityRole="button"
-              accessibilityLabel="Manage ring"
-              style={{ alignItems: 'center', gap: 3 }}>
-              <GlassCircle size={32}>
-                <MaterialCommunityIcons
-                  name="bluetooth-connect"
-                  size={14}
-                  color={lastSyncAt ? palette.mint.base : palette.slate}
-                />
-              </GlassCircle>
-              <Label size={7} em={0.12} color={palette.faint}>Ring</Label>
-            </Pressable>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <GlassCircle onPress={onSync} accessibilityLabel={ringDeviceId ? 'Sync ring now' : 'Connect ring'}>
+              <MaterialCommunityIcons name="sync" size={16} color={busy ? palette.mint.base : palette.slate} />
+            </GlassCircle>
+            <GlassCircle onPress={onManageRing} accessibilityLabel="Manage ring">
+              <MaterialCommunityIcons
+                name="bluetooth-connect"
+                size={16}
+                color={lastSyncAt ? palette.mint.base : palette.slate}
+              />
+            </GlassCircle>
           </View>
-        }
-      />
+        </View>
+        <Label style={{ marginBottom: 4 }}>{fmtDate(Date.now(), true)}</Label>
+        <Text accessibilityRole="header" style={[type.display, { color: palette.ink, maxWidth: 320 }]}>
+          {`${greeting()}, `}
+          <Text style={{ fontFamily: fontFamily.semiBold }}>{greetingStrong}</Text>
+        </Text>
+      </View>
 
       {today == null ? (
-        <Animated.View entering={FadeInDown.delay(40).duration(500)}>
+        <Animated.View entering={FadeInDown.delay(40).duration(500)} style={{ flex: 1, minHeight: 520 }}>
           <GlassCard
-            radius={28}
-            padding={24}
             tint="mint"
-            contentStyle={{ alignItems: 'center', gap: 12 }}>
-            <IconBadge name="bluetooth" tint="mint" size={44} />
-            <Label size={9} em={0.2}>Connect your ring</Label>
-            <Text
-              style={{
-                fontSize: 12,
-                fontFamily: fontFamily.regular,
-                color: palette.slate,
-                textAlign: 'center',
-                lineHeight: 18,
-              }}>
-              No data yet. Keep your Oura ring nearby and sync to import your
-              nights, heart rate and temperature.
-            </Text>
-            <Pill variant="mint" em={0.18} onPress={onSync} disabled={busy} style={{ alignSelf: 'center' }}>
-              {busy ? 'Syncing…' : ringDeviceId ? 'Sync now' : 'Connect ring'}
-            </Pill>
-            {syncError && !busy ? (
-              <Text style={{ fontSize: 10, fontFamily: fontFamily.regular, color: palette.peach.deep, textAlign: 'center' }}>
-                {syncError}
-              </Text>
-            ) : null}
+            padding={{ horizontal: 24, top: 32, bottom: 24 }}
+            style={{ flex: 1 }}
+            contentStyle={{ flex: 1, alignItems: 'center', gap: 24 }}>
+            <View style={{ flex: 1, justifyContent: 'flex-end', alignSelf: 'stretch' }}>
+              <Illustration name="connect" />
+            </View>
+            <View style={{ maxWidth: 280, gap: 8 }}>
+              <Txt role="title" align="center" style={{ fontSize: 22, lineHeight: 28 }}>
+                {ringDeviceId ? 'Ready to sync' : 'Three quick steps to pair'}
+              </Txt>
+              <Txt role="body" align="center">
+                {ringDeviceId
+                  ? 'Keep your ring nearby — Kore imports your nights, heart rate and temperature.'
+                  : 'Kore talks to your Oura ring directly over Bluetooth. We’ll help you free it from the Oura app and find it nearby.'}
+              </Txt>
+              {syncError && !busy ? (
+                <Txt role="caption" align="center" color={palette.destructive}>
+                  {syncError}
+                </Txt>
+              ) : null}
+            </View>
+            <View style={{ flex: 1, justifyContent: 'flex-end', alignSelf: 'stretch' }}>
+              <Button
+                size="lg"
+                haptic={ringDeviceId ? 'confirm' : 'tap'}
+                loading={busy}
+                onPress={ringDeviceId ? onSync : () => router.push('/pair')}>
+                {ringDeviceId ? 'Sync now' : 'Set up my ring'}
+              </Button>
+            </View>
           </GlassCard>
         </Animated.View>
       ) : (
         <>
           <Animated.View entering={FadeInDown.delay(40).duration(500)}>
             <GlassCard
-              radius={28}
-              padding={{ horizontal: 20, vertical: 24 }}
               tint="mint"
+              padding={{ horizontal: 24, top: 32, bottom: 24 }}
               chevron
               onPress={() => router.push('/readiness')}
-              contentStyle={{ alignItems: 'center', gap: 10 }}>
-              <IconBadge
-                name="lightning-bolt"
-                tint="mint"
-                style={{ position: 'absolute', top: 18, left: 18 }}
-              />
-              <ScoreRing size={172} value={hasNight ? today.readiness : 0} colors={gradients.readiness} strokeWidth={10}>
+              accessibilityLabel="Readiness details"
+              contentStyle={{ alignItems: 'center', gap: 12 }}>
+              <IconBadge name="lightning-bolt" tint="mint" style={{ position: 'absolute', top: 20, left: 20 }} />
+              <ScoreRing size={188} value={hasNight ? today.readiness : 0} colors={gradients.readiness} strokeWidth={11}>
                 {hasNight ? (
-                  <AnimatedNumber value={today.readiness} size={72} weight="displayLight" />
+                  <AnimatedNumber value={today.readiness} size={68} weight="light" />
                 ) : (
-                  <Text style={{ fontSize: 34, fontFamily: fontFamily.displayLight, color: palette.muted }}>
-                    0
-                  </Text>
+                  <Text style={{ fontSize: 34, fontFamily: fontFamily.light, color: palette.muted }}>0</Text>
                 )}
-                <Label size={9} em={0.2}>Readiness</Label>
+                <Label>Readiness</Label>
               </ScoreRing>
-              <Pill variant="mint" em={0.18} style={{ alignSelf: 'center' }}>
+              <Pill variant="mint" style={{ alignSelf: 'center' }}>
                 {hasNight ? readinessStatus(today.readiness) : mat.readiness.copy.none}
               </Pill>
+              {insight ? (
+                <Txt role="body" align="center" style={{ maxWidth: 280 }}>
+                  {insight}
+                </Txt>
+              ) : null}
             </GlassCard>
           </Animated.View>
 
@@ -324,179 +359,141 @@ export default function HomeScreen() {
             entering={FadeInDown.delay(80).duration(500)}
             style={{ flexDirection: 'row', gap: spacing.cardGap }}>
             <GlassCard
-              radius={26}
-              padding={14}
               tint="indigo"
+              radius={28}
+              padding={{ horizontal: 16, top: 20, bottom: 16 }}
               chevron
-              chevronOffset={{ top: 18, right: 16 }}
+              chevronOffset={{ top: 20, right: 16 }}
               onPress={() => router.push('/sleep')}
+              accessibilityLabel="Sleep details"
               style={{ flex: 1 }}
-              contentStyle={{ alignItems: 'center', gap: 7 }}>
-              <ScoreRing size={92} value={hasSleep ? today.sleepScore : 0} colors={gradients.sleep} strokeWidth={8} delay={150}>
-                <Text style={{ fontSize: 28, fontFamily: fontFamily.displayLight, color: hasSleep ? palette.ink : palette.muted }}>
+              contentStyle={{ alignItems: 'center', gap: 8 }}>
+              <ScoreRing size={96} value={hasSleep ? today.sleepScore : 0} colors={gradients.sleep} strokeWidth={8.5} delay={150}>
+                <Text style={{ fontSize: 28, fontFamily: fontFamily.light, color: hasSleep ? palette.ink : palette.muted }}>
                   {hasSleep ? today.sleepScore : '0'}
                 </Text>
               </ScoreRing>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <IconBadge name="sleep" tint="indigo" size={18} />
-                <Label size={9} em={0.2}>Sleep</Label>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <IconBadge name="sleep" tint="indigo" size={20} />
+                <Label color={palette.ink}>Sleep</Label>
               </View>
+              <Txt role="caption" align="center" style={{ marginTop: -4 }}>
+                {hasSleep && sleepDur ? `${sleepDur.h}h ${sleepDur.m}m asleep` : mat.sleep.copy.none}
+              </Txt>
             </GlassCard>
             <GlassCard
-              radius={26}
-              padding={14}
               tint="peach"
+              radius={28}
+              padding={{ horizontal: 16, top: 20, bottom: 16 }}
               chevron
-              chevronOffset={{ top: 18, right: 16 }}
+              chevronOffset={{ top: 20, right: 16 }}
               onPress={() => router.push('/activity')}
+              accessibilityLabel="Activity details"
               style={{ flex: 1 }}
-              contentStyle={{ alignItems: 'center', gap: 7 }}>
-              <ScoreRing size={92} value={hasActivity ? today.activityScore : 0} colors={gradients.activity} strokeWidth={8} delay={250}>
-                <Text style={{ fontSize: 28, fontFamily: fontFamily.displayLight, color: hasActivity ? palette.ink : palette.muted }}>
+              contentStyle={{ alignItems: 'center', gap: 8 }}>
+              <ScoreRing size={96} value={hasActivity ? today.activityScore : 0} colors={gradients.activity} strokeWidth={8.5} delay={250}>
+                <Text style={{ fontSize: 28, fontFamily: fontFamily.light, color: hasActivity ? palette.ink : palette.muted }}>
                   {hasActivity ? today.activityScore : '0'}
                 </Text>
               </ScoreRing>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <IconBadge name="fire" tint="peach" size={18} />
-                <Label size={9} em={0.2}>Activity</Label>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <IconBadge name="fire" tint="peach" size={20} />
+                <Label color={palette.ink}>Activity</Label>
               </View>
+              <Txt role="caption" align="center" style={{ marginTop: -4 }}>
+                {hasActivity
+                  ? `${today.activity.activeCal} of ${today.activity.goalCal} cal`
+                  : mat.activity.copy.none}
+              </Txt>
             </GlassCard>
           </Animated.View>
 
-          <Animated.View
-            entering={FadeInDown.delay(160).duration(500)}
-            style={{ flexDirection: 'row', gap: spacing.gridGap }}>
-            <GlassCard
-              radius={24}
-              padding={13}
-              tint="mint"
-              onPress={() => router.push('/metric/hrv')}
-              style={{ flex: 1 }}
-              contentStyle={{ gap: 6 }}>
-              <CardHeading icon="heart-pulse" tint="mint" right={<Chevron size={7} />}>
-                HRV
-              </CardHeading>
-              <MetricValue value={hrvSample != null ? String(Math.round(hrvSample.v)) : '0'} unit="ms" />
-              <Text style={contextText}>{hrvSample != null ? relTime(hrvSample.t) : ' '}</Text>
-              <View style={chartSlot}>
-                {hrvSample != null ? (
-                  <Sparkline data={hrv14} height={22} color={palette.mint.base} delay={350} />
-                ) : (
-                  <Text style={hintText} numberOfLines={2}>
-                    {mat.hrv.state === 'none' ? mat.hrv.copy.none : mat.hrv.copy.unlock}
-                  </Text>
-                )}
+          <Animated.View entering={FadeInDown.delay(160).duration(500)}>
+            <GlassCard radius={32} padding={{ horizontal: 20, top: 20, bottom: 8 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                  justifyContent: 'space-between',
+                  paddingBottom: 8,
+                }}>
+                <Label color={palette.ink}>Vitals</Label>
+                <Txt role="caption">Latest readings</Txt>
               </View>
-            </GlassCard>
-            <GlassCard
-              radius={24}
-              padding={13}
-              tint="indigo"
-              onPress={() => router.push('/metric/rhr')}
-              style={{ flex: 1 }}
-              contentStyle={{ gap: 6 }}>
-              <CardHeading icon="heart" tint="indigo" right={<Chevron size={7} />}>
-                Resting HR
-              </CardHeading>
-              <MetricValue value={rhrSample != null ? String(Math.round(rhrSample.v)) : '0'} unit="bpm" />
-              <Text style={contextText}>{rhrSample != null ? relTime(rhrSample.t) : ' '}</Text>
-              <View style={chartSlot}>
-                {rhrSample != null ? (
-                  <Sparkline data={rhr14} height={22} color={palette.indigo.base} delay={420} />
-                ) : (
-                  <Text style={hintText} numberOfLines={2}>{mat.hr.copy.unlock}</Text>
-                )}
-              </View>
-            </GlassCard>
-          </Animated.View>
-
-          <Animated.View
-            entering={FadeInDown.delay(240).duration(500)}
-            style={{ flexDirection: 'row', gap: spacing.gridGap }}>
-            <GlassCard
-              radius={24}
-              padding={13}
-              tint="lavender"
-              onPress={() => router.push('/metric/temp')}
-              style={{ flex: 1 }}
-              contentStyle={{ gap: 6 }}>
-              <CardHeading icon="thermometer" tint="lavender">
-                Body Temp
-              </CardHeading>
-              <MetricValue
-                value={
-                  tempDisplay != null
-                    ? tempDeviation != null
-                      ? `${tempDisplay >= 0 ? '+' : ''}${tempDisplay.toFixed(1)}`
-                      : tempDisplay.toFixed(1)
-                    : '0.0'
+              <VitalRow
+                first
+                icon="heart-pulse"
+                tint="mint"
+                name="HRV"
+                sub={
+                  hrvSample != null
+                    ? relTime(hrvSample.t)
+                    : mat.hrv.state === 'none'
+                      ? mat.hrv.copy.none
+                      : mat.hrv.copy.unlock!
                 }
-                unit={tempUnit(units)}
+                value={hrvSample != null ? String(Math.round(hrvSample.v)) : '0'}
+                unit="ms"
+                href="/metric/hrv"
               />
-              <Text style={contextText}>
-                {tempAbsSeries.length > 0 ? relTime(tempAbsSeries[tempAbsSeries.length - 1].t) : ' '}
-              </Text>
-              <View style={chartSlot}>
-                {tempDeviation != null ? (
-                  <DotTrend data={temp7} height={22} delay={500} />
-                ) : mat.temp.state === 'collecting' ? (
-                  <Text style={hintText} numberOfLines={2}>{mat.temp.copy.unlock}</Text>
-                ) : null}
-              </View>
-            </GlassCard>
-            <GlassCard
-              radius={24}
-              padding={13}
-              tint="peach"
-              onPress={() => router.push('/metric/spo2')}
-              style={{ flex: 1 }}
-              contentStyle={{ gap: 6 }}>
-              <CardHeading icon="lungs" tint="peach">
-                SpO2
-              </CardHeading>
-              <MetricValue
+              <VitalRow
+                icon="heart"
+                tint="indigo"
+                name="Resting heart rate"
+                sub={rhrSample != null ? relTime(rhrSample.t) : mat.hr.copy.unlock!}
+                value={rhrSample != null ? String(Math.round(rhrSample.v)) : '0'}
+                unit="bpm"
+                href="/metric/rhr"
+              />
+              <VitalRow
+                icon="thermometer"
+                tint="lavender"
+                name="Body temperature"
+                sub={
+                  mat.temp.state === 'collecting'
+                    ? mat.temp.copy.unlock!
+                    : tempAbsSeries.length > 0
+                      ? relTime(tempAbsSeries[tempAbsSeries.length - 1].t)
+                      : mat.temp.copy.none
+                }
+                value={tempValue}
+                unit={tempUnit(units)}
+                href="/metric/temp"
+              />
+              <VitalRow
+                icon="lungs"
+                tint="peach"
+                name="Blood oxygen"
+                sub={
+                  spo2Current != null && dataset.series.spo2.length > 0
+                    ? relTime(dataset.series.spo2[dataset.series.spo2.length - 1].t)
+                    : mat.spo2.copy.none
+                }
                 value={spo2Current != null ? String(Math.round(spo2Current)) : '0'}
                 unit="%"
+                href="/metric/spo2"
               />
-              <Text style={contextText}>
-                {spo2Current != null && dataset.series.spo2.length > 0
-                  ? relTime(dataset.series.spo2[dataset.series.spo2.length - 1].t)
-                  : ' '}
-              </Text>
-              <View style={chartSlot}>
-                {spo2Current != null ? (
-                  <ProgressBar
-                    progress={spo2Current / 100}
-                    colors={gradients.spo2}
-                    delay={550}
-                  />
-                ) : null}
-              </View>
             </GlassCard>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(320).duration(500)}>
+          <Animated.View entering={FadeInDown.delay(240).duration(500)}>
             <GlassCard
-              radius={26}
-              padding={{ horizontal: 18, vertical: 16 }}
               tint="indigo"
+              radius={28}
+              padding={{ vertical: 16 }}
               chevron
+              chevronOffset={{ top: 32, right: 24 }}
               onPress={() => router.push('/trends')}
-              contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-              <GlassCircle size={36}>
+              accessibilityLabel="Trends"
+              contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 16, paddingLeft: 16, paddingRight: 40 }}>
+              <GlassCircle size={40}>
                 <RingIcon />
               </GlassCircle>
-              <View style={{ flex: 1, gap: 3 }}>
-                <Label size={9} em={0.18}>Trends</Label>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontFamily: fontFamily.regular,
-                    color: palette.slate,
-                    lineHeight: 16,
-                  }}>
-                  Averages and baselines across your synced days
-                </Text>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Label color={palette.ink}>Trends</Label>
+                <Txt role="caption">
+                  {`Averages and baselines across ${days.length} synced ${days.length === 1 ? 'day' : 'days'}`}
+                </Txt>
               </View>
             </GlassCard>
           </Animated.View>

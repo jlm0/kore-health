@@ -1,18 +1,13 @@
+import { Canvas, Circle, RadialGradient, vec } from '@shopify/react-native-skia';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Image, StyleSheet, useWindowDimensions } from 'react-native';
+import { StyleSheet, useWindowDimensions } from 'react-native';
 import { type ScreenKey } from '../tokens';
 
-// Neutral light backdrop with real depth: a white-to-base vertical gradient,
-// two oversized soft grey washes off-canvas, and a whisper dot-grid. The grey
-// washes are what the frosted cards refract — without something behind the
-// blur, "glass" just reads as flat white.
-const TOP = 'rgba(255,255,255,0.9)';
-const MID = 'rgba(255,255,255,0.35)';
-const BOTTOM = 'rgba(244,245,247,0)';
-
-const dotGrid = require('../../assets/dotgrid.png');
-const blob = require('../../assets/blob.png');
+// Porcelain base with two soft brand glows: Penna blue off the top-right
+// corner and Hudson blush off the bottom-left.
+const PENNA = 'rgba(185,199,224,0.45)';
+const HUDSON = 'rgba(235,219,211,0.6)';
 
 interface AuraBackgroundProps {
   screen: ScreenKey;
@@ -20,40 +15,24 @@ interface AuraBackgroundProps {
 
 export function AuraBackground(_props: AuraBackgroundProps) {
   const { width, height } = useWindowDimensions();
-  const big = width * 1.7;
+  const r = (width * 1.7) / 2;
+  const top = vec(width, -r * 0.1);
+  const bottom = vec(-r * 0.2, height + r * 0.2);
   return (
     <>
+      <Canvas style={[StyleSheet.absoluteFill, { width, height }]} pointerEvents="none">
+        <Circle c={top} r={r}>
+          <RadialGradient c={top} r={r} colors={[PENNA, 'rgba(185,199,224,0)']} />
+        </Circle>
+        <Circle c={bottom} r={r}>
+          <RadialGradient c={bottom} r={r} colors={[HUDSON, 'rgba(235,219,211,0)']} />
+        </Circle>
+      </Canvas>
       <LinearGradient
-        colors={[TOP, MID, BOTTOM]}
+        pointerEvents="none"
+        colors={['rgba(255,255,255,0.85)', 'rgba(255,255,255,0.3)', 'rgba(255,255,255,0)']}
         locations={[0, 0.35, 1]}
         style={StyleSheet.absoluteFill}
-      />
-      <Image
-        source={blob}
-        style={{
-          position: 'absolute',
-          top: -big * 0.45,
-          right: -big * 0.55,
-          width: big,
-          height: big,
-          opacity: 0.55,
-        }}
-      />
-      <Image
-        source={blob}
-        style={{
-          position: 'absolute',
-          bottom: -big * 0.5,
-          left: -big * 0.6,
-          width: big,
-          height: big,
-          opacity: 0.4,
-        }}
-      />
-      <Image
-        source={dotGrid}
-        style={{ position: 'absolute', top: 0, left: 0, width, height, opacity: 0.7 }}
-        resizeMode="repeat"
       />
     </>
   );

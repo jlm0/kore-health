@@ -3,6 +3,7 @@ import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Easing, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { surfaces } from '../tokens';
+import { useCardTone } from './GlassCard';
 
 interface ScoreRingProps {
   size: number;
@@ -10,6 +11,7 @@ interface ScoreRingProps {
   max?: number;
   colors: readonly [string, string] | readonly string[];
   strokeWidth?: number;
+  trackColor?: string;
   delay?: number;
   children?: React.ReactNode;
 }
@@ -20,9 +22,11 @@ export function ScoreRing({
   max = 100,
   colors,
   strokeWidth = 8,
+  trackColor,
   delay = 0,
   children,
 }: ScoreRingProps) {
+  const onBrand = useCardTone() != null;
   const progress = useSharedValue(0);
   const fraction = Math.max(0.02, Math.min(value / max, 1));
 
@@ -55,7 +59,7 @@ export function ScoreRing({
           r={r}
           style="stroke"
           strokeWidth={strokeWidth}
-          color={surfaces.track}
+          color={trackColor ?? (onBrand ? surfaces.circleFill : surfaces.track)}
         />
         <Path
           path={path}

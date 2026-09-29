@@ -1,0 +1,7 @@
+.metric-spo2 .metric-status {
+  --card-heading-dot: var(--app-hue-indigo-deep);
+}
+
+.metric-spo2 .metric-trend__copy {
+  margin-top: var(--app-space-1);
+}

@@ -1,0 +1,108 @@
+[data-blueprint-primitive="badge"] {
+  --pill-x: var(--app-space-control-x);
+  --pill-tracking: var(--app-tracking-pill);
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--app-space-1);
+  box-sizing: border-box;
+  min-height: 26px;
+  padding: 3px var(--pill-x);
+  border: 1px solid transparent;
+  border-radius: var(--app-radius-full);
+  color: var(--app-color-on-primary);
+  background: var(--app-color-primary);
+  font: var(--app-type-caption);
+  font-weight: 500;
+  letter-spacing: var(--pill-tracking);
+  white-space: nowrap;
+}
+
+[data-blueprint-primitive="badge"] [data-blueprint-slot="label"] * {
+  font-style: normal;
+}
+
+.badge__dot {
+  display: none;
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: var(--app-radius-full);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="secondary"] {
+  color: var(--app-color-on-secondary);
+  background: var(--app-color-secondary);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="tonal"],
+[data-blueprint-primitive="badge"][data-blueprint-variant="accent"],
+[data-blueprint-primitive="badge"][data-blueprint-variant="success"] {
+  color: var(--app-color-foreground);
+  background: var(--app-color-surface-muted);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="accent"],
+[data-blueprint-primitive="badge"][data-blueprint-variant="success"] {
+  border-color: var(--app-color-border);
+  background: var(--app-color-surface);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="tonal"] .badge__dot,
+[data-blueprint-primitive="badge"][data-blueprint-variant="accent"] .badge__dot {
+  display: block;
+  background: var(--app-color-accent);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="success"] .badge__dot {
+  display: block;
+  background: var(--app-color-success);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="destructive"] {
+  color: var(--app-color-on-destructive);
+  background: var(--app-color-destructive);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="outline"] {
+  border-color: var(--app-color-border-strong);
+  color: var(--app-color-foreground);
+  background: transparent;
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="mint"] {
+  color: var(--app-tint-badge-mint-fg);
+  background: var(--app-tint-pill-mint);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="indigo"] {
+  color: var(--app-tint-badge-indigo-fg);
+  background: var(--app-tint-pill-indigo);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="lavender"] {
+  color: var(--app-tint-badge-lavender-fg);
+  background: var(--app-tint-pill-lavender);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="peach"] {
+  color: var(--app-tint-badge-peach-fg);
+  background: var(--app-tint-pill-peach);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="neutral"] {
+  color: var(--app-color-muted);
+  background: var(--app-color-surface-muted);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-variant="ink"] {
+  color: var(--app-color-on-primary);
+  background: var(--app-color-primary);
+}
+
+[data-blueprint-primitive="badge"][data-blueprint-size="tight"] { --pill-x: var(--app-space-2); }
+[data-blueprint-primitive="badge"][data-blueprint-size="count"] { --pill-x: 10px; }
+
+[data-blueprint-primitive="badge"][data-blueprint-state="disabled"] {
+  opacity: 0.5;
+}

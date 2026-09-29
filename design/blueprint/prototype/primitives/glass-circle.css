@@ -1,0 +1,46 @@
+[data-blueprint-primitive="glass-circle"] {
+  --glass-circle-size: var(--app-size-control-sm);
+  display: inline-flex;
+  width: var(--glass-circle-size);
+  height: var(--glass-circle-size);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-radius: var(--app-radius-full);
+  color: var(--app-color-slate);
+  background: var(--app-color-circle-fill);
+  box-shadow: inset 0 0 0 1px var(--app-color-border), var(--app-shadow-sm);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+}
+
+.glass-circle__glyph,
+.glass-circle__glyph > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glass-circle__glyph svg {
+  width: var(--app-size-icon-sm);
+  height: var(--app-size-icon-sm);
+}
+
+.glass-circle__ring {
+  display: block;
+  width: 11px;
+  height: 11px;
+  box-sizing: border-box;
+  border: 2.5px solid var(--app-hue-mint);
+  border-radius: var(--app-radius-full);
+}
+
+[data-blueprint-primitive="glass-circle"][data-blueprint-state="active"] {
+  color: var(--app-hue-mint);
+}
+
+[data-blueprint-primitive="glass-circle"][data-blueprint-size="md"] {
+  --glass-circle-size: var(--app-size-control-md);
+}

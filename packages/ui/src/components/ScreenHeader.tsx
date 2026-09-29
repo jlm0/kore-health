@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { fontFamily, palette } from '../tokens';
+import { palette, type } from '../tokens';
 import { Chevron } from './Chevron';
 import { GlassCircle } from './GlassCircle';
 
@@ -15,13 +15,7 @@ export function ScreenHeader({ title, left, right }: ScreenHeaderProps) {
     <View style={styles.row}>
       <View style={styles.side}>{left}</View>
       {title != null && (
-        <Text
-          style={{
-            fontSize: 19,
-            fontFamily: fontFamily.displayMedium,
-            color: palette.ink,
-            letterSpacing: 0.2,
-          }}>
+        <Text numberOfLines={1} style={[type.title, styles.title]}>
           {title}
         </Text>
       )}
@@ -30,9 +24,14 @@ export function ScreenHeader({ title, left, right }: ScreenHeaderProps) {
   );
 }
 
+/** Short date or context on the right of a ScreenHeader. */
+export function HeaderMeta({ children }: { children: string }) {
+  return <Text style={[type.caption, { color: palette.muted }]}>{children}</Text>;
+}
+
 export function BackButton({ onPress }: { onPress: () => void }) {
   return (
-    <GlassCircle size={32} onPress={onPress} accessibilityLabel="Back">
+    <GlassCircle size={36} onPress={onPress} accessibilityLabel="Back">
       <Chevron size={9} color={palette.slate} thickness={2} direction="left" style={{ marginLeft: 3 }} />
     </GlassCircle>
   );
@@ -57,7 +56,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 2,
+    minHeight: 48,
+    paddingTop: 4,
+    paddingBottom: 8,
+    paddingHorizontal: 8,
+  },
+  title: {
+    flexShrink: 1,
+    color: palette.ink,
   },
   side: {
     minWidth: 40,

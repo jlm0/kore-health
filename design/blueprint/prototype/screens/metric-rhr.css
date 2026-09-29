@@ -1,0 +1,7 @@
+.metric-rhr .metric-status {
+  --card-heading-dot: var(--app-hue-indigo);
+}
+
+.metric-rhr .metric-trend__copy {
+  margin-top: var(--app-space-1);
+}

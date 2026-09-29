@@ -1,0 +1,60 @@
+.readiness-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--app-space-card-gap);
+  padding: var(--app-space-6);
+}
+
+.readiness-hero__badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+
+.readiness-hero__ring {
+  --score: 71;
+}
+
+.readiness .readiness-hero__delta {
+  align-self: center;
+}
+
+.readiness-contributors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  padding: var(--app-space-5);
+}
+
+.readiness-contributor--hrvBalance {
+  --value: 0.8696;
+}
+
+.readiness-contributor--bodyTemp {
+  --value: 0.5;
+}
+
+.readiness-contributor--sleep {
+  --value: 0.87;
+}
+
+.readiness-contributor--restingHr {
+  --value: 0.85;
+}
+
+.readiness-contributor--recovery {
+  --value: 0.8598;
+}
+
+.readiness-contributor--activityBalance {
+  --value: 0.0886;
+}
+
+.readiness[data-blueprint-state="populated"] .readiness-header--empty,
+.readiness[data-blueprint-state="populated"] .k-empty,
+.readiness[data-blueprint-state="empty"] .readiness-header--populated,
+.readiness[data-blueprint-state="empty"] .readiness-hero,
+.readiness[data-blueprint-state="empty"] .readiness-contributors {
+  display: none;
+}

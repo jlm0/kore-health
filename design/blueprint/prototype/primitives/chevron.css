@@ -1,0 +1,27 @@
+[data-blueprint-primitive="chevron"] {
+  --chevron-size: 8px;
+  --chevron-thickness: 1.8px;
+  display: inline-block;
+  width: var(--chevron-size);
+  height: var(--chevron-size);
+  flex: none;
+  box-sizing: border-box;
+  border-top: var(--chevron-thickness) solid var(--app-color-faint);
+  border-right: var(--chevron-thickness) solid var(--app-color-faint);
+  transform: rotate(45deg);
+}
+
+[data-blueprint-primitive="chevron"][data-blueprint-variant="left"] {
+  transform: rotate(225deg);
+}
+
+[data-blueprint-primitive="chevron"][data-blueprint-size="sm"] {
+  --chevron-size: 7px;
+}
+
+[data-blueprint-primitive="chevron"][data-blueprint-size="back"] {
+  --chevron-size: 9px;
+  --chevron-thickness: 2px;
+  margin-left: 3px;
+  border-color: var(--app-color-slate);
+}

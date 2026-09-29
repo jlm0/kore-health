@@ -1,0 +1,5466 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectId": "kore-health",
+  "primitives": [
+    {
+      "id": "button",
+      "name": "Button",
+      "description": "Baseline command primitive with six variants, sm/md/lg/icon sizes, and normal/loading/disabled states.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.button"
+      ],
+      "notes": [
+        "Apps should replace token values and variant naming only when their design system requires it; do not recreate one-off buttons per screen."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "The debug variant is the ring-debug DebugButton: ink fill, 10pt radius, 13pt semibold white label, 48pt minimum height; disabled 0.35."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/button.html",
+        "styles": [
+          "prototype/primitives/button.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label",
+          "icon"
+        ],
+        "variants": [
+          "primary",
+          "secondary",
+          "outline",
+          "ghost",
+          "destructive",
+          "link",
+          "debug"
+        ],
+        "sizes": [
+          "sm",
+          "md",
+          "lg",
+          "icon"
+        ],
+        "states": [
+          "normal",
+          "hover",
+          "focus",
+          "pressed",
+          "loading",
+          "disabled"
+        ],
+        "accessibilityIntent": "A native keyboard-reachable button whose visible label supplies its accessible name; the icon size keeps the label as visually hidden text.",
+        "tokenRoles": {
+          "color.primary": "background",
+          "color.on-primary": "foreground",
+          "color.hover": "hover-layer",
+          "color.pressed": "pressed-layer",
+          "color.focus-ring": "focus-ring",
+          "space.control-x": "inline-padding",
+          "size.control-md": "height",
+          "shape.radius-md": "radius",
+          "typography.body": "label",
+          "motion.state": "state-transition",
+          "size.control-sm": "small-height",
+          "size.control-lg": "large-height",
+          "size.icon-sm": "icon-size"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Command priority and semantic variants.",
+          "styleRefs": [
+            "primitive.button.variant"
+          ],
+          "states": [
+            {
+              "id": "primary",
+              "name": "Primary",
+              "tokens": [
+                "color.primary",
+                "color.on-primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "secondary",
+              "name": "Secondary",
+              "tokens": [
+                "color.secondary",
+                "color.on-secondary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "outline",
+              "name": "Outline",
+              "tokens": [
+                "color.border-strong",
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "ghost",
+              "name": "Ghost",
+              "tokens": [
+                "color.foreground",
+                "color.hover"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "destructive",
+              "name": "Destructive",
+              "tokens": [
+                "color.destructive",
+                "color.on-destructive"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "link",
+              "name": "Link",
+              "tokens": [
+                "color.accent"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "debug",
+              "name": "Debug",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "size",
+          "name": "Size States",
+          "description": "Control heights, including a square icon-only size.",
+          "styleRefs": [
+            "primitive.button.size"
+          ],
+          "states": [
+            {
+              "id": "sm",
+              "name": "Small",
+              "tokens": [
+                "size.control-sm",
+                "typography.label"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "md",
+              "name": "Medium",
+              "tokens": [
+                "size.control-md",
+                "space.control-x"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "lg",
+              "name": "Large",
+              "tokens": [
+                "size.control-lg",
+                "space.space-6"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "icon",
+              "name": "Icon",
+              "tokens": [
+                "size.control-md",
+                "size.icon-sm"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": [
+                "Keep a text label for the accessible name when rendering icon-only."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "interaction",
+          "name": "Interaction States",
+          "description": "Shared button interaction states.",
+          "styleRefs": [
+            "primitive.button.interaction"
+          ],
+          "states": [
+            {
+              "id": "normal",
+              "name": "Normal",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "hover",
+              "name": "Hover",
+              "tokens": [
+                "color.hover"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": [
+                "Apply on pointer hover only; touch platforms skip it."
+              ]
+            },
+            {
+              "id": "focus",
+              "name": "Focus",
+              "tokens": [
+                "color.focus-ring"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": [
+                "Show on keyboard focus (focus-visible), not on pointer press."
+              ]
+            },
+            {
+              "id": "pressed",
+              "name": "Pressed",
+              "tokens": [
+                "color.pressed"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "loading",
+              "name": "Loading",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": [
+                "Expose busy state to accessibility APIs."
+              ]
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": [
+                "Prevent interaction and expose disabled state."
+              ]
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/ring-debug.tsx",
+          "symbolName": "DebugButton",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "input",
+      "name": "Input",
+      "description": "Text input primitive with visual variants and validation states.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.input"
+      ],
+      "notes": [
+        "Input states are a core app behavior and should not be inferred from a single rendered form."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Preserve empty, value, focused, invalid, and disabled states in target code."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/input.html",
+        "styles": [
+          "prototype/primitives/input.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label",
+          "placeholder"
+        ],
+        "variants": [
+          "default",
+          "filled",
+          "ghost",
+          "outline",
+          "underline"
+        ],
+        "states": [
+          "empty",
+          "value",
+          "focused",
+          "invalid",
+          "disabled"
+        ],
+        "accessibilityIntent": "A native text input with a programmatically associated label and a visible focus ring.",
+        "tokenRoles": {
+          "color.surface": "field-background",
+          "color.border-strong": "field-border",
+          "color.foreground": "value",
+          "color.muted": "placeholder",
+          "color.focus-ring": "focus-ring",
+          "color.destructive": "invalid",
+          "space.space-3": "inline-padding",
+          "size.control-md": "height",
+          "shape.radius-md": "radius",
+          "typography.body": "text",
+          "typography.label": "label",
+          "motion.state": "state-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Input frame and fill styles.",
+          "styleRefs": [
+            "primitive.input.variant"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [
+                "color.surface",
+                "color.border-strong"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "filled",
+              "name": "Filled",
+              "tokens": [
+                "color.surface-muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "ghost",
+              "name": "Ghost",
+              "tokens": [
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "outline",
+              "name": "Outline",
+              "tokens": [
+                "color.border-strong"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "underline",
+              "name": "Underline",
+              "tokens": [
+                "color.border-strong"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "interaction",
+          "name": "Interaction States",
+          "description": "Input lifecycle states.",
+          "styleRefs": [
+            "primitive.input.interaction"
+          ],
+          "states": [
+            {
+              "id": "empty",
+              "name": "Empty",
+              "tokens": [
+                "color.muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "value",
+              "name": "Value",
+              "tokens": [
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "focused",
+              "name": "Focused",
+              "tokens": [
+                "color.focus-ring"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "invalid",
+              "name": "Invalid",
+              "tokens": [
+                "color.destructive"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "checkbox",
+      "name": "Checkbox",
+      "description": "Binary selection primitive.",
+      "tokenGroupIds": [
+        "color",
+        "size",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.checkbox"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Expose checked and disabled states explicitly."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/checkbox.html",
+        "styles": [
+          "prototype/primitives/checkbox.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "off",
+          "on",
+          "focus",
+          "disabled",
+          "disabled-on"
+        ],
+        "accessibilityIntent": "A keyboard-reachable binary selection control whose checked and disabled states are exposed to assistive technology.",
+        "tokenRoles": {
+          "color.surface": "box-background",
+          "color.border-strong": "box-border",
+          "color.primary": "checked-fill",
+          "color.on-primary": "check",
+          "size.icon-sm": "box-size",
+          "shape.radius-sm": "radius",
+          "typography.body": "label",
+          "motion.state": "state-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State",
+          "description": "Checkbox state matrix.",
+          "styleRefs": [
+            "primitive.checkbox.state"
+          ],
+          "states": [
+            {
+              "id": "off",
+              "name": "Off",
+              "tokens": [
+                "color.surface",
+                "color.border-strong"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "on",
+              "name": "On",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "focus",
+              "name": "Focus",
+              "tokens": [
+                "color.focus-ring"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": [
+                "Show on keyboard focus (focus-visible)."
+              ]
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled-on",
+              "name": "Disabled On",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "switch",
+      "name": "Switch",
+      "description": "Binary toggle primitive.",
+      "tokenGroupIds": [
+        "color",
+        "size",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.switch"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Keep touch target larger than the visual thumb where needed."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/switch.html",
+        "styles": [
+          "prototype/primitives/switch.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "off",
+          "on",
+          "focus",
+          "disabled",
+          "disabled-on"
+        ],
+        "accessibilityIntent": "A binary toggle exposing its on/off state with an associated visible label and an explicit disabled presentation.",
+        "tokenRoles": {
+          "color.border-strong": "off-track",
+          "color.surface": "off-thumb",
+          "color.primary": "on-track",
+          "color.on-primary": "on-thumb",
+          "shape.radius-full": "radius",
+          "shape.shadow-sm": "thumb-elevation",
+          "motion.state": "state-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State",
+          "description": "Switch state matrix.",
+          "styleRefs": [
+            "primitive.switch.state"
+          ],
+          "states": [
+            {
+              "id": "off",
+              "name": "Off",
+              "tokens": [
+                "color.border-strong",
+                "color.surface"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "on",
+              "name": "On",
+              "tokens": [
+                "color.primary",
+                "color.on-primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "focus",
+              "name": "Focus",
+              "tokens": [
+                "color.focus-ring"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": [
+                "Show on keyboard focus (focus-visible)."
+              ]
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled-on",
+              "name": "Disabled On",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "otp-input",
+      "name": "OTP Input",
+      "description": "Fixed-cell verification input primitive.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.otp-input"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Model cell count and focus behavior explicitly."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/otp-input.html",
+        "styles": [
+          "prototype/primitives/otp-input.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "empty",
+          "filled",
+          "focused"
+        ],
+        "accessibilityIntent": "A fixed-length passcode input announced as one field with a visible focus cell and caret.",
+        "tokenRoles": {
+          "color.surface": "cell-background",
+          "color.border-strong": "cell-border",
+          "color.foreground": "digit",
+          "color.focus-ring": "focus-ring",
+          "size.control-md": "cell-width",
+          "size.control-lg": "cell-height",
+          "shape.radius-md": "cell-radius",
+          "typography.title": "digit",
+          "motion.state": "state-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "cell",
+          "name": "Cell States",
+          "description": "OTP cell states.",
+          "styleRefs": [
+            "primitive.otp-input.cell"
+          ],
+          "states": [
+            {
+              "id": "empty",
+              "name": "Empty",
+              "tokens": [
+                "color.surface",
+                "color.border-strong"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "filled",
+              "name": "Filled",
+              "tokens": [
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "focused",
+              "name": "Focused",
+              "tokens": [
+                "color.focus-ring"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "slider",
+      "name": "Slider",
+      "description": "Continuous range control primitive.",
+      "tokenGroupIds": [
+        "color",
+        "size",
+        "shape",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.slider"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Keep track, fill, thumb, disabled, and contrast variants separate."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/slider.html",
+        "styles": [
+          "prototype/primitives/slider.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "primary",
+          "secondary",
+          "contrast",
+          "disabled"
+        ],
+        "accessibilityIntent": "A range control exposing its value, minimum, and maximum with a keyboard-operable thumb.",
+        "tokenRoles": {
+          "color.border": "track",
+          "color.primary": "fill",
+          "color.muted": "secondary-fill",
+          "color.foreground": "contrast-fill",
+          "color.surface": "thumb",
+          "size.icon-sm": "thumb-size",
+          "shape.radius-full": "radius",
+          "motion.state": "state-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "tone",
+          "name": "Tone States",
+          "description": "Slider tone and disabled variants.",
+          "styleRefs": [
+            "primitive.slider.tone"
+          ],
+          "states": [
+            {
+              "id": "primary",
+              "name": "Primary",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "secondary",
+              "name": "Secondary",
+              "tokens": [
+                "color.muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "contrast",
+              "name": "Contrast",
+              "tokens": [
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "surface",
+      "name": "Surface",
+      "description": "Sequential surface ladder: each nested surface, card, grouped list, or pressable row sits one level deeper than its parent.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.surface"
+      ],
+      "notes": [
+        "Roots marked data-blueprint-surface take the level after their nearest marked ancestor; a surface state sets an explicit level for its subtree."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Carry the parent surface level through context so nested cards, lists, and rows render one level deeper."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/surface.html",
+        "styles": [
+          "prototype/primitives/surface.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "accessibilityIntent": "A non-interactive container level; nested content keeps its own semantics and reachability.",
+        "tokenRoles": {
+          "color.surface": "level-1",
+          "color.surface-2": "level-2",
+          "color.surface-3": "level-3",
+          "color.surface-4": "level-4",
+          "color.surface-5": "level-5",
+          "color.surface-6": "level-6",
+          "color.border": "outline",
+          "shape.radius-lg": "radius"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "level",
+          "name": "Surface Levels",
+          "description": "Explicit surface levels 1 through 5; nested surfaces step one level deeper.",
+          "styleRefs": [
+            "primitive.surface.level"
+          ],
+          "states": [
+            {
+              "id": "1",
+              "name": "Surface 1",
+              "tokens": [
+                "color.surface",
+                "color.surface-2"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "2",
+              "name": "Surface 2",
+              "tokens": [
+                "color.surface-2",
+                "color.surface-3"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "3",
+              "name": "Surface 3",
+              "tokens": [
+                "color.surface-3",
+                "color.surface-4"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "4",
+              "name": "Surface 4",
+              "tokens": [
+                "color.surface-4",
+                "color.surface-5"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "5",
+              "name": "Surface 5",
+              "tokens": [
+                "color.surface-5",
+                "color.surface-6"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "card",
+      "name": "Card",
+      "description": "GlassCard (@kore/ui): frosted glass container. Screens apply the same prototype/styles/glass.css classes (glass, glass--<tint>, glass--r<radius>) to cards that hold other reusables.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.card"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Radius 34 default; screens use 28 (hero/detail), 26 (paired/legend), 24 (metric tiles), 22 (stat tiles). Padding is per card (13–24).",
+        "Pressable cards scale to 0.975 over 160ms and carry a Chevron at top 22/right 18 unless offset."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/card.html",
+        "styles": [
+          "prototype/primitives/card.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "default",
+          "flat",
+          "elevated",
+          "status-accent",
+          "mint",
+          "indigo",
+          "lavender",
+          "peach"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "A neutral content container; interactive children remain individually reachable.",
+        "tokenRoles": {
+          "color.surface": "surface-ladder-level",
+          "color.border": "outline",
+          "color.accent": "status-accent",
+          "space.space-4": "padding",
+          "shape.radius-lg": "radius",
+          "shape.shadow-md": "elevation",
+          "typography.heading": "title",
+          "typography.caption": "meta"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Card treatment variants.",
+          "styleRefs": [
+            "primitive.card.variant"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [
+                "color.surface",
+                "color.border"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "flat",
+              "name": "Flat",
+              "tokens": [
+                "color.surface"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "elevated",
+              "name": "Elevated",
+              "tokens": [
+                "color.surface",
+                "shape.shadow-md"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "status-accent",
+              "name": "Status Accent",
+              "tokens": [
+                "color.accent"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "mint",
+              "name": "Mint",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "indigo",
+              "name": "Indigo",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "lavender",
+              "name": "Lavender",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "peach",
+              "name": "Peach",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/GlassCard.tsx",
+          "symbolName": "GlassCard",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "nav-bar",
+      "name": "Navigation Bar",
+      "description": "Balanced slot navigation primitive.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.nav-bar"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Keep side slots balanced so titles remain centered."
+      ],
+      "platforms": [
+        "mobile"
+      ],
+      "prototype": {
+        "source": "prototype/primitives/nav-bar.html",
+        "styles": [
+          "prototype/primitives/nav-bar.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "title"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "back-and-right",
+          "back-only",
+          "right-only"
+        ],
+        "accessibilityIntent": "A navigation landmark with a centered title and accessibly named slot actions.",
+        "tokenRoles": {
+          "color.surface": "bar-background",
+          "color.border": "bar-rule",
+          "color.foreground": "title",
+          "color.hover": "action-hover-layer",
+          "space.row": "slot-gap",
+          "size.control-lg": "bar-height",
+          "size.control-sm": "action-size",
+          "typography.heading": "title"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "slots",
+          "name": "Slot States",
+          "description": "Left, center, and right slot compositions.",
+          "styleRefs": [
+            "primitive.nav-bar.slots"
+          ],
+          "states": [
+            {
+              "id": "back-and-right",
+              "name": "Back And Right",
+              "tokens": [
+                "space.row"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "back-only",
+              "name": "Back Only",
+              "tokens": [
+                "space.row"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "right-only",
+              "name": "Right Only",
+              "tokens": [
+                "space.row"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "back-button",
+      "name": "Back Button",
+      "description": "BackButton (@kore/ui): 32pt GlassCircle with a slate left chevron.",
+      "tokenGroupIds": [
+        "color",
+        "size",
+        "shape"
+      ],
+      "styleRefs": [
+        "primitive.back-button"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Keep icon-only controls accessible."
+      ],
+      "platforms": [
+        "mobile"
+      ],
+      "prototype": {
+        "source": "prototype/primitives/back-button.html",
+        "styles": [
+          "prototype/primitives/back-button.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "md",
+          "sm",
+          "disabled"
+        ],
+        "accessibilityIntent": "An icon-only button whose accessible name comes from its aria label.",
+        "tokenRoles": {
+          "color.surface": "background",
+          "color.border-strong": "border",
+          "color.foreground": "glyph",
+          "color.hover": "hover-layer",
+          "size.control-md": "size",
+          "size.icon-md": "glyph-size",
+          "shape.radius-lg": "radius"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "size",
+          "name": "Size States",
+          "description": "Back button sizes.",
+          "styleRefs": [
+            "primitive.back-button.size"
+          ],
+          "states": [
+            {
+              "id": "md",
+              "name": "Medium",
+              "tokens": [
+                "size.control-md",
+                "shape.radius-lg"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "sm",
+              "name": "Small",
+              "tokens": [
+                "size.control-sm",
+                "shape.radius-md"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "size.control-md"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/ScreenHeader.tsx",
+          "symbolName": "BackButton",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "separator",
+      "name": "Separator",
+      "description": "Divider primitive.",
+      "tokenGroupIds": [
+        "color"
+      ],
+      "styleRefs": [
+        "primitive.separator"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Tie divider emphasis to surface nesting level."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/separator.html",
+        "styles": [
+          "prototype/primitives/separator.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "subtle",
+          "default",
+          "strong"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "A thematic break exposed as a separator to assistive technology.",
+        "tokenRoles": {
+          "color.border": "rule"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "emphasis",
+          "name": "Emphasis States",
+          "description": "Subtle/default/strong divider emphasis.",
+          "styleRefs": [
+            "primitive.separator.emphasis"
+          ],
+          "states": [
+            {
+              "id": "subtle",
+              "name": "Subtle",
+              "tokens": [
+                "color.surface-muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [
+                "color.border"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "strong",
+              "name": "Strong",
+              "tokens": [
+                "color.border-strong"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "list",
+      "name": "List",
+      "description": "Grouped list primitive.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.list"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Use list for grouped rows and dividers."
+      ],
+      "platforms": [
+        "mobile"
+      ],
+      "prototype": {
+        "source": "prototype/primitives/list.html",
+        "styles": [
+          "prototype/primitives/list.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "grouped",
+          "plain"
+        ],
+        "accessibilityIntent": "A list of rows exposed with list and listitem semantics.",
+        "tokenRoles": {
+          "color.surface": "surface-ladder-level",
+          "color.border": "row-rule",
+          "color.foreground": "row-text",
+          "color.muted": "row-meta",
+          "color.surface-muted": "icon-well",
+          "shape.radius-lg": "radius",
+          "space.row": "slot-gap",
+          "typography.body": "title",
+          "typography.caption": "subtitle"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "List grouping states.",
+          "styleRefs": [
+            "primitive.list.variant"
+          ],
+          "states": [
+            {
+              "id": "grouped",
+              "name": "Grouped",
+              "tokens": [
+                "color.surface",
+                "color.border"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "plain",
+              "name": "Plain",
+              "tokens": [
+                "color.border"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pressable-row",
+      "name": "Pressable Row",
+      "description": "Row-shaped pressable primitive.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.pressable-row"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Keep row-shaped press behavior separate from list grouping."
+      ],
+      "platforms": [
+        "mobile"
+      ],
+      "prototype": {
+        "source": "prototype/primitives/pressable-row.html",
+        "styles": [
+          "prototype/primitives/pressable-row.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "title"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "standalone",
+          "group-first",
+          "group-middle",
+          "group-last"
+        ],
+        "accessibilityIntent": "A single keyboard-reachable row-shaped button with a text-backed accessible name.",
+        "tokenRoles": {
+          "color.surface": "surface-ladder-level",
+          "color.border": "outline",
+          "color.foreground": "title",
+          "color.muted": "trailing",
+          "color.hover": "hover-layer",
+          "color.pressed": "pressed-layer",
+          "color.focus-ring": "focus-ring",
+          "shape.radius-lg": "radius",
+          "space.row": "slot-gap",
+          "typography.body": "title"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "shape",
+          "name": "Shape States",
+          "description": "Standalone and grouped row shapes.",
+          "styleRefs": [
+            "primitive.pressable-row.shape"
+          ],
+          "states": [
+            {
+              "id": "standalone",
+              "name": "Standalone",
+              "tokens": [
+                "shape.radius-lg"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "group-first",
+              "name": "Group First",
+              "tokens": [
+                "shape.radius-lg"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "group-middle",
+              "name": "Group Middle",
+              "tokens": [
+                "color.border"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "group-last",
+              "name": "Group Last",
+              "tokens": [
+                "shape.radius-lg"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "row-layout",
+      "name": "Row Layout",
+      "description": "Leading/body/trailing slot layout primitive without a surface.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.row-layout"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Use when a row owns layout but not surface or press behavior."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/row-layout.html",
+        "styles": [
+          "prototype/primitives/row-layout.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "title"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "leading-body-trailing"
+        ],
+        "accessibilityIntent": "A purely presentational leading/body/trailing row; only interactive slot content receives focus.",
+        "tokenRoles": {
+          "color.foreground": "title",
+          "color.muted": "trailing",
+          "color.surface-muted": "leading-well",
+          "space.row": "slot-gap",
+          "typography.body": "title",
+          "typography.caption": "subtitle"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "slots",
+          "name": "Slot States",
+          "description": "Row slot composition.",
+          "styleRefs": [
+            "primitive.row-layout.slots"
+          ],
+          "states": [
+            {
+              "id": "leading-body-trailing",
+              "name": "Leading Body Trailing",
+              "tokens": [
+                "space.row"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "loading-mark",
+      "name": "Loading Mark",
+      "description": "ActivityIndicator stand-in; mint and indigo tones match the pairing screen spinners.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape"
+      ],
+      "styleRefs": [
+        "primitive.loading-mark"
+      ],
+      "notes": [
+        "This generalizes the reference mark into a replaceable app-owned loader."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Replace geometry with the app mark if one exists; keep tone states."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/loading-mark.html",
+        "styles": [
+          "prototype/primitives/loading-mark.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "primary",
+          "surface",
+          "mint",
+          "indigo"
+        ],
+        "accessibilityIntent": "A polite status indicator that announces busy state without trapping focus.",
+        "tokenRoles": {
+          "color.primary": "mark",
+          "color.border": "track",
+          "color.on-primary": "on-fill-mark",
+          "size.icon-lg": "size"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "tone",
+          "name": "Tone States",
+          "description": "Loading mark tones.",
+          "styleRefs": [
+            "primitive.loading-mark.tone"
+          ],
+          "states": [
+            {
+              "id": "primary",
+              "name": "Primary",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "surface",
+              "name": "Surface",
+              "tokens": [
+                "color.on-primary",
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "mint",
+              "name": "Mint",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "indigo",
+              "name": "Indigo",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/pair.tsx",
+          "symbolName": "ActivityIndicator",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "badge",
+      "name": "Badge",
+      "description": "Pill (@kore/ui Pill): sentence-case status and action chip with per-metric tints (deep-tone text for 4.5:1) and a solid ink selection.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.badge"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Sizes encode the Pill paddingH/em combinations screens use: md 12/.14, status 12/.18, action 12/.16, tight 8/.06, count 10/.14, unit 12/.10, about 12/.08.",
+        "Interactive pills extend their hit area to 48×48 with hitSlop 14; pressed dims to 0.7."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/badge.html",
+        "styles": [
+          "prototype/primitives/badge.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label"
+        ],
+        "variants": [
+          "default",
+          "secondary",
+          "tonal",
+          "accent",
+          "destructive",
+          "success",
+          "outline",
+          "mint",
+          "indigo",
+          "lavender",
+          "peach",
+          "neutral",
+          "ink"
+        ],
+        "states": [
+          "default",
+          "disabled"
+        ],
+        "accessibilityIntent": "A compact status label whose visible text supplies the meaning; tone is never color-only.",
+        "tokenRoles": {
+          "color.primary": "background",
+          "color.on-primary": "label",
+          "shape.radius-full": "radius",
+          "typography.label": "label"
+        },
+        "sizes": [
+          "md",
+          "status",
+          "action",
+          "tight",
+          "count",
+          "unit",
+          "about"
+        ]
+      },
+      "stateSets": [
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Badge variants.",
+          "styleRefs": [
+            "primitive.badge.variant"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [
+                "color.primary",
+                "color.on-primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "secondary",
+              "name": "Secondary",
+              "tokens": [
+                "color.secondary",
+                "color.on-secondary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "tonal",
+              "name": "Tonal",
+              "tokens": [
+                "color.surface-muted",
+                "color.accent"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "accent",
+              "name": "Accent",
+              "tokens": [
+                "color.border",
+                "color.accent"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "destructive",
+              "name": "Destructive",
+              "tokens": [
+                "color.destructive",
+                "color.on-destructive"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "success",
+              "name": "Success",
+              "tokens": [
+                "color.border",
+                "color.success"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "outline",
+              "name": "Outline",
+              "tokens": [
+                "color.border-strong"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "mint",
+              "name": "Mint",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "indigo",
+              "name": "Indigo",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "lavender",
+              "name": "Lavender",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "peach",
+              "name": "Peach",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "neutral",
+              "name": "Neutral",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "ink",
+              "name": "Ink",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "size",
+          "name": "Size States",
+          "description": "Badge size options.",
+          "styleRefs": [
+            "primitive.badge.size"
+          ],
+          "states": [
+            {
+              "id": "md",
+              "name": "Md",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "status",
+              "name": "Status",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "action",
+              "name": "Action",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "tight",
+              "name": "Tight",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "count",
+              "name": "Count",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "unit",
+              "name": "Unit",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "about",
+              "name": "About",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Badge state options.",
+          "styleRefs": [
+            "primitive.badge.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/Pill.tsx",
+          "symbolName": "Pill",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "icon",
+      "name": "Icon",
+      "description": "Icon wrapper primitive.",
+      "tokenGroupIds": [
+        "color",
+        "size"
+      ],
+      "styleRefs": [
+        "primitive.icon"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Keep icon sizing and stroke width tokenized."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/icon.html",
+        "styles": [
+          "prototype/primitives/icon.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "default",
+          "muted",
+          "accent"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "A decorative inline glyph wrapper; the host supplies any accessible naming through surrounding text.",
+        "tokenRoles": {
+          "color.foreground": "glyph",
+          "size.icon-md": "size"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "tone",
+          "name": "Tone States",
+          "description": "Icon tones.",
+          "styleRefs": [
+            "primitive.icon.tone"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "muted",
+              "name": "Muted",
+              "tokens": [
+                "color.muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "accent",
+              "name": "Accent",
+              "tokens": [
+                "color.accent"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skeleton",
+      "name": "Skeleton",
+      "description": "Loading placeholder primitive.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "shape"
+      ],
+      "styleRefs": [
+        "primitive.skeleton"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Tie skeleton fill to the current surface level."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/skeleton.html",
+        "styles": [
+          "prototype/primitives/skeleton.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "line",
+          "block"
+        ],
+        "accessibilityIntent": "A decorative loading placeholder hidden from assistive technology while content loads.",
+        "tokenRoles": {
+          "color.border": "fill",
+          "shape.radius-sm": "line-radius",
+          "shape.radius-lg": "block-radius"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "density",
+          "name": "Density States",
+          "description": "Skeleton density variants.",
+          "styleRefs": [
+            "primitive.skeleton.density"
+          ],
+          "states": [
+            {
+              "id": "line",
+              "name": "Line",
+              "tokens": [
+                "shape.radius-sm"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "block",
+              "name": "Block",
+              "tokens": [
+                "shape.radius-lg"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "alert-dialog",
+      "name": "Alert Dialog",
+      "description": "Modal confirmation primitive.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.alert-dialog"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Keep destructive intent on the action, not the whole panel."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/alert-dialog.html",
+        "styles": [
+          "prototype/primitives/alert-dialog.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "title",
+          "message"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "neutral",
+          "destructive"
+        ],
+        "accessibilityIntent": "A modal alert dialog named by its title, described by its message, and keeping destructive intent on the confirm action only.",
+        "tokenRoles": {
+          "color.surface-raised": "panel-background",
+          "color.border": "outline",
+          "color.foreground": "title",
+          "color.muted": "message",
+          "color.primary": "confirm-action",
+          "color.destructive": "destructive-action",
+          "shape.radius-xl": "radius",
+          "shape.shadow-lg": "elevation",
+          "space.space-5": "padding",
+          "typography.heading": "title",
+          "typography.body": "message"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "intent",
+          "name": "Intent States",
+          "description": "Dialog intent variants.",
+          "styleRefs": [
+            "primitive.alert-dialog.intent"
+          ],
+          "states": [
+            {
+              "id": "neutral",
+              "name": "Neutral",
+              "tokens": [
+                "color.primary",
+                "color.on-primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "destructive",
+              "name": "Destructive",
+              "tokens": [
+                "color.destructive",
+                "color.on-destructive"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "context-menu",
+      "name": "Context Menu",
+      "description": "Floating action menu primitive.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.context-menu"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Model item, inset item, separator, shortcut, and destructive item roles."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/context-menu.html",
+        "styles": [
+          "prototype/primitives/context-menu.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default",
+          "checked",
+          "destructive"
+        ],
+        "accessibilityIntent": "A menu of keyboard-navigable items with separator, shortcut, checked, and destructive item roles.",
+        "tokenRoles": {
+          "color.surface-raised": "menu-background",
+          "color.border": "outline",
+          "color.foreground": "item",
+          "color.muted": "shortcut",
+          "color.hover": "highlighted-item",
+          "color.destructive": "destructive-item",
+          "shape.radius-lg": "panel-radius",
+          "shape.radius-sm": "item-radius",
+          "shape.shadow-md": "elevation",
+          "size.control-sm": "item-height",
+          "typography.body": "item"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "item",
+          "name": "Item States",
+          "description": "Context menu item variants.",
+          "styleRefs": [
+            "primitive.context-menu.item"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [
+                "color.hover"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "checked",
+              "name": "Checked",
+              "tokens": [
+                "color.hover"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "destructive",
+              "name": "Destructive",
+              "tokens": [
+                "color.destructive"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bottom-sheet",
+      "name": "Bottom Sheet",
+      "description": "Sheet primitive composed from handle, navbar, body, and footer slots.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.bottom-sheet"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Keep sheet navbar, content, and footer slots independently targetable."
+      ],
+      "platforms": [
+        "mobile"
+      ],
+      "prototype": {
+        "source": "prototype/primitives/bottom-sheet.html",
+        "styles": [
+          "prototype/primitives/bottom-sheet.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "title"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "navbar",
+          "content",
+          "footer"
+        ],
+        "accessibilityIntent": "A modal sheet region whose handle, navigation, content, and footer keep a logical source order.",
+        "tokenRoles": {
+          "color.surface-raised": "sheet-background",
+          "color.foreground": "content",
+          "color.border-strong": "handle",
+          "shape.radius-xl": "top-radius",
+          "shape.shadow-lg": "elevation",
+          "space.row": "slot-gap",
+          "typography.heading": "title"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "slot",
+          "name": "Slot States",
+          "description": "Sheet slot arrangements.",
+          "styleRefs": [
+            "primitive.bottom-sheet.slot"
+          ],
+          "states": [
+            {
+              "id": "navbar",
+              "name": "Navbar",
+              "tokens": [
+                "space.row"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "content",
+              "name": "Content",
+              "tokens": [
+                "space.space-1"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "footer",
+              "name": "Footer",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "text",
+      "name": "Text",
+      "description": "Canonical type-ramp primitive binding the typography tokens to semantic text tones.",
+      "tokenGroupIds": [
+        "color",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.text"
+      ],
+      "notes": [
+        "Use the ramp roles instead of one-off font styles; screens may still set screen-local display treatments."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Map variants to the app's text component roles and keep tones semantic."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/text.html",
+        "styles": [
+          "prototype/primitives/text.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "text"
+        ],
+        "variants": [
+          "display",
+          "body",
+          "label"
+        ],
+        "states": [
+          "default",
+          "muted",
+          "primary"
+        ],
+        "accessibilityIntent": "Readable text whose tone never relies on color alone for meaning.",
+        "tokenRoles": {
+          "typography.display": "display-role",
+          "typography.body": "body-role",
+          "typography.label": "label-role",
+          "color.foreground": "default-tone",
+          "color.muted": "muted-tone",
+          "color.primary": "primary-tone"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Type ramp roles.",
+          "styleRefs": [
+            "primitive.text.variant"
+          ],
+          "states": [
+            {
+              "id": "display",
+              "name": "Display",
+              "tokens": [
+                "typography.display"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "body",
+              "name": "Body",
+              "tokens": [
+                "typography.body"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "label",
+              "name": "Label",
+              "tokens": [
+                "typography.label"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "tone",
+          "name": "Tone States",
+          "description": "Semantic text tones.",
+          "styleRefs": [
+            "primitive.text.tone"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "muted",
+              "name": "Muted",
+              "tokens": [
+                "color.muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "primary",
+              "name": "Primary",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "radio",
+      "name": "Radio",
+      "description": "Single-choice selection primitive.",
+      "tokenGroupIds": [
+        "color",
+        "size",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.radio"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Expose selected and disabled states explicitly and group radios with one name."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/radio.html",
+        "styles": [
+          "prototype/primitives/radio.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "off",
+          "on",
+          "focus",
+          "disabled",
+          "disabled-on"
+        ],
+        "accessibilityIntent": "A keyboard-reachable single-choice control whose selected and disabled states are exposed to assistive technology.",
+        "tokenRoles": {
+          "color.surface": "ring-background",
+          "color.border-strong": "ring-border",
+          "color.primary": "selected-mark",
+          "size.icon-sm": "ring-size",
+          "shape.radius-full": "radius",
+          "typography.body": "label",
+          "motion.state": "state-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State",
+          "description": "Radio state matrix.",
+          "styleRefs": [
+            "primitive.radio.state"
+          ],
+          "states": [
+            {
+              "id": "off",
+              "name": "Off",
+              "tokens": [
+                "color.surface",
+                "color.border-strong"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "on",
+              "name": "On",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "focus",
+              "name": "Focus",
+              "tokens": [
+                "color.focus-ring"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": [
+                "Show on keyboard focus (focus-visible)."
+              ]
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled-on",
+              "name": "Disabled On",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "select",
+      "name": "Select",
+      "description": "Single-value dropdown field primitive with placeholder, value, open, and disabled states.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.select"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Keep the listbox in the primitive; map options from the target app's data."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/select.html",
+        "styles": [
+          "prototype/primitives/select.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "placeholder",
+          "value"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "placeholder",
+          "value",
+          "open",
+          "disabled"
+        ],
+        "accessibilityIntent": "A named, keyboard-reachable listbox control whose value and expanded state are exposed to assistive technology.",
+        "tokenRoles": {
+          "color.surface": "field-background",
+          "color.border-strong": "field-border",
+          "color.foreground": "value",
+          "color.muted": "placeholder",
+          "color.focus-ring": "focus-ring",
+          "color.surface-raised": "listbox-background",
+          "space.space-3": "inline-padding",
+          "size.control-md": "height",
+          "shape.radius-md": "radius",
+          "shape.shadow-md": "listbox-elevation",
+          "typography.body": "text",
+          "motion.state": "state-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State",
+          "description": "Select lifecycle states.",
+          "styleRefs": [
+            "primitive.select.state"
+          ],
+          "states": [
+            {
+              "id": "placeholder",
+              "name": "Placeholder",
+              "tokens": [
+                "color.muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "value",
+              "name": "Value",
+              "tokens": [
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "open",
+              "name": "Open",
+              "tokens": [
+                "color.focus-ring",
+                "shape.shadow-md"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tabs",
+      "name": "Tabs",
+      "description": "In-screen section switch primitive with a selected tab and a disabled tab.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.tabs"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Keep one tablist per section set; expose the selected tab to assistive technology."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/tabs.html",
+        "styles": [
+          "prototype/primitives/tabs.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "tabs"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "first-selected",
+          "second-selected",
+          "disabled"
+        ],
+        "accessibilityIntent": "A tablist whose selected tab and disabled tabs are exposed to assistive technology.",
+        "tokenRoles": {
+          "color.foreground": "selected-label",
+          "color.muted": "unselected-label",
+          "color.primary": "selected-rule",
+          "color.border": "track-rule",
+          "space.space-3": "inline-padding",
+          "typography.body": "label",
+          "motion.state": "state-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State",
+          "description": "Tab selection states.",
+          "styleRefs": [
+            "primitive.tabs.state"
+          ],
+          "states": [
+            {
+              "id": "first-selected",
+              "name": "First Selected",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "second-selected",
+              "name": "Second Selected",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "color.muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "toast",
+      "name": "Toast",
+      "description": "Transient feedback panel primitive with semantic tones and a quiet action.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.toast"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Announce toasts through a live region and keep them transient."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/toast.html",
+        "styles": [
+          "prototype/primitives/toast.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label",
+          "action"
+        ],
+        "variants": [
+          "default",
+          "success",
+          "destructive"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "A status message announced through a live region whose tone is not conveyed by color alone.",
+        "tokenRoles": {
+          "color.surface-raised": "panel-background",
+          "color.border": "outline",
+          "color.foreground": "label-and-action",
+          "color.muted": "default-dot",
+          "color.success": "success-dot",
+          "color.destructive": "destructive-dot",
+          "shape.radius-lg": "radius",
+          "shape.shadow-md": "elevation",
+          "typography.body": "label"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Toast semantic tones.",
+          "styleRefs": [
+            "primitive.toast.variant"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [
+                "color.muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "success",
+              "name": "Success",
+              "tokens": [
+                "color.success"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "destructive",
+              "name": "Destructive",
+              "tokens": [
+                "color.destructive"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "textarea",
+      "name": "Textarea",
+      "description": "Multi-line text field with label, hint, and validation states.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.textarea"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Map to the target platform multi-line text field and keep the visible label as its accessible name."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/textarea.html",
+        "styles": [
+          "prototype/primitives/textarea.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label",
+          "placeholder",
+          "hint"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "empty",
+          "value",
+          "focused",
+          "invalid",
+          "disabled"
+        ],
+        "accessibilityIntent": "A labelled native textarea whose hint text describes the field.",
+        "tokenRoles": {
+          "color.surface": "field-background",
+          "color.border-strong": "field-border",
+          "color.foreground": "value",
+          "color.muted": "placeholder-and-hint",
+          "color.focus-ring": "focus-ring",
+          "color.destructive": "invalid",
+          "shape.radius-md": "radius",
+          "typography.body": "text",
+          "typography.label": "label",
+          "typography.caption": "hint",
+          "motion.state": "state-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "interaction",
+          "name": "Interaction States",
+          "description": "Field entry and validation states.",
+          "styleRefs": [
+            "primitive.textarea.interaction"
+          ],
+          "states": [
+            {
+              "id": "empty",
+              "name": "Empty",
+              "tokens": [
+                "color.muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "value",
+              "name": "Value",
+              "tokens": [
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "focused",
+              "name": "Focused",
+              "tokens": [
+                "color.focus-ring"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "invalid",
+              "name": "Invalid",
+              "tokens": [
+                "color.destructive"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "avatar",
+      "name": "Avatar",
+      "description": "Person or entity mark with initials, fallback glyph, and presence status.",
+      "tokenGroupIds": [
+        "color",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.avatar"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Map to the target avatar component; replace initials with a controlled image asset when one exists."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/avatar.html",
+        "styles": [
+          "prototype/primitives/avatar.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "initials"
+        ],
+        "variants": [
+          "default"
+        ],
+        "sizes": [
+          "sm",
+          "md",
+          "lg"
+        ],
+        "states": [
+          "initials",
+          "fallback",
+          "status"
+        ],
+        "accessibilityIntent": "An image-role mark whose accessible name is the person or entity name.",
+        "tokenRoles": {
+          "color.secondary": "background",
+          "color.on-secondary": "initials",
+          "color.success": "presence",
+          "shape.radius-full": "radius",
+          "size.control-md": "diameter",
+          "typography.label": "initials"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "size",
+          "name": "Size States",
+          "description": "Avatar diameters.",
+          "styleRefs": [
+            "primitive.avatar.size"
+          ],
+          "states": [
+            {
+              "id": "sm",
+              "name": "Small",
+              "tokens": [
+                "size.control-sm"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "md",
+              "name": "Medium",
+              "tokens": [
+                "size.control-md"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "lg",
+              "name": "Large",
+              "tokens": [
+                "size.control-lg"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "content",
+          "name": "Content States",
+          "description": "What the avatar shows.",
+          "styleRefs": [
+            "primitive.avatar.content"
+          ],
+          "states": [
+            {
+              "id": "initials",
+              "name": "Initials",
+              "tokens": [
+                "color.secondary",
+                "color.on-secondary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "fallback",
+              "name": "Fallback",
+              "tokens": [
+                "color.surface-muted",
+                "color.muted"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "status",
+              "name": "Status",
+              "tokens": [
+                "color.success"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "progress",
+      "name": "Progress",
+      "description": "Progress bar; Kore variants are the head-less ProgressBar (6pt pill track with gradient fill set by --value 0–1).",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.progress"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Expose progress through the platform progress API with the visible label as its name."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/progress.html",
+        "styles": [
+          "prototype/primitives/progress.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label"
+        ],
+        "variants": [
+          "default",
+          "readiness",
+          "activity",
+          "spo2",
+          "ghost"
+        ],
+        "states": [
+          "value",
+          "complete",
+          "indeterminate"
+        ],
+        "accessibilityIntent": "A progressbar with a visible label and current value.",
+        "tokenRoles": {
+          "color.border": "track",
+          "color.primary": "bar",
+          "color.success": "complete-bar",
+          "color.muted": "value",
+          "shape.radius-full": "radius",
+          "typography.label": "label",
+          "motion.state": "value-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "progress",
+          "name": "Progress States",
+          "description": "Determinate, complete, and indeterminate progress.",
+          "styleRefs": [
+            "primitive.progress.progress"
+          ],
+          "states": [
+            {
+              "id": "value",
+              "name": "Value",
+              "tokens": [
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "complete",
+              "name": "Complete",
+              "tokens": [
+                "color.success"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "indeterminate",
+              "name": "Indeterminate",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Progress variant options.",
+          "styleRefs": [
+            "primitive.progress.variant"
+          ],
+          "states": [
+            {
+              "id": "readiness",
+              "name": "Readiness",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "activity",
+              "name": "Activity",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "spo2",
+              "name": "Spo2",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "ghost",
+              "name": "Ghost",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/ProgressBar.tsx",
+          "symbolName": "ProgressBar",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "tooltip",
+      "name": "Tooltip",
+      "description": "Short inverse label anchored to a control.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.tooltip"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Show on hover and keyboard focus; never put required information only in a tooltip."
+      ],
+      "platforms": [
+        "desktop"
+      ],
+      "prototype": {
+        "source": "prototype/primitives/tooltip.html",
+        "styles": [
+          "prototype/primitives/tooltip.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "top",
+          "bottom"
+        ],
+        "accessibilityIntent": "A tooltip role describing its anchor control.",
+        "tokenRoles": {
+          "color.foreground": "background",
+          "color.background": "label",
+          "shape.radius-md": "radius",
+          "shape.shadow-md": "elevation",
+          "typography.label": "label"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "placement",
+          "name": "Placement States",
+          "description": "Which side of the anchor the tooltip sits on.",
+          "styleRefs": [
+            "primitive.tooltip.placement"
+          ],
+          "states": [
+            {
+              "id": "top",
+              "name": "Top",
+              "tokens": [
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "bottom",
+              "name": "Bottom",
+              "tokens": [
+                "color.foreground"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "inline-alert",
+      "name": "Inline Alert",
+      "description": "Persistent in-flow message with a tone, title, and message.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.inline-alert"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Use role=\"alert\" only for urgent messages that must interrupt assistive technology."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/inline-alert.html",
+        "styles": [
+          "prototype/primitives/inline-alert.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "title",
+          "message"
+        ],
+        "variants": [
+          "info",
+          "success",
+          "warning",
+          "destructive"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "A status message whose title and message are read together.",
+        "tokenRoles": {
+          "color.surface": "background",
+          "color.border": "outline",
+          "color.accent": "info-tone",
+          "color.muted": "message",
+          "shape.radius-lg": "radius",
+          "size.icon-md": "icon-size",
+          "typography.body": "text"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "tone",
+          "name": "Tone States",
+          "description": "Semantic message tones.",
+          "styleRefs": [
+            "primitive.inline-alert.tone"
+          ],
+          "states": [
+            {
+              "id": "info",
+              "name": "Info",
+              "tokens": [
+                "color.accent"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "success",
+              "name": "Success",
+              "tokens": [
+                "color.success"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "warning",
+              "name": "Warning",
+              "tokens": [
+                "color.warning"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "destructive",
+              "name": "Destructive",
+              "tokens": [
+                "color.destructive"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "segmented-control",
+      "name": "Segmented Control",
+      "description": "RangeSelector (@kore/ui): capsule track with a sliding ink capsule for Day/Week/Month.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography",
+        "motion"
+      ],
+      "styleRefs": [
+        "primitive.segmented-control"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Map to the target segmented control; use tabs instead when options switch whole panels."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/segmented-control.html",
+        "styles": [
+          "prototype/primitives/segmented-control.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "options"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "first-selected",
+          "second-selected",
+          "disabled",
+          "third-selected"
+        ],
+        "accessibilityIntent": "A radiogroup whose options are radios named by their visible labels.",
+        "tokenRoles": {
+          "color.surface-muted": "track",
+          "color.surface": "selected-option",
+          "color.foreground": "selected-label",
+          "color.muted": "unselected-label",
+          "shape.radius-md": "radius",
+          "shape.shadow-sm": "selected-elevation",
+          "typography.body": "label",
+          "motion.state": "state-transition"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "Selection States",
+          "description": "Selected and unavailable options.",
+          "styleRefs": [
+            "primitive.segmented-control.state"
+          ],
+          "states": [
+            {
+              "id": "first-selected",
+              "name": "First Selected",
+              "tokens": [
+                "color.surface",
+                "shape.shadow-sm"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "second-selected",
+              "name": "Second Selected",
+              "tokens": [
+                "color.surface",
+                "shape.shadow-sm"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "disabled",
+              "name": "Disabled",
+              "tokens": [
+                "motion.state"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "third-selected",
+              "name": "Third Selected",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/RangeSelector.tsx",
+          "symbolName": "RangeSelector",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "table-row",
+      "name": "Table Row",
+      "description": "Data table row with primary, text, numeric, and status cells.",
+      "tokenGroupIds": [
+        "color",
+        "space",
+        "size",
+        "shape",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.table-row"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Map to the target data table row and keep numeric columns end-aligned with tabular figures."
+      ],
+      "platforms": [
+        "desktop"
+      ],
+      "prototype": {
+        "source": "prototype/primitives/table-row.html",
+        "styles": [
+          "prototype/primitives/table-row.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "cells"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default",
+          "hover",
+          "selected"
+        ],
+        "accessibilityIntent": "A table row of cells inside a table or grid.",
+        "tokenRoles": {
+          "color.surface": "background",
+          "color.border": "row-rule",
+          "color.hover": "hover-layer",
+          "color.surface-muted": "selected-background",
+          "size.control-lg": "row-height",
+          "typography.body": "cell"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "Row States",
+          "description": "Resting, hovered, and selected rows.",
+          "styleRefs": [
+            "primitive.table-row.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [
+                "color.surface"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "hover",
+              "name": "Hover",
+              "tokens": [
+                "color.hover"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "selected",
+              "name": "Selected",
+              "tokens": [
+                "color.surface-muted",
+                "color.primary"
+              ],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "label",
+      "name": "Label",
+      "description": "Sentence-case caption (@kore/ui Label) used for card titles, dates, status, and axis text; 13pt/500 by default, 11pt minimum for axis and timestamps.",
+      "tokenGroupIds": [
+        "color",
+        "typography",
+        "tracking"
+      ],
+      "styleRefs": [
+        "primitive.label"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Label(size, em, color) in packages/ui/src/components/Typo.tsx — variants map the size/em/color combinations screens use."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/label.html",
+        "styles": [
+          "prototype/primitives/label.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "text"
+        ],
+        "variants": [
+          "default",
+          "wide",
+          "sub",
+          "date",
+          "status",
+          "stat",
+          "score-sm",
+          "row",
+          "axis",
+          "note",
+          "tiny",
+          "day"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "Plain text in natural sentence casing.",
+        "tokenRoles": {
+          "color.muted": "default-text",
+          "color.faint": "quiet-text",
+          "color.slate": "row-text",
+          "typography.label": "type",
+          "tracking.label": "tracking"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Label state options.",
+          "styleRefs": [
+            "primitive.label.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Label variant options.",
+          "styleRefs": [
+            "primitive.label.variant"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "wide",
+              "name": "Wide",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "sub",
+              "name": "Sub",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "date",
+              "name": "Date",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "status",
+              "name": "Status",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "stat",
+              "name": "Stat",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "score-sm",
+              "name": "Score Sm",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "row",
+              "name": "Row",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "axis",
+              "name": "Axis",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "note",
+              "name": "Note",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "tiny",
+              "name": "Tiny",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "day",
+              "name": "Day",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/Typo.tsx",
+          "symbolName": "Label",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "icon-badge",
+      "name": "Icon Badge",
+      "description": "Rounded gradient chip with a MaterialCommunityIcons glyph that marks each card's function (@kore/ui IconBadge).",
+      "tokenGroupIds": [
+        "tint",
+        "size"
+      ],
+      "styleRefs": [
+        "primitive.icon-badge"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Glyph slot takes a MaterialCommunityIcons outline (24-unit SVG). The inherit variant reads --icon-tint-* from an ancestor .icon-tint-<hue> class so components can re-tint it.",
+        "Border radius is size × 0.36 and glyph size is round(size × 0.58), as in IconBadge.tsx."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/icon-badge.html",
+        "styles": [
+          "prototype/primitives/icon-badge.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "glyph"
+        ],
+        "variants": [
+          "mint",
+          "indigo",
+          "lavender",
+          "peach",
+          "inherit"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "Decorative; the adjacent label carries meaning.",
+        "tokenRoles": {
+          "tint.badge-mint-from": "gradient-start",
+          "tint.badge-mint-to": "gradient-end",
+          "tint.badge-mint-fg": "glyph",
+          "tint.badge-edge": "edge",
+          "size.badge-md": "size"
+        },
+        "sizes": [
+          "xs",
+          "sm",
+          "md",
+          "row",
+          "lg",
+          "empty",
+          "xl"
+        ]
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Icon Badge state options.",
+          "styleRefs": [
+            "primitive.icon-badge.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Icon Badge variant options.",
+          "styleRefs": [
+            "primitive.icon-badge.variant"
+          ],
+          "states": [
+            {
+              "id": "mint",
+              "name": "Mint",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "indigo",
+              "name": "Indigo",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "lavender",
+              "name": "Lavender",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "peach",
+              "name": "Peach",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "inherit",
+              "name": "Inherit",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "size",
+          "name": "Size States",
+          "description": "Icon Badge size options.",
+          "styleRefs": [
+            "primitive.icon-badge.size"
+          ],
+          "states": [
+            {
+              "id": "xs",
+              "name": "Xs",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "sm",
+              "name": "Sm",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "md",
+              "name": "Md",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "row",
+              "name": "Row",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "lg",
+              "name": "Lg",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "empty",
+              "name": "Empty",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "xl",
+              "name": "Xl",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/IconBadge.tsx",
+          "symbolName": "IconBadge",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "glass-circle",
+      "name": "Glass Circle",
+      "description": "Frosted circular control (@kore/ui GlassCircle) for header sync/ring actions and the Trends link.",
+      "tokenGroupIds": [
+        "color",
+        "size",
+        "shape"
+      ],
+      "styleRefs": [
+        "primitive.glass-circle"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Active = glyph in mint (busy sync, or ring synced before). The home header stacks a Label (tiny) under each circle as one 48×48 target."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/glass-circle.html",
+        "styles": [
+          "prototype/primitives/glass-circle.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "glyph"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default",
+          "active"
+        ],
+        "accessibilityIntent": "A button named by its aria label; the glyph is decorative.",
+        "tokenRoles": {
+          "color.circle-fill": "fill",
+          "color.border": "edge",
+          "color.slate": "glyph",
+          "hue.mint": "active-glyph",
+          "shape.shadow-sm": "depth"
+        },
+        "sizes": [
+          "sm",
+          "md"
+        ]
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Glass Circle state options.",
+          "styleRefs": [
+            "primitive.glass-circle.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "active",
+              "name": "Active",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "size",
+          "name": "Size States",
+          "description": "Glass Circle size options.",
+          "styleRefs": [
+            "primitive.glass-circle.size"
+          ],
+          "states": [
+            {
+              "id": "sm",
+              "name": "Sm",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "md",
+              "name": "Md",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/GlassCircle.tsx",
+          "symbolName": "GlassCircle",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "chevron",
+      "name": "Chevron",
+      "description": "Border-drawn chevron (@kore/ui Chevron) marking pressable cards and the back button.",
+      "tokenGroupIds": [
+        "color"
+      ],
+      "styleRefs": [
+        "primitive.chevron"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [],
+      "prototype": {
+        "source": "prototype/primitives/chevron.html",
+        "styles": [
+          "prototype/primitives/chevron.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "right",
+          "left"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "Decorative affordance only.",
+        "tokenRoles": {
+          "color.faint": "stroke",
+          "color.slate": "back-stroke"
+        },
+        "sizes": [
+          "sm",
+          "md",
+          "back"
+        ]
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Chevron state options.",
+          "styleRefs": [
+            "primitive.chevron.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Chevron variant options.",
+          "styleRefs": [
+            "primitive.chevron.variant"
+          ],
+          "states": [
+            {
+              "id": "right",
+              "name": "Right",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "left",
+              "name": "Left",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "size",
+          "name": "Size States",
+          "description": "Chevron size options.",
+          "styleRefs": [
+            "primitive.chevron.size"
+          ],
+          "states": [
+            {
+              "id": "sm",
+              "name": "Sm",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "md",
+              "name": "Md",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "back",
+              "name": "Back",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/Chevron.tsx",
+          "symbolName": "Chevron",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "score-ring",
+      "name": "Score Ring",
+      "description": "Gradient progress ring with a centered score (@kore/ui ScoreRing), drawn from -90° with a round cap over a neutral track.",
+      "tokenGroupIds": [
+        "hue",
+        "color",
+        "size",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.score-ring"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Set the arc with a --score custom property (0–100) on the use class; values under 2 clamp to 2 like ScoreRing.tsx (fraction min 0.02).",
+        "Sizes: hero 172/10 (home readiness), lg 170/10 (readiness screen), md 118/8 (activity), sm 92/8 (sleep and activity cards).",
+        "Empty state renders the neutral 0 the app shows before night data exists."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/score-ring.html",
+        "styles": [
+          "prototype/primitives/score-ring.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "center"
+        ],
+        "variants": [
+          "readiness",
+          "sleep",
+          "activity"
+        ],
+        "states": [
+          "default",
+          "empty"
+        ],
+        "accessibilityIntent": "An image of a score; the centered figure and label give the value in text.",
+        "tokenRoles": {
+          "hue.mint-light": "readiness-start",
+          "hue.mint-deep": "readiness-end",
+          "hue.indigo-light": "sleep-start",
+          "hue.indigo-deep": "sleep-end",
+          "hue.peach-light": "activity-start",
+          "hue.peach-deep": "activity-end",
+          "color.track": "track"
+        },
+        "sizes": [
+          "hero",
+          "lg",
+          "md",
+          "sm"
+        ]
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Score Ring state options.",
+          "styleRefs": [
+            "primitive.score-ring.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "empty",
+              "name": "Empty",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Score Ring variant options.",
+          "styleRefs": [
+            "primitive.score-ring.variant"
+          ],
+          "states": [
+            {
+              "id": "readiness",
+              "name": "Readiness",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "sleep",
+              "name": "Sleep",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "activity",
+              "name": "Activity",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "size",
+          "name": "Size States",
+          "description": "Score Ring size options.",
+          "styleRefs": [
+            "primitive.score-ring.size"
+          ],
+          "states": [
+            {
+              "id": "hero",
+              "name": "Hero",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "lg",
+              "name": "Lg",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "md",
+              "name": "Md",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "sm",
+              "name": "Sm",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/ScoreRing.tsx",
+          "symbolName": "ScoreRing",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "sparkline",
+      "name": "Sparkline",
+      "description": "Catmull-Rom smoothed line with optional gradient area, highlight dot, and axis labels (@kore/ui Sparkline).",
+      "tokenGroupIds": [
+        "hue",
+        "tint",
+        "color",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.sparkline"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Plot slot takes a 24-bit SVG whose viewBox equals the rendered chart size; paths come from scalePoints + the Catmull-Rom builder in packages/ui/src/charts/buildPath.ts (pad = strokeWidth + 3).",
+        "Area fills: <path class=\"sparkline__area\" fill=\"url(#spark-fill-mint|indigo|indigo-deep|peach)\"> referencing the gradients the primitive defines. dot-deep state recolors the min/max dot (dotColor)."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/sparkline.html",
+        "styles": [
+          "prototype/primitives/sparkline.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "plot",
+          "y-max",
+          "y-min",
+          "x-labels"
+        ],
+        "variants": [
+          "mint",
+          "indigo",
+          "indigo-deep",
+          "lavender",
+          "peach-light",
+          "peach-mid"
+        ],
+        "states": [
+          "default",
+          "dot-deep"
+        ],
+        "accessibilityIntent": "Decorative trend; the adjacent figure states the value.",
+        "tokenRoles": {
+          "hue.mint": "line",
+          "tint.fill-mint": "area-start",
+          "color.faint": "axis-labels",
+          "typography.micro": "axis-type"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Sparkline state options.",
+          "styleRefs": [
+            "primitive.sparkline.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "dot-deep",
+              "name": "Dot Deep",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Sparkline variant options.",
+          "styleRefs": [
+            "primitive.sparkline.variant"
+          ],
+          "states": [
+            {
+              "id": "mint",
+              "name": "Mint",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "indigo",
+              "name": "Indigo",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "indigo-deep",
+              "name": "Indigo Deep",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "lavender",
+              "name": "Lavender",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "peach-light",
+              "name": "Peach Light",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "peach-mid",
+              "name": "Peach Mid",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/Sparkline.tsx",
+          "symbolName": "Sparkline",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "bar-chart",
+      "name": "Bar Chart",
+      "description": "Rounded bar series with per-bar intensity color and axis labels (@kore/ui BarChart).",
+      "tokenGroupIds": [
+        "hue",
+        "color",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.bar-chart"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Bars: slot = width / count, bar width = slot × 0.55, min height 12%, corner radius = width / 2 (BarChart.tsx gapFraction 0.45, minBarFraction 0.12).",
+        "Activity colorFor: ≤0.18 empty track, >0.8 deep, >0.55 mid, >0.32 light, else pale."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/bar-chart.html",
+        "styles": [
+          "prototype/primitives/bar-chart.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "plot",
+          "x-labels"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "Decorative distribution; values are summarized in adjacent stats.",
+        "tokenRoles": {
+          "color.track-strong": "empty-bar",
+          "hue.peach-pale": "low",
+          "hue.peach-light": "moderate",
+          "hue.peach-mid": "high",
+          "hue.peach-deep": "peak"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Bar Chart state options.",
+          "styleRefs": [
+            "primitive.bar-chart.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/BarChart.tsx",
+          "symbolName": "BarChart",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "hypnogram",
+      "name": "Hypnogram",
+      "description": "Four-row sleep stage timeline with hour gridlines (@kore/ui Hypnogram).",
+      "tokenGroupIds": [
+        "hue",
+        "color"
+      ],
+      "styleRefs": [
+        "primitive.hypnogram"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Rows top→bottom: awake, REM, light, deep. y = level × (height − barHeight) / 3; bar min width 6; radius barHeight / 2; three gridlines at quarters."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/hypnogram.html",
+        "styles": [
+          "prototype/primitives/hypnogram.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "plot"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "Decorative; stage totals appear in the legend.",
+        "tokenRoles": {
+          "hue.stage-deep": "deep",
+          "hue.stage-rem": "rem",
+          "hue.stage-light": "light",
+          "hue.stage-awake": "awake",
+          "color.gridline": "gridlines"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Hypnogram state options.",
+          "styleRefs": [
+            "primitive.hypnogram.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/Hypnogram.tsx",
+          "symbolName": "Hypnogram",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "stage-bar",
+      "name": "Stage Bar",
+      "description": "Proportional sleep-stage bar with 2pt gaps (@kore/ui StageBar).",
+      "tokenGroupIds": [
+        "hue",
+        "shape"
+      ],
+      "styleRefs": [
+        "primitive.stage-bar"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Set --stage-deep/--stage-rem/--stage-light/--stage-awake to stage minutes on the use class (flex weights, order deep → REM → light → awake)."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/stage-bar.html",
+        "styles": [
+          "prototype/primitives/stage-bar.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "An image of proportions; the legend lists each stage duration.",
+        "tokenRoles": {
+          "hue.stage-deep": "deep",
+          "hue.stage-rem": "rem",
+          "hue.stage-light": "light",
+          "hue.stage-awake": "awake"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Stage Bar state options.",
+          "styleRefs": [
+            "primitive.stage-bar.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/StageBar.tsx",
+          "symbolName": "StageBar",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "heatmap-grid",
+      "name": "Heatmap Grid",
+      "description": "Seven-column readiness heatmap with weekday labels (@kore/ui HeatmapGrid).",
+      "tokenGroupIds": [
+        "hue",
+        "color",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.heatmap-grid"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Cell alpha = 0.15 + v × 0.75 over mint (99,184,168); set --heat-1…--heat-7 to normalize(readiness) values (floor 0.08) on the use class. The seeded dataset covers one week, so one row renders."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/heatmap-grid.html",
+        "styles": [
+          "prototype/primitives/heatmap-grid.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "days"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "week"
+        ],
+        "accessibilityIntent": "An image of relative readiness; averages appear in the stat tiles.",
+        "tokenRoles": {
+          "hue.mint": "cell",
+          "color.faint": "day-labels"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Heatmap Grid state options.",
+          "styleRefs": [
+            "primitive.heatmap-grid.state"
+          ],
+          "states": [
+            {
+              "id": "week",
+              "name": "Week",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/HeatmapGrid.tsx",
+          "symbolName": "HeatmapGrid",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "dot-trend",
+      "name": "Dot Trend",
+      "description": "Seven-dot temperature deviation trend over a dashed baseline (@kore/ui DotTrend).",
+      "tokenGroupIds": [
+        "color",
+        "hue"
+      ],
+      "styleRefs": [
+        "primitive.dot-trend"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Shown on the home Body Temp tile once a baseline-backed deviation exists (2+ recorded nights); dots use scalePoints with pad 6, r 3 (last r 3.5)."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/dot-trend.html",
+        "styles": [
+          "prototype/primitives/dot-trend.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "plot"
+        ],
+        "variants": [
+          "default"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "Decorative trend; the value precedes it.",
+        "tokenRoles": {
+          "color.ghost": "dot",
+          "hue.mint": "highlight",
+          "color.border-strong": "baseline"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Dot Trend state options.",
+          "styleRefs": [
+            "primitive.dot-trend.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/DotTrend.tsx",
+          "symbolName": "DotTrend",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "metric-value",
+      "name": "Metric Value",
+      "description": "Light-weight figure with a baseline-aligned unit (@kore/ui MetricValue).",
+      "tokenGroupIds": [
+        "color",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.metric-value"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "Hero = AnimatedNumber 44 + 13pt unit on metric detail and live HR cards."
+      ],
+      "prototype": {
+        "source": "prototype/primitives/metric-value.html",
+        "styles": [
+          "prototype/primitives/metric-value.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "value",
+          "unit"
+        ],
+        "variants": [
+          "default",
+          "compact",
+          "hero"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "Plain text figure and unit.",
+        "tokenRoles": {
+          "typography.figure": "figure",
+          "color.muted": "unit"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Metric Value state options.",
+          "styleRefs": [
+            "primitive.metric-value.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Metric Value variant options.",
+          "styleRefs": [
+            "primitive.metric-value.variant"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "compact",
+              "name": "Compact",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "hero",
+              "name": "Hero",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/Typo.tsx",
+          "symbolName": "MetricValue",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "stat-block",
+      "name": "Stat Block",
+      "description": "Figure over a small sentence-case label (@kore/ui StatBlock).",
+      "tokenGroupIds": [
+        "color",
+        "typography"
+      ],
+      "styleRefs": [
+        "primitive.stat-block"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [],
+      "prototype": {
+        "source": "prototype/primitives/stat-block.html",
+        "styles": [
+          "prototype/primitives/stat-block.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "value",
+          "label"
+        ],
+        "variants": [
+          "default",
+          "center"
+        ],
+        "states": [
+          "default"
+        ],
+        "accessibilityIntent": "Plain text figure and label.",
+        "tokenRoles": {
+          "color.foreground": "figure",
+          "color.faint": "label"
+        }
+      },
+      "stateSets": [
+        {
+          "id": "state",
+          "name": "State States",
+          "description": "Stat Block state options.",
+          "styleRefs": [
+            "primitive.stat-block.state"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        },
+        {
+          "id": "variant",
+          "name": "Variant States",
+          "description": "Stat Block variant options.",
+          "styleRefs": [
+            "primitive.stat-block.variant"
+          ],
+          "states": [
+            {
+              "id": "default",
+              "name": "Default",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            },
+            {
+              "id": "center",
+              "name": "Center",
+              "tokens": [],
+              "prototypeOnly": false,
+              "notes": [],
+              "implementationHints": []
+            }
+          ]
+        }
+      ],
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/Typo.tsx",
+          "symbolName": "StatBlock",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    }
+  ]
+}

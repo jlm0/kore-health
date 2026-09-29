@@ -1,0 +1,119 @@
+:where([data-blueprint-surface]) {
+  background-color: var(--app-color-surface);
+}
+
+:where([data-blueprint-surface] [data-blueprint-surface]) {
+  background-color: var(--app-color-surface-2);
+}
+
+:where([data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface]) {
+  background-color: var(--app-color-surface-3);
+}
+
+:where([data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface]) {
+  background-color: var(--app-color-surface-4);
+}
+
+:where([data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface]) {
+  background-color: var(--app-color-surface-5);
+}
+
+:where([data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface]) {
+  background-color: var(--app-color-surface-6);
+}
+
+[data-blueprint-primitive="list"] {
+  display: grid;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-lg);
+  color: var(--app-color-foreground);
+  font: var(--app-type-body);
+}
+
+.list__row {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-row);
+  padding: var(--app-space-2) var(--app-space-3);
+}
+
+.list__row + .list__row {
+  border-top: 1px solid var(--app-color-border);
+}
+
+.list__icon {
+  display: inline-flex;
+  width: var(--app-size-control-sm);
+  height: var(--app-size-control-sm);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--app-radius-md);
+  color: var(--app-color-accent);
+  background: var(--app-color-surface-muted);
+}
+
+.list__icon svg {
+  width: var(--app-size-icon-sm);
+  height: var(--app-size-icon-sm);
+}
+
+.list__icon--muted {
+  color: var(--app-color-muted);
+}
+
+.list__body {
+  display: grid;
+  min-width: 0;
+}
+
+.list__title {
+  overflow: hidden;
+  font: var(--app-type-body);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list__subtitle {
+  overflow: hidden;
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list__meta {
+  margin-left: auto;
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.list__chevron {
+  width: var(--app-size-icon-sm);
+  height: var(--app-size-icon-sm);
+  flex: none;
+  color: var(--app-color-muted);
+}
+
+.list__badge {
+  margin-left: auto;
+  padding: 2px var(--app-space-2);
+  border-radius: var(--app-radius-full);
+  color: var(--app-color-on-secondary);
+  background: var(--app-color-secondary);
+  font: var(--app-type-label);
+}
+
+[data-blueprint-primitive="list"][data-blueprint-state="plain"][data-blueprint-surface] {
+  border-color: transparent;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+[data-blueprint-primitive="list"][data-blueprint-state="plain"] .list__row {
+  padding-inline: 0;
+}

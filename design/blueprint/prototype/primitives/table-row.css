@@ -1,0 +1,45 @@
+[data-blueprint-primitive="table-row"] {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--app-size-control-lg);
+  border-bottom: 1px solid var(--app-color-border);
+  color: var(--app-color-foreground);
+  background-color: var(--app-color-surface);
+  font: var(--app-type-body);
+}
+
+.table-row__cell {
+  overflow: hidden;
+  padding: var(--app-space-2) var(--app-space-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-row__cell--primary {
+  font-weight: 500;
+}
+
+.table-row__cell--numeric {
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.table-row__status {
+  padding: 2px var(--app-space-2);
+  border-radius: var(--app-radius-full);
+  color: var(--app-color-on-secondary);
+  background: var(--app-color-secondary);
+  font: var(--app-type-label);
+}
+
+[data-blueprint-primitive="table-row"][data-blueprint-state="hover"],
+[data-blueprint-primitive="table-row"]:hover {
+  background-image: linear-gradient(var(--app-color-hover), var(--app-color-hover));
+}
+
+[data-blueprint-primitive="table-row"][data-blueprint-state="selected"] {
+  background-color: var(--app-color-surface-muted);
+  box-shadow: inset 2px 0 0 var(--app-color-primary);
+}

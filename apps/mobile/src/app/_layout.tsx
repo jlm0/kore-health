@@ -11,7 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
-import { hapticsAvailable } from '@kore/ui';
+import { hapticsAvailable, palette } from '@kore/ui';
 import { registerBackgroundSync } from '@/ring/background';
 import { syncRing } from '@/ring/sync';
 import { useHealthStore } from '@/store/health';
@@ -86,7 +86,7 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#F4F5F7' },
+          contentStyle: { backgroundColor: palette.porcelain },
         }}
       />
     </>

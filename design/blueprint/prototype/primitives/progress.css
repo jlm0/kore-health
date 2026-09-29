@@ -1,0 +1,363 @@
+[data-blueprint-primitive="progress"] {
+  display: grid;
+  gap: var(--app-space-2);
+  color: var(--app-color-foreground);
+  font: var(--app-type-label);
+}
+
+.progress__head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--app-space-3);
+}
+
+.progress__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress__value {
+  display: none;
+  color: var(--app-color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress__track {
+  position: relative;
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--app-radius-full);
+  background: var(--app-color-track);
+}
+
+.progress__bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 60%;
+  border-radius: inherit;
+  background: var(--app-color-primary);
+  transition: width var(--app-motion-state);
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-state="value"] .progress__value--value,
+[data-blueprint-primitive="progress"][data-blueprint-state="complete"] .progress__value--complete {
+  display: inline;
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-state="complete"] .progress__bar {
+  width: 100%;
+  background: var(--app-color-success);
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-state="indeterminate"] .progress__bar {
+  width: 35%;
+  animation: bp-progress-sweep 1400ms ease-in-out infinite;
+}
+
+@keyframes bp-progress-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress__bar {
+    transition: none;
+    animation: none;
+  }
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__head {
+  display: none;
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+  width: calc(var(--value, 0.6) * 100%);
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="readiness"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-mint-light), var(--app-hue-mint-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="activity"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-peach-light), var(--app-hue-peach-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="spo2"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-indigo-light), var(--app-hue-mint));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="ghost"] .progress__bar {
+  background: var(--app-color-ghost);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+    animation: progress-fill 1000ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__head {
+  display: none;
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+  width: calc(var(--value, 0.6) * 100%);
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="readiness"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-mint-light), var(--app-hue-mint-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="activity"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-peach-light), var(--app-hue-peach-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="spo2"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-indigo-light), var(--app-hue-mint));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="ghost"] .progress__bar {
+  background: var(--app-color-ghost);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+    animation: progress-fill 1000ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__head {
+  display: none;
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+  width: calc(var(--value, 0.6) * 100%);
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="readiness"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-mint-light), var(--app-hue-mint-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="activity"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-peach-light), var(--app-hue-peach-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="spo2"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-indigo-light), var(--app-hue-mint));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="ghost"] .progress__bar {
+  background: var(--app-color-ghost);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+    animation: progress-fill 1000ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__head {
+  display: none;
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+  width: calc(var(--value, 0.6) * 100%);
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="readiness"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-mint-light), var(--app-hue-mint-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="activity"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-peach-light), var(--app-hue-peach-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="spo2"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-indigo-light), var(--app-hue-mint));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="ghost"] .progress__bar {
+  background: var(--app-color-ghost);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+    animation: progress-fill 1000ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__head {
+  display: none;
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+  width: calc(var(--value, 0.6) * 100%);
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="readiness"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-mint-light), var(--app-hue-mint-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="activity"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-peach-light), var(--app-hue-peach-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="spo2"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-indigo-light), var(--app-hue-mint));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="ghost"] .progress__bar {
+  background: var(--app-color-ghost);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+    animation: progress-fill 1000ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__head {
+  display: none;
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+  width: calc(var(--value, 0.6) * 100%);
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="readiness"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-mint-light), var(--app-hue-mint-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="activity"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-peach-light), var(--app-hue-peach-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="spo2"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-indigo-light), var(--app-hue-mint));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="ghost"] .progress__bar {
+  background: var(--app-color-ghost);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+    animation: progress-fill 1000ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__head {
+  display: none;
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+  width: calc(var(--value, 0.6) * 100%);
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="readiness"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-mint-light), var(--app-hue-mint-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="activity"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-peach-light), var(--app-hue-peach-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="spo2"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-indigo-light), var(--app-hue-mint));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="ghost"] .progress__bar {
+  background: var(--app-color-ghost);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+    animation: progress-fill 1000ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__head {
+  display: none;
+}
+
+[data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+  width: calc(var(--value, 0.6) * 100%);
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="readiness"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-mint-light), var(--app-hue-mint-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="activity"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-peach-light), var(--app-hue-peach-deep));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="spo2"] .progress__bar {
+  background: linear-gradient(90deg, var(--app-hue-indigo-light), var(--app-hue-mint));
+}
+
+[data-blueprint-primitive="progress"][data-blueprint-variant="ghost"] .progress__bar {
+  background: var(--app-color-ghost);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-blueprint-primitive="progress"]:not([data-blueprint-variant="default"]) .progress__bar {
+    animation: progress-fill 1000ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+}

@@ -1,0 +1,43 @@
+[data-blueprint-primitive="skeleton"] {
+  display: grid;
+  gap: var(--app-space-2);
+}
+
+.skeleton__line,
+.skeleton__block {
+  display: block;
+  background: var(--app-color-border);
+  animation: bp-skeleton-pulse 1600ms ease-in-out infinite;
+}
+
+.skeleton__line {
+  height: 12px;
+  border-radius: var(--app-radius-sm);
+}
+
+.skeleton__line--short {
+  width: 60%;
+}
+
+.skeleton__block {
+  height: 56px;
+  border-radius: var(--app-radius-lg);
+}
+
+[data-blueprint-primitive="skeleton"][data-blueprint-state="line"] .skeleton__block,
+[data-blueprint-primitive="skeleton"][data-blueprint-state="block"] .skeleton__line {
+  display: none;
+}
+
+@keyframes bp-skeleton-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton__line,
+  .skeleton__block {
+    animation: none;
+  }
+}

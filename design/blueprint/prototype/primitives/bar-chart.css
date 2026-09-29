@@ -1,0 +1,60 @@
+[data-blueprint-primitive="bar-chart"] {
+  display: block;
+  margin: 0;
+}
+
+.bar-chart__plot,
+.bar-chart__plot > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bar-chart__bar {
+  fill: var(--app-color-track-strong);
+}
+
+.bar-chart__bar--pale { fill: var(--app-hue-peach-pale); }
+.bar-chart__bar--light { fill: var(--app-hue-peach-light); }
+.bar-chart__bar--mid { fill: var(--app-hue-peach-mid); }
+.bar-chart__bar--deep { fill: var(--app-hue-peach-deep); }
+
+.bar-chart__x:empty {
+  display: none;
+}
+
+.bar-chart__x,
+.bar-chart__x > * {
+  display: flex;
+  margin: 0;
+  justify-content: space-between;
+  color: var(--app-color-faint);
+  font: var(--app-type-micro);
+}
+
+.bar-chart__x {
+  margin-top: 6px;
+}
+
+.bar-chart__x > * {
+  flex: 1;
+}
+
+.bar-chart__x i {
+  font-style: normal;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bar-chart__plot > svg {
+    animation: bar-chart-reveal 900ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes bar-chart-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}

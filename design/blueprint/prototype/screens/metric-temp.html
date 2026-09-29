@@ -1,0 +1,30 @@
+<main class="k-screen metric metric-temp" data-blueprint-screen="metric-temp" data-blueprint-state="populated">
+  <blueprint-use kind="component" ref="aura-background" state="default"></blueprint-use>
+  <div class="k-content">
+    <blueprint-use kind="component" ref="screen-header" state="date" data-blueprint-section="header"><b slot="title">Body temp</b><em slot="meta">Sep 26</em></blueprint-use>
+
+    <section class="glass glass--brand glass--r28 glass--lavender metric-card metric-hero k-enter k-enter--1" data-blueprint-section="current" data-blueprint-surface>
+        <blueprint-use kind="component" ref="card-heading" state="status" class="icon-tint-lavender metric-status"><svg slot="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 12.98V5.02Q15 3.75 14.13 2.88Q13.27 2.02 12 2.02Q10.73 2.02 9.87 2.88Q9 3.75 9 5.02V12.98Q7.69 13.97 7.22 15.52Q6.75 17.06 7.27 18.59Q7.78 20.11 9.09 21.05Q10.41 21.98 12 21.98Q13.59 21.98 14.91 21.05Q16.22 20.11 16.73 18.59Q17.25 17.06 16.78 15.52Q16.31 13.97 15 12.98ZM12 3.98Q12.42 3.98 12.7 4.29Q12.98 4.59 12.98 5.02V8.02H11.02V5.02Q11.02 4.59 11.3 4.29Q11.58 3.98 12 3.98Z"/></svg><em slot="title">Current</em><em slot="status">Live</em></blueprint-use>
+        <blueprint-use kind="primitive" ref="metric-value" state="default" variant="hero"><b slot="value">95.5</b><small slot="unit">°F</small></blueprint-use>
+        <p class="metric-when">Sep 26 · 9:54 PM</p>
+        <p class="metric-note">Absolute skin temperature — your personal baseline builds over the first nights, then this switches to deviation.</p>
+        <div class="metric-chart"><blueprint-use kind="primitive" ref="sparkline" state="default" variant="mint"><svg slot="plot" viewBox="0 0 325 110" aria-hidden="true"><path class="sparkline__area" fill="url(#spark-fill-mint)" d="M5 20.4C7.6 22.9 15.5 32.4 20.8 35.8C26 39.2 31.3 38 36.5 40.9C41.8 43.7 47 53.7 52.3 52.9C57.5 52 62.8 41.5 68 35.8C73.3 30.1 78.5 17.5 83.8 18.7C89 19.8 94.3 43.5 99.5 42.6C104.8 41.8 110 19.8 115.3 13.5C120.5 7.3 125.8 -3.5 131 5C136.3 13.5 141.5 51.2 146.8 64.8C152 78.5 157.3 81.5 162.5 87.1C167.8 92.6 173 95.2 178.3 97.9C183.5 100.5 188.8 101.9 194 103C199.3 104.1 204.5 104.1 209.8 104.4C215 104.8 220.3 106 225.5 105C230.8 104 236 98.5 241.3 98.2C246.5 97.8 251.8 102.3 257 103C262.3 103.7 267.5 112.5 272.8 102.4C278 92.4 283.3 54.9 288.5 42.6C293.8 30.4 299 30.9 304.3 28.9C309.5 26.9 317.4 30.4 320 30.6L320 110L5 110Z"/><path class="sparkline__line" d="M5 20.4C7.6 22.9 15.5 32.4 20.8 35.8C26 39.2 31.3 38 36.5 40.9C41.8 43.7 47 53.7 52.3 52.9C57.5 52 62.8 41.5 68 35.8C73.3 30.1 78.5 17.5 83.8 18.7C89 19.8 94.3 43.5 99.5 42.6C104.8 41.8 110 19.8 115.3 13.5C120.5 7.3 125.8 -3.5 131 5C136.3 13.5 141.5 51.2 146.8 64.8C152 78.5 157.3 81.5 162.5 87.1C167.8 92.6 173 95.2 178.3 97.9C183.5 100.5 188.8 101.9 194 103C199.3 104.1 204.5 104.1 209.8 104.4C215 104.8 220.3 106 225.5 105C230.8 104 236 98.5 241.3 98.2C246.5 97.8 251.8 102.3 257 103C262.3 103.7 267.5 112.5 272.8 102.4C278 92.4 283.3 54.9 288.5 42.6C293.8 30.4 299 30.9 304.3 28.9C309.5 26.9 317.4 30.4 320 30.6"/><circle class="sparkline__dot" cx="320" cy="30.6" r="3.5"/></svg><span slot="y-max">95.8</span><span slot="y-min">94.7</span><p slot="x-labels"><i>12 AM</i><i>6 AM</i><i>12 PM</i><i>6 PM</i><i>12 AM</i></p></blueprint-use></div>
+        <blueprint-use kind="primitive" ref="segmented-control" state="first-selected" class="metric-range"></blueprint-use>
+    </section>
+
+    <section class="glass glass--r28 metric-card metric-trend k-enter k-enter--3" data-blueprint-section="trend" data-blueprint-surface>
+      <blueprint-use kind="component" ref="card-heading" state="plain" class="icon-tint-lavender"><svg slot="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.98 6 18.28 8.3 13.41 13.17 9.42 9.19 2.02 16.59 3.42 18 9.42 12 13.41 15.98 19.69 9.7 21.98 12V6Z"/></svg><em slot="title">30-day trend</em></blueprint-use>
+      <p class="k-body metric-trend__copy">Baseline builds over 2+ nights</p>
+    </section>
+
+    <section class="glass glass--r26 metric-card metric-about k-enter k-enter--5" data-blueprint-section="about" data-blueprint-surface>
+      <blueprint-use kind="primitive" ref="label" state="default"><span slot="text">About</span></blueprint-use>
+      <p class="metric-about__text">Skin temperature deviation compares each night to your personal baseline. Sustained rises can flag strain, illness or hormonal cycle phases.</p>
+      <blueprint-use kind="primitive" ref="badge" state="default" variant="neutral" size="about"><b slot="label">Baseline ± 0.5 °F</b></blueprint-use>
+      <div class="metric-units">
+        <blueprint-use kind="primitive" ref="label" state="default"><span slot="text">Units</span></blueprint-use>
+        <span class="metric-units__options"><blueprint-use kind="primitive" ref="badge" state="default" variant="ink" size="unit"><b slot="label">°F</b></blueprint-use><blueprint-use kind="primitive" ref="badge" state="default" variant="neutral" size="unit"><b slot="label">°C</b></blueprint-use></span>
+      </div>
+    </section>
+  </div>
+</main>

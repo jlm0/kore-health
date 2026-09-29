@@ -10,7 +10,7 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
-import { fontFamily, palette, surfaces } from '../tokens';
+import { palette, surfaces, type } from '../tokens';
 
 // --- range morph -------------------------------------------------------------
 // When the data changes (day ↔ week ↔ month), each bar animates from its old
@@ -214,11 +214,11 @@ export function BarChart({
         <Animated.View
           key={xLabels.join('|')}
           entering={FadeIn.duration(250)}
-          style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+          style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
           {xLabels.map((t, i) => (
             <Text
               key={i}
-              style={{ fontSize: 8, fontFamily: fontFamily.regular, color: palette.faint }}>
+              style={[type.micro, { color: palette.faint }]}>
               {t}
             </Text>
           ))}

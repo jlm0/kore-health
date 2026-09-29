@@ -1,0 +1,26 @@
+<main class="k-screen metric metric-hrv" data-blueprint-screen="metric-hrv" data-blueprint-state="populated">
+  <blueprint-use kind="component" ref="aura-background" state="default"></blueprint-use>
+  <div class="k-content">
+    <blueprint-use kind="component" ref="screen-header" state="date" data-blueprint-section="header"><b slot="title">HRV</b><em slot="meta">Sep 26</em></blueprint-use>
+
+    <section class="glass glass--brand glass--r28 glass--mint metric-card metric-hero k-enter k-enter--1" data-blueprint-section="current" data-blueprint-surface>
+        <blueprint-use kind="component" ref="card-heading" state="status" class="icon-tint-mint metric-status"><svg slot="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.5 3.98Q6 3.98 4.73 4.73Q3.47 5.48 2.74 6.75Q2.02 8.02 2.02 9.52Q2.02 10.17 2.2 11.02H6.28L7.55 7.64Q7.73 7.22 8.11 7.08Q8.48 6.94 8.86 7.08Q9.23 7.22 9.42 7.64L11.48 12.98L12.09 11.58Q12.19 11.34 12.45 11.18Q12.7 11.02 12.98 11.02H21.8Q21.98 10.17 21.98 9.52Q21.98 8.02 21.26 6.75Q20.53 5.48 19.27 4.73Q18 3.98 16.5 3.98Q15.14 3.98 13.95 4.62Q12.75 5.25 12 6.33Q11.25 5.25 10.05 4.62Q8.86 3.98 7.5 3.98ZM3 12.52Q2.58 12.52 2.3 12.8Q2.02 13.08 2.02 13.5Q2.02 13.92 2.3 14.2Q2.58 14.48 3 14.48H5.44L11.02 20.02Q11.58 20.48 11.79 20.6Q12 20.72 12.21 20.6Q12.42 20.48 12.98 20.02L18.56 14.48H21Q21.42 14.48 21.7 14.2Q21.98 13.92 21.98 13.5Q21.98 13.08 21.7 12.8Q21.42 12.52 21 12.52H13.41L12.47 14.81Q12.28 15.28 11.88 15.45Q11.48 15.61 11.11 15.42Q10.73 15.23 10.55 14.81L8.48 9.52L7.55 11.81Q7.41 12.14 7.17 12.33Q6.94 12.52 6.61 12.52Z"/></svg><em slot="title">Latest</em><em slot="status">Night</em></blueprint-use>
+        <blueprint-use kind="primitive" ref="metric-value" state="default" variant="hero"><b slot="value">35</b><small slot="unit">ms</small></blueprint-use>
+        <p class="metric-when">Sep 26 · 6:51 PM</p>
+        <div class="metric-chart"><blueprint-use kind="primitive" ref="sparkline" state="default" variant="mint"><svg slot="plot" viewBox="0 0 325 110" aria-hidden="true"><path class="sparkline__area" fill="url(#spark-fill-mint)" d="M5 95C13.8 84.1 40 42.3 57.5 29.7C75 17.1 92.5 23.6 110 19.5C127.5 15.4 145 2.2 162.5 5C180 7.8 197.5 25.1 215 36.2C232.5 47.4 250 60.3 267.5 71.8C285 83.3 311.3 99.5 320 105L320 110L5 110Z"/><path class="sparkline__line" d="M5 95C13.8 84.1 40 42.3 57.5 29.7C75 17.1 92.5 23.6 110 19.5C127.5 15.4 145 2.2 162.5 5C180 7.8 197.5 25.1 215 36.2C232.5 47.4 250 60.3 267.5 71.8C285 83.3 311.3 99.5 320 105"/><circle class="sparkline__dot" cx="320" cy="105" r="3.5"/></svg><span slot="y-max">45</span><span slot="y-min">33</span><p slot="x-labels"><i>12 AM</i><i>6 AM</i><i>12 PM</i><i>6 PM</i><i>12 AM</i></p></blueprint-use></div>
+        <blueprint-use kind="primitive" ref="segmented-control" state="first-selected" class="metric-range"></blueprint-use>
+    </section>
+
+    <section class="glass glass--r28 metric-card metric-trend k-enter k-enter--3" data-blueprint-section="trend" data-blueprint-surface>
+      <blueprint-use kind="component" ref="card-heading" state="avg" class="icon-tint-mint"><svg slot="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.98 6 18.28 8.3 13.41 13.17 9.42 9.19 2.02 16.59 3.42 18 9.42 12 13.41 15.98 19.69 9.7 21.98 12V6Z"/></svg><em slot="title">30-day trend</em><em slot="avg">39</em><em slot="avg-unit">avg</em></blueprint-use>
+      <blueprint-use kind="primitive" ref="sparkline" state="default" variant="mint"><svg slot="plot" viewBox="0 0 325 72" aria-hidden="true"><path class="sparkline__line" d="M5 67C13.8 67 40 67 57.5 67C75 67 92.5 67 110 67C127.5 67 145 77.3 162.5 67C180 56.7 197.5 5 215 5C232.5 5 250 56.7 267.5 67C285 77.3 311.3 67 320 67"/></svg></blueprint-use>
+      <div class="metric-stats"><blueprint-use kind="primitive" ref="stat-block" state="default" variant="center"><b slot="value">39</b><small slot="label">Low</small></blueprint-use><blueprint-use kind="primitive" ref="stat-block" state="default" variant="center"><b slot="value">39</b><small slot="label">Average</small></blueprint-use><blueprint-use kind="primitive" ref="stat-block" state="default" variant="center"><b slot="value">40</b><small slot="label">High</small></blueprint-use></div>
+    </section>
+
+    <section class="glass glass--r26 metric-card metric-about k-enter k-enter--5" data-blueprint-section="about" data-blueprint-surface>
+      <blueprint-use kind="primitive" ref="label" state="default"><span slot="text">About</span></blueprint-use>
+      <p class="metric-about__text">Heart rate variability reflects how well your nervous system is recovering. Higher overnight averages usually follow restful sleep and light training days.</p>
+      <blueprint-use kind="primitive" ref="badge" state="default" variant="neutral" size="about"><b slot="label">Typical range 40–80 ms</b></blueprint-use>
+    </section>
+  </div>
+</main>

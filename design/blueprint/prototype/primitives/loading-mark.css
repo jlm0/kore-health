@@ -1,0 +1,157 @@
+[data-blueprint-primitive="loading-mark"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  color: var(--app-color-primary);
+}
+
+.loading-mark__arc {
+  display: block;
+  width: var(--app-size-icon-md);
+  height: var(--app-size-icon-md);
+  animation: bp-loading-mark-spin 880ms linear infinite;
+}
+
+.loading-mark__track,
+.loading-mark__sweep {
+  fill: none;
+  stroke-width: 2.4;
+}
+
+.loading-mark__track {
+  stroke: var(--app-color-border);
+}
+
+.loading-mark__sweep {
+  stroke: currentColor;
+  stroke-dasharray: 24 33;
+  stroke-linecap: round;
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="surface"] {
+  padding: var(--app-space-2);
+  border-radius: var(--app-radius-full);
+  color: var(--app-color-on-primary);
+  background: var(--app-color-primary);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="surface"] .loading-mark__track {
+  stroke: transparent;
+}
+
+@keyframes bp-loading-mark-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-mark__arc {
+    animation: none;
+  }
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] {
+  color: var(--app-hue-mint-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] {
+  color: var(--app-hue-indigo-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] .loading-mark__track,
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] .loading-mark__track {
+  stroke: var(--app-color-track);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] {
+  color: var(--app-hue-mint-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] {
+  color: var(--app-hue-indigo-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] .loading-mark__track,
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] .loading-mark__track {
+  stroke: var(--app-color-track);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] {
+  color: var(--app-hue-mint-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] {
+  color: var(--app-hue-indigo-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] .loading-mark__track,
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] .loading-mark__track {
+  stroke: var(--app-color-track);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] {
+  color: var(--app-hue-mint-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] {
+  color: var(--app-hue-indigo-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] .loading-mark__track,
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] .loading-mark__track {
+  stroke: var(--app-color-track);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] {
+  color: var(--app-hue-mint-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] {
+  color: var(--app-hue-indigo-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] .loading-mark__track,
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] .loading-mark__track {
+  stroke: var(--app-color-track);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] {
+  color: var(--app-hue-mint-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] {
+  color: var(--app-hue-indigo-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] .loading-mark__track,
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] .loading-mark__track {
+  stroke: var(--app-color-track);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] {
+  color: var(--app-hue-mint-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] {
+  color: var(--app-hue-indigo-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] .loading-mark__track,
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] .loading-mark__track {
+  stroke: var(--app-color-track);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] {
+  color: var(--app-hue-mint-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] {
+  color: var(--app-hue-indigo-deep);
+}
+
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="mint"] .loading-mark__track,
+[data-blueprint-primitive="loading-mark"][data-blueprint-state="indigo"] .loading-mark__track {
+  stroke: var(--app-color-track);
+}

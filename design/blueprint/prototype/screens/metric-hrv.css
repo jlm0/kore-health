@@ -1,0 +1,7 @@
+.metric-hrv .metric-status {
+  --card-heading-dot: var(--app-hue-mint);
+}
+
+.metric-hrv .metric-trend__copy {
+  margin-top: var(--app-space-1);
+}

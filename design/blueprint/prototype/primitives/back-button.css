@@ -1,0 +1,44 @@
+[data-blueprint-primitive="back-button"] {
+  display: inline-flex;
+  width: var(--app-size-control-sm);
+  height: var(--app-size-control-sm);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--app-radius-full);
+  color: var(--app-color-slate);
+  background: var(--app-color-circle-fill);
+  box-shadow: inset 0 0 0 1px var(--app-color-border), var(--app-shadow-sm);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+}
+
+.back-button__chevron {
+  display: block;
+  width: 9px;
+  height: 9px;
+  margin-left: 3px;
+  box-sizing: border-box;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(225deg);
+}
+
+[data-blueprint-primitive="back-button"]:focus-visible {
+  outline: 2px solid var(--app-color-focus-ring);
+  outline-offset: 2px;
+}
+
+[data-blueprint-primitive="back-button"][data-blueprint-state="sm"] {
+  width: 28px;
+  height: 28px;
+}
+
+[data-blueprint-primitive="back-button"][data-blueprint-state="disabled"] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}

@@ -1,0 +1,131 @@
+[data-blueprint-primitive="textarea"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: var(--app-space-2);
+  color: var(--app-color-foreground);
+  font: var(--app-type-body);
+}
+
+.textarea__label {
+  font: var(--app-type-label);
+}
+
+.textarea__control {
+  display: grid;
+  box-sizing: border-box;
+  border: 1px solid var(--app-color-border-strong);
+  border-radius: var(--app-radius-md);
+  background: var(--app-color-surface);
+  transition:
+    border-color var(--app-motion-state),
+    box-shadow var(--app-motion-state);
+}
+
+.textarea__field,
+.textarea__placeholder,
+.textarea__value {
+  grid-area: 1 / 1;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: var(--app-space-2) var(--app-space-3);
+  overflow-wrap: anywhere;
+}
+
+.textarea__field {
+  align-self: stretch;
+  width: 100%;
+  min-height: 88px;
+  margin: 0;
+  border: 0;
+  outline: none;
+  color: transparent;
+  caret-color: transparent;
+  background: transparent;
+  font: var(--app-type-body);
+  resize: vertical;
+}
+
+.textarea__placeholder,
+.textarea__value {
+  align-self: start;
+  color: var(--app-color-muted);
+  pointer-events: none;
+}
+
+.textarea__value {
+  color: var(--app-color-foreground);
+  opacity: 0;
+}
+
+.textarea__caret {
+  display: inline-block;
+  width: 1px;
+  height: 1.1em;
+  margin-left: 1px;
+  background: var(--app-color-foreground);
+  opacity: 0;
+  vertical-align: text-bottom;
+}
+
+.textarea__hint {
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+}
+
+[data-blueprint-primitive="textarea"][data-blueprint-state="value"] .textarea__placeholder,
+[data-blueprint-primitive="textarea"][data-blueprint-state="focused"] .textarea__placeholder,
+[data-blueprint-primitive="textarea"][data-blueprint-state="invalid"] .textarea__placeholder {
+  opacity: 0;
+}
+
+[data-blueprint-primitive="textarea"][data-blueprint-state="value"] .textarea__value,
+[data-blueprint-primitive="textarea"][data-blueprint-state="focused"] .textarea__value,
+[data-blueprint-primitive="textarea"][data-blueprint-state="invalid"] .textarea__value {
+  opacity: 1;
+}
+
+[data-blueprint-primitive="textarea"][data-blueprint-state="focused"] .textarea__control,
+[data-blueprint-primitive="textarea"] .textarea__control:focus-within {
+  border-color: var(--app-color-focus-ring);
+  box-shadow: 0 0 0 1px var(--app-color-focus-ring);
+}
+
+[data-blueprint-primitive="textarea"][data-blueprint-state="focused"] .textarea__caret {
+  opacity: 1;
+  animation: bp-textarea-caret 1.1s steps(1) infinite;
+}
+
+[data-blueprint-primitive="textarea"][data-blueprint-state="invalid"] .textarea__control {
+  border-color: var(--app-color-destructive);
+  box-shadow: 0 0 0 1px var(--app-color-destructive);
+}
+
+[data-blueprint-primitive="textarea"][data-blueprint-state="invalid"] .textarea__label,
+[data-blueprint-primitive="textarea"][data-blueprint-state="invalid"] .textarea__hint {
+  color: var(--app-color-destructive);
+}
+
+[data-blueprint-primitive="textarea"][data-blueprint-state="disabled"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@keyframes bp-textarea-caret {
+  0%,
+  54% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .textarea__control,
+  .textarea__caret {
+    transition: none;
+    animation: none;
+  }
+}

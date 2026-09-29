@@ -16,8 +16,9 @@ export function Screen({ aura, children, scroll = true, gap = spacing.cardGap, c
   const insets = useSafeAreaInsets();
 
   const padding = {
-    paddingTop: insets.top + 12,
-    paddingBottom: insets.bottom + 24,
+    flexGrow: 1,
+    paddingTop: insets.top + spacing.sm,
+    paddingBottom: insets.bottom + spacing.section,
     paddingHorizontal: spacing.screenX,
     gap,
   };

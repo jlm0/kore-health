@@ -1,38 +1,36 @@
-import {
-  fontFamily,
-  GlassCard,
-  IconBadge,
-  Label,
-  palette,
-  type IconBadgeName,
-  type IconTint,
-} from '@kore/ui';
+import { GlassCard, Illustration, Txt, type CardTint, type IllustrationName } from '@kore/ui';
 import React from 'react';
-import { Text } from 'react-native';
+import { View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 interface EmptyDataCardProps {
-  icon: IconBadgeName;
-  tint: IconTint;
+  art: IllustrationName;
+  tint: CardTint;
   title: string;
   message: string;
+  children?: React.ReactNode;
 }
 
-/** Graceful empty state for screens before the first ring sync. */
-export function EmptyDataCard({ icon, tint, title, message }: EmptyDataCardProps) {
+/** Full-height, illustrated empty state for a route before its data exists. */
+export function EmptyDataCard({ art, tint, title, message, children }: EmptyDataCardProps) {
   return (
-    <GlassCard radius={28} padding={24} tint={tint} contentStyle={{ alignItems: 'center', gap: 10 }}>
-      <IconBadge name={icon} tint={tint} size={40} />
-      <Label size={9} em={0.2}>{title}</Label>
-      <Text
-        style={{
-          fontSize: 12,
-          fontFamily: fontFamily.regular,
-          color: palette.slate,
-          textAlign: 'center',
-          lineHeight: 18,
-        }}>
-        {message}
-      </Text>
-    </GlassCard>
+    <Animated.View entering={FadeInDown.delay(40).duration(500)} style={{ flex: 1, minHeight: 420 }}>
+      <GlassCard
+        tint={tint}
+        padding={{ horizontal: 24, vertical: 32 }}
+        style={{ flex: 1 }}
+        contentStyle={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 24 }}>
+        <Illustration name={art} />
+        <View style={{ maxWidth: 280, gap: 8 }}>
+          <Txt role="title" align="center" style={{ fontSize: 22, lineHeight: 28 }}>
+            {title}
+          </Txt>
+          <Txt role="body" align="center">
+            {message}
+          </Txt>
+        </View>
+        {children}
+      </GlassCard>
+    </Animated.View>
   );
 }

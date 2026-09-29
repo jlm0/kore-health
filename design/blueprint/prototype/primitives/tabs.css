@@ -1,0 +1,66 @@
+[data-blueprint-primitive="tabs"] {
+  display: flex;
+  align-items: stretch;
+  gap: var(--app-space-1);
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--app-color-border);
+  font: var(--app-type-body);
+}
+
+.tabs__tab {
+  position: relative;
+  box-sizing: border-box;
+  padding: var(--app-space-2) var(--app-space-3);
+  border: 0;
+  border-radius: var(--app-radius-md) var(--app-radius-md) 0 0;
+  color: var(--app-color-muted);
+  background: transparent;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--app-motion-state);
+}
+
+.tabs__tab::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: transparent;
+  transition: background-color var(--app-motion-state);
+}
+
+.tabs__tab:hover {
+  color: var(--app-color-foreground);
+}
+
+.tabs__tab:focus-visible {
+  outline: 2px solid var(--app-color-focus-ring);
+  outline-offset: -2px;
+}
+
+[data-blueprint-primitive="tabs"][data-blueprint-state="first-selected"] .tabs__tab:nth-child(1),
+[data-blueprint-primitive="tabs"][data-blueprint-state="second-selected"] .tabs__tab:nth-child(2),
+[data-blueprint-primitive="tabs"][data-blueprint-state="disabled"] .tabs__tab:nth-child(1) {
+  color: var(--app-color-foreground);
+}
+
+[data-blueprint-primitive="tabs"][data-blueprint-state="first-selected"] .tabs__tab:nth-child(1)::after,
+[data-blueprint-primitive="tabs"][data-blueprint-state="second-selected"] .tabs__tab:nth-child(2)::after,
+[data-blueprint-primitive="tabs"][data-blueprint-state="disabled"] .tabs__tab:nth-child(1)::after {
+  background: var(--app-color-primary);
+}
+
+[data-blueprint-primitive="tabs"][data-blueprint-state="disabled"] .tabs__tab:nth-child(2) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabs__tab,
+  .tabs__tab::after {
+    transition: none;
+  }
+}

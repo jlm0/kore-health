@@ -1,0 +1,67 @@
+[data-blueprint-primitive="alert-dialog"] {
+  display: grid;
+  gap: var(--app-space-2);
+  box-sizing: border-box;
+  padding: var(--app-space-5);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-xl);
+  color: var(--app-color-foreground);
+  background: var(--app-color-surface-raised);
+  box-shadow: var(--app-shadow-lg);
+  font: var(--app-type-body);
+}
+
+.alert-dialog__title {
+  margin: 0;
+  font: var(--app-type-heading);
+}
+
+.alert-dialog__message {
+  margin: 0;
+  color: var(--app-color-muted);
+  font: var(--app-type-body);
+}
+
+.alert-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--app-space-2);
+  margin-top: var(--app-space-3);
+}
+
+.alert-dialog__action {
+  min-height: var(--app-size-control-sm);
+  margin: 0;
+  padding: 0 var(--app-space-3);
+  border: 1px solid var(--app-color-border-strong);
+  border-radius: var(--app-radius-md);
+  color: var(--app-color-foreground);
+  background-color: var(--app-color-surface);
+  font: var(--app-type-body);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.alert-dialog__action--confirm {
+  border-color: transparent;
+  color: var(--app-color-on-primary);
+  background-color: var(--app-color-primary);
+}
+
+[data-blueprint-primitive="alert-dialog"][data-blueprint-state="destructive"] .alert-dialog__action--confirm {
+  color: var(--app-color-on-destructive);
+  background-color: var(--app-color-destructive);
+}
+
+.alert-dialog__action:hover {
+  background-image: linear-gradient(var(--app-color-hover), var(--app-color-hover));
+}
+
+.alert-dialog__action:active {
+  background-image: linear-gradient(var(--app-color-pressed), var(--app-color-pressed));
+}
+
+.alert-dialog__action:focus-visible {
+  outline: 2px solid var(--app-color-focus-ring);
+  outline-offset: 2px;
+}

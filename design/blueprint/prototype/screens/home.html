@@ -1,0 +1,106 @@
+<main class="k-screen home" data-blueprint-screen="home" data-blueprint-state="populated">
+  <blueprint-use kind="component" ref="aura-background" state="default"></blueprint-use>
+  <div class="k-content k-content--grid">
+    <header class="home-header" data-blueprint-section="header">
+      <div class="home-header__bar">
+        <p class="home-header__status home-header__status--synced" aria-label="Ring status: Synced just now"><i class="k-dot home-header__dot"></i><blueprint-use kind="primitive" ref="label" state="default" variant="status"><span slot="text">Synced just now</span></blueprint-use></p>
+        <p class="home-header__status home-header__status--connect" aria-label="Ring status: Not connected"><i class="k-dot home-header__dot"></i><blueprint-use kind="primitive" ref="label" state="default" variant="status"><span slot="text">Not connected</span></blueprint-use></p>
+        <div class="home-header__actions">
+          <span class="home-header__action" aria-label="Sync now">
+            <blueprint-use kind="primitive" ref="glass-circle" state="default" size="sm"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 18Q10.36 18 8.98 17.2Q7.59 16.41 6.8 15.02Q6 13.64 6 12Q6 10.5 6.7 9.19L5.25 7.73Q3.98 9.7 3.98 12Q3.98 14.16 5.06 16.01Q6.14 17.86 7.99 18.94Q9.84 20.02 12 20.02V23.02L15.98 18.98L12 15ZM12 3.98V0.98L8.02 5.02L12 9V6Q13.64 6 15.02 6.8Q16.41 7.59 17.2 8.98Q18 10.36 18 12Q18 13.5 17.3 14.81L18.75 16.27Q20.02 14.3 20.02 12Q20.02 9.84 18.94 7.99Q17.86 6.14 16.01 5.06Q14.16 3.98 12 3.98Z"/></svg></span></blueprint-use>
+          </span>
+          <span class="home-header__action" aria-label="Manage ring">
+            <blueprint-use kind="primitive" ref="glass-circle" state="active" size="sm" class="home-header__ring"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.98 9.98 17.02 12 18.98 14.02 21 12ZM14.86 16.31 12.98 18.19V14.39ZM12.98 5.81 14.86 7.69 12.98 9.56ZM17.72 7.69 12 2.02H11.02V9.56L6.42 5.02L5.02 6.42L10.59 12L5.02 17.58L6.42 18.98L11.02 14.39V21.98H12L17.72 16.31L13.41 12ZM6.98 12 5.02 9.98 3 12 5.02 14.02Z"/></svg></span></blueprint-use>
+          </span>
+        </div>
+      </div>
+      <blueprint-use kind="primitive" ref="label" state="default" class="home-header__date"><span slot="text">Saturday, Sep 26</span></blueprint-use>
+      <h1 class="home-header__greeting home-header__greeting--populated">Good evening, <strong>readiness is good</strong></h1>
+      <h1 class="home-header__greeting home-header__greeting--empty">Good evening, <strong>let’s connect your ring</strong></h1>
+    </header>
+
+    <section class="glass glass--brand glass--r28 glass--mint home-connect k-enter k-enter--1" data-blueprint-section="connect" data-blueprint-surface>
+      <svg class="k-art" viewBox="0 0 280 200" role="img" aria-label="A ring sending a signal"><circle class="a-veil" cx="140" cy="100" r="90"/><g class="a-float"><circle class="s-ink" stroke-width="16" cx="140" cy="100" r="40"/><path class="s-white" stroke-width="3" d="M114 78A34 34 0 0 1 146 67"/></g><path class="s-white" stroke-width="5" d="M198 74A40 40 0 0 1 198 126"/><path class="s-white" stroke-width="5" d="M214 58A62 62 0 0 1 214 142"/><path class="s-white" stroke-width="5" d="M82 74A40 40 0 0 0 82 126"/><path class="s-white" stroke-width="5" d="M66 58A62 62 0 0 0 66 142"/></svg>
+      <div class="home-connect__copy">
+        <h2 class="home-connect__title">Three quick steps to pair</h2>
+        <p class="k-body k-body--center">Kore talks to your Oura ring directly over Bluetooth. We’ll help you free it from the Oura app and find it nearby.</p>
+      </div>
+      <blueprint-use kind="primitive" ref="button" state="normal" variant="primary" size="lg" class="home-connect__action"><b slot="label">Set up my ring</b></blueprint-use>
+    </section>
+
+    <a class="glass glass--brand glass--r28 glass--mint glass--pressable home-readiness k-enter k-enter--1" href="/readiness" data-blueprint-section="readiness" data-blueprint-surface>
+      <blueprint-use kind="primitive" ref="icon-badge" state="default" variant="mint" size="md" class="home-readiness__badge"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.02 15H6L12.98 0.98V9H18L11.02 23.02Z"/></svg></span></blueprint-use>
+      <blueprint-use kind="primitive" ref="score-ring" state="default" variant="readiness" size="hero" class="home-readiness__ring"><span slot="center"><b>71</b><small>Readiness</small></span></blueprint-use>
+      <blueprint-use kind="primitive" ref="badge" state="default" variant="mint" size="status" class="home-readiness__status"><b slot="label">Good</b></blueprint-use>
+      <p class="k-body k-body--center home-readiness__insight">HRV is a little under your 39&nbsp;ms average. A steady day will help you recover.</p>
+      <blueprint-use kind="primitive" ref="chevron" state="default" class="glass__chevron"></blueprint-use>
+    </a>
+
+    <div class="k-row home-scores k-enter k-enter--2" data-blueprint-section="scores">
+      <a class="glass glass--brand glass--r26 glass--indigo glass--pressable home-score" href="/sleep" data-blueprint-surface>
+        <blueprint-use kind="primitive" ref="score-ring" state="default" variant="sleep" size="sm" class="home-score__ring home-score__ring--sleep"><span slot="center"><b>87</b></span></blueprint-use>
+        <span class="home-score__label"><blueprint-use kind="primitive" ref="icon-badge" state="default" variant="indigo" size="xs"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.02 12H17.02V9.98L20.39 6H17.02V3.98H23.02V6L19.64 9.98H23.02ZM15 15.98H9V14.02L12.38 9.98H9V8.02H15V9.98L11.62 14.02H15ZM6.98 20.02H0.98V18L4.41 14.02H0.98V12H6.98V14.02L3.61 18H6.98Z"/></svg></span></blueprint-use><blueprint-use kind="primitive" ref="label" state="default" variant="wide"><span slot="text">Sleep</span></blueprint-use></span>
+        <span class="k-caption">6h 21m asleep</span>
+        <blueprint-use kind="primitive" ref="chevron" state="default" class="glass__chevron home-score__chevron"></blueprint-use>
+      </a>
+      <a class="glass glass--brand glass--r26 glass--peach glass--pressable home-score" href="/activity" data-blueprint-surface>
+        <blueprint-use kind="primitive" ref="score-ring" state="default" variant="activity" size="sm" class="home-score__ring home-score__ring--activity"><span slot="center"><b>21</b></span></blueprint-use>
+        <span class="home-score__label"><blueprint-use kind="primitive" ref="icon-badge" state="default" variant="peach" size="xs"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.67 11.2Q17.48 10.97 17.02 10.5L16.88 10.36Q16.59 10.12 15.94 9.66Q15.19 9.05 14.81 8.72Q13.69 7.64 13.45 6.02Q13.22 4.41 13.97 3Q12.75 3.28 11.44 4.31Q9.52 5.91 8.84 8.39Q8.16 10.88 9.05 13.22Q9.14 13.41 9.14 13.55Q9.14 13.92 8.79 14.06Q8.44 14.2 8.16 13.92Q8.06 13.88 8.02 13.78Q7.17 12.7 7.03 11.3Q6.89 9.89 7.45 8.62Q6.23 9.66 5.58 11.25Q4.92 12.84 5.02 14.48Q5.11 15.47 5.3 15.98Q5.48 16.78 6 17.72Q6.8 18.98 8.13 19.85Q9.47 20.72 10.97 20.91Q12.66 21.14 14.2 20.77Q15.84 20.39 17.02 19.31Q18.42 18.05 18.84 16.24Q19.27 14.44 18.56 12.7L18.42 12.47Q18.23 12 17.67 11.2ZM14.48 17.48Q13.97 17.95 13.41 18.09Q12.61 18.38 11.77 18.09Q11.06 17.86 10.5 17.3Q11.34 17.06 11.88 16.5Q12.42 15.94 12.61 15.23Q12.75 14.67 12.47 13.64L12.33 12.98Q12.14 11.86 12.52 10.92Q12.84 11.67 13.12 12Q13.41 12.33 14.02 12.87Q14.62 13.41 14.86 13.73Q15.23 14.2 15.38 14.81Q15.42 15 15.42 15.23Q15.47 15.84 15.21 16.48Q14.95 17.11 14.48 17.48Z"/></svg></span></blueprint-use><blueprint-use kind="primitive" ref="label" state="default" variant="wide"><span slot="text">Activity</span></blueprint-use></span>
+        <span class="k-caption">101 of 500 cal</span>
+        <blueprint-use kind="primitive" ref="chevron" state="default" class="glass__chevron home-score__chevron"></blueprint-use>
+      </a>
+    </div>
+
+    <section class="glass glass--r28 home-vitals k-enter k-enter--4" data-blueprint-section="vitals" data-blueprint-surface>
+      <header class="home-vitals__head">
+        <blueprint-use kind="primitive" ref="label" state="default" variant="wide"><span slot="text">Vitals</span></blueprint-use>
+        <span class="k-caption">From last night</span>
+      </header>
+      <a class="home-vital" href="/metric/hrv">
+        <blueprint-use kind="primitive" ref="icon-badge" state="default" variant="mint" size="sm"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.5 3.98Q6 3.98 4.73 4.73Q3.47 5.48 2.74 6.75Q2.02 8.02 2.02 9.52Q2.02 10.17 2.2 11.02H6.28L7.55 7.64Q7.73 7.22 8.11 7.08Q8.48 6.94 8.86 7.08Q9.23 7.22 9.42 7.64L11.48 12.98L12.09 11.58Q12.19 11.34 12.45 11.18Q12.7 11.02 12.98 11.02H21.8Q21.98 10.17 21.98 9.52Q21.98 8.02 21.26 6.75Q20.53 5.48 19.27 4.73Q18 3.98 16.5 3.98Q15.14 3.98 13.95 4.62Q12.75 5.25 12 6.33Q11.25 5.25 10.05 4.62Q8.86 3.98 7.5 3.98ZM3 12.52Q2.58 12.52 2.3 12.8Q2.02 13.08 2.02 13.5Q2.02 13.92 2.3 14.2Q2.58 14.48 3 14.48H5.44L11.02 20.02Q11.58 20.48 11.79 20.6Q12 20.72 12.21 20.6Q12.42 20.48 12.98 20.02L18.56 14.48H21Q21.42 14.48 21.7 14.2Q21.98 13.92 21.98 13.5Q21.98 13.08 21.7 12.8Q21.42 12.52 21 12.52H13.41L12.47 14.81Q12.28 15.28 11.88 15.45Q11.48 15.61 11.11 15.42Q10.73 15.23 10.55 14.81L8.48 9.52L7.55 11.81Q7.41 12.14 7.17 12.33Q6.94 12.52 6.61 12.52Z"/></svg></span></blueprint-use>
+        <span class="home-vital__name">
+          <blueprint-use kind="primitive" ref="label" state="default" variant="wide"><span slot="text">HRV</span></blueprint-use>
+          <span class="k-micro">3h ago</span>
+        </span>
+        <blueprint-use kind="primitive" ref="metric-value" state="default" variant="compact" class="home-vital__value"><b slot="value">35</b><small slot="unit">ms</small></blueprint-use>
+        <blueprint-use kind="primitive" ref="chevron" state="default" size="sm"></blueprint-use>
+      </a>
+      <a class="home-vital" href="/metric/rhr">
+        <blueprint-use kind="primitive" ref="icon-badge" state="default" variant="indigo" size="sm"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.33 10.55 20.02Q7.31 17.11 6.05 15.8Q4.03 13.73 3.09 12.14Q2.02 10.31 2.02 8.48Q2.02 6.98 2.74 5.72Q3.47 4.45 4.73 3.73Q6 3 7.5 3Q8.81 3 9.98 3.56Q11.16 4.12 12 5.06Q12.84 4.12 14.02 3.56Q15.19 3 16.5 3Q18 3 19.27 3.73Q20.53 4.45 21.26 5.72Q21.98 6.98 21.98 8.48Q21.98 10.31 20.91 12.14Q19.97 13.73 17.95 15.8Q16.69 17.11 13.45 20.02Z"/></svg></span></blueprint-use>
+        <span class="home-vital__name">
+          <blueprint-use kind="primitive" ref="label" state="default" variant="wide"><span slot="text">Resting heart rate</span></blueprint-use>
+          <span class="k-micro">3h ago</span>
+        </span>
+        <blueprint-use kind="primitive" ref="metric-value" state="default" variant="compact" class="home-vital__value"><b slot="value">55</b><small slot="unit">bpm</small></blueprint-use>
+        <blueprint-use kind="primitive" ref="chevron" state="default" size="sm"></blueprint-use>
+      </a>
+      <a class="home-vital" href="/metric/temp">
+        <blueprint-use kind="primitive" ref="icon-badge" state="default" variant="lavender" size="sm"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 12.98V5.02Q15 3.75 14.13 2.88Q13.27 2.02 12 2.02Q10.73 2.02 9.87 2.88Q9 3.75 9 5.02V12.98Q7.69 13.97 7.22 15.52Q6.75 17.06 7.27 18.59Q7.78 20.11 9.09 21.05Q10.41 21.98 12 21.98Q13.59 21.98 14.91 21.05Q16.22 20.11 16.73 18.59Q17.25 17.06 16.78 15.52Q16.31 13.97 15 12.98ZM12 3.98Q12.42 3.98 12.7 4.29Q12.98 4.59 12.98 5.02V8.02H11.02V5.02Q11.02 4.59 11.3 4.29Q11.58 3.98 12 3.98Z"/></svg></span></blueprint-use>
+        <span class="home-vital__name">
+          <blueprint-use kind="primitive" ref="label" state="default" variant="wide"><span slot="text">Body temperature</span></blueprint-use>
+          <span class="k-micro">Baseline after 2 nights</span>
+        </span>
+        <blueprint-use kind="primitive" ref="metric-value" state="default" variant="compact" class="home-vital__value"><b slot="value">95.5</b><small slot="unit">°F</small></blueprint-use>
+        <blueprint-use kind="primitive" ref="chevron" state="default" size="sm"></blueprint-use>
+      </a>
+      <a class="home-vital" href="/metric/spo2">
+        <blueprint-use kind="primitive" ref="icon-badge" state="default" variant="peach" size="sm"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.47 3.09Q15.14 2.91 14.72 3.05Q14.3 3.19 14.11 3.56Q14.02 3.75 14.02 3.98V6.61L13.31 5.86Q12.98 5.58 12.98 5.2V0.98H11.02V5.16Q11.02 5.58 10.69 5.86L9.98 6.61V3.98Q9.98 3.56 9.7 3.28Q9.42 3 9 3Q8.77 3 8.53 3.09Q5.62 4.55 3.82 8.02Q2.02 11.48 2.02 15.75Q2.02 18.66 3 21.33Q3.14 21.7 3.52 21.89Q3.89 22.08 4.31 21.94L9.52 19.08Q9.98 18.8 9.98 18.19V9.42L11.3 8.11Q11.58 7.83 12 7.83Q12.42 7.83 12.7 8.11L14.02 9.42V18.19Q14.02 18.75 14.48 19.08L19.59 21.89Q19.97 22.08 20.37 21.96Q20.77 21.84 20.95 21.47L21 21.33Q21.98 18.66 21.98 15.75Q21.98 11.48 20.18 8.02Q18.38 4.55 15.47 3.09Z"/></svg></span></blueprint-use>
+        <span class="home-vital__name">
+          <blueprint-use kind="primitive" ref="label" state="default" variant="wide"><span slot="text">Blood oxygen</span></blueprint-use>
+          <span class="k-micro">3h ago</span>
+        </span>
+        <blueprint-use kind="primitive" ref="metric-value" state="default" variant="compact" class="home-vital__value"><b slot="value">97</b><small slot="unit">%</small></blueprint-use>
+        <blueprint-use kind="primitive" ref="chevron" state="default" size="sm"></blueprint-use>
+      </a>
+    </section>
+
+    <a class="glass glass--brand glass--r26 glass--indigo glass--pressable home-trends k-enter k-enter--8" href="/trends" data-blueprint-section="trends" data-blueprint-surface>
+      <blueprint-use kind="primitive" ref="glass-circle" state="default" size="md"><span slot="glyph"><i class="glass-circle__ring"></i></span></blueprint-use>
+      <span class="home-trends__copy">
+        <blueprint-use kind="primitive" ref="label" state="default" variant="wide"><span slot="text">Trends</span></blueprint-use>
+        <span class="k-caption">Averages and baselines across 7 synced days</span>
+      </span>
+      <blueprint-use kind="primitive" ref="chevron" state="default" class="glass__chevron"></blueprint-use>
+    </a>
+  </div>
+</main>

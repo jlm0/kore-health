@@ -1,0 +1,22 @@
+<main class="k-screen ring-debug" data-blueprint-screen="ring-debug" data-blueprint-state="default">
+  <blueprint-use kind="component" ref="aura-background" state="default"></blueprint-use>
+  <div class="k-content">
+    <blueprint-use kind="component" ref="screen-header" state="plain" data-blueprint-section="header"><b slot="title">Ring debug</b></blueprint-use>
+    <div class="ring-debug__buttons" data-blueprint-section="commands">
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">Scan</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">Connect</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">Disconnect</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">Pair</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="disabled" variant="debug"><b slot="label">Authenticate</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">Battery</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">Serial / Firmware</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">Sync time</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">Enable all features</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">Sync events</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">⚠ Deep resync</b></blueprint-use>
+        <blueprint-use kind="primitive" ref="button" state="normal" variant="debug"><b slot="label">⚠ Factory reset</b></blueprint-use>
+    </div>
+    <p class="ring-debug__meta" data-blueprint-section="meta">key: none · device: none</p>
+    <div class="ring-debug__console" data-blueprint-section="console" data-blueprint-surface></div>
+  </div>
+</main>

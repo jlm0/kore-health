@@ -1,0 +1,14 @@
+<section class="glass glass--brand glass--r28 journey-step" data-blueprint-component="journey-step" data-blueprint-state="step-1" data-blueprint-surface>
+  <div class="journey-step__progress" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="journey-step__art"><span data-blueprint-slot="illustration"></span></div>
+  <div class="journey-step__copy">
+    <p class="journey-step__eyebrow"><i data-blueprint-slot="eyebrow">Step 1 of 3</i></p>
+    <h2 class="journey-step__title"><i data-blueprint-slot="title">Has this ring been used with the Oura app?</i></h2>
+    <p class="journey-step__body"><i data-blueprint-slot="body">A ring set up in Oura is locked to that app. Kore needs it reset before it can pair.</i></p>
+    <div class="journey-step__detail"><span data-blueprint-slot="detail"></span></div>
+  </div>
+  <div class="journey-step__actions">
+    <blueprint-use kind="primitive" ref="button" state="normal" variant="primary" size="lg" class="journey-step__primary"><b slot="label"><i data-blueprint-slot="primary">Yes, it has</i></b></blueprint-use>
+    <blueprint-use kind="primitive" ref="button" state="normal" variant="ghost" size="lg" class="journey-step__secondary"><b slot="label"><i data-blueprint-slot="secondary">No, it’s new or already reset</i></b></blueprint-use>
+  </div>
+</section>

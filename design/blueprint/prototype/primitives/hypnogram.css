@@ -1,0 +1,38 @@
+[data-blueprint-primitive="hypnogram"] {
+  display: block;
+  margin: 0;
+}
+
+.hypnogram__plot {
+  background:
+    linear-gradient(to right, transparent calc(25% - 0.5px), var(--app-color-gridline) calc(25% - 0.5px), var(--app-color-gridline) calc(25% + 0.5px), transparent calc(25% + 0.5px)),
+    linear-gradient(to right, transparent calc(50% - 0.5px), var(--app-color-gridline) calc(50% - 0.5px), var(--app-color-gridline) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(to right, transparent calc(75% - 0.5px), var(--app-color-gridline) calc(75% - 0.5px), var(--app-color-gridline) calc(75% + 0.5px), transparent calc(75% + 0.5px));
+}
+
+.hypnogram__plot,
+.hypnogram__plot > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hypnogram__bar--deep { fill: var(--app-hue-stage-deep); }
+.hypnogram__bar--rem { fill: var(--app-hue-stage-rem); }
+.hypnogram__bar--light { fill: var(--app-hue-stage-light); }
+.hypnogram__bar--awake { fill: var(--app-hue-stage-awake); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hypnogram__plot > svg {
+    animation: hypnogram-reveal 1400ms cubic-bezier(0.33, 1, 0.68, 1) 250ms both;
+  }
+}
+
+@keyframes hypnogram-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}

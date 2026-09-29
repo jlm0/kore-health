@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Label } from './Typo';
-import { palette } from '../tokens';
+import { palette, type } from '../tokens';
 
 interface HeatmapGridProps {
   values: readonly number[];
@@ -20,9 +20,9 @@ interface HeatmapGridProps {
 export function HeatmapGrid({
   values,
   columns = 7,
-  colorRgb = '99,184,168',
-  minAlpha = 0.15,
-  maxAlpha = 0.9,
+  colorRgb = '94,96,73',
+  minAlpha = 0.12,
+  maxAlpha = 0.62,
   cellRadius = 8,
   gap = 7,
   dayLabels,
@@ -63,7 +63,7 @@ export function HeatmapGrid({
         <View style={{ flexDirection: 'row', gap, marginTop: 8 }}>
           {dayLabels.map((d, i) => (
             <View key={i} style={{ width: cell, alignItems: 'center' }}>
-              <Label size={8} em={0.05} color={palette.faint}>
+              <Label size={type.micro.fontSize} weight="regular" color={palette.faint}>
                 {d}
               </Label>
             </View>

@@ -1,0 +1,530 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectId": "kore-health",
+  "components": [
+    {
+      "id": "aura-background",
+      "name": "Aura Background",
+      "description": "Porcelain backdrop behind every screen: white wash at the top, a soft Penna glow off the top-right and a Hudson glow off the bottom-left.",
+      "uses": [],
+      "tokenGroupIds": [
+        "color"
+      ],
+      "notes": [
+        "Glow size = window width × 1.7; top glow at top −55%/right −50% (Penna 45%), bottom glow at bottom −60%/left −60% (Hudson 60%). No dot grid."
+      ],
+      "implementationHints": [
+        "Blob size = window width × 1.7; top blob at top −45%/right −55% (opacity 0.55), bottom blob at bottom −50%/left −60% (opacity 0.4); dot grid tiles at 48pt, opacity 0.7."
+      ],
+      "prototype": {
+        "source": "prototype/components/aura-background.html",
+        "styles": [
+          "prototype/components/aura-background.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [],
+        "states": [
+          "default"
+        ],
+        "renderedUses": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/AuraBackground.tsx",
+          "symbolName": "AuraBackground",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "screen-header",
+      "name": "Screen Header",
+      "description": "Detail-screen header (@kore/ui ScreenHeader + BackButton): glass back circle, centered 18pt semibold title, and a right-side date label or count pill.",
+      "uses": [
+        {
+          "kind": "primitive",
+          "id": "back-button",
+          "reason": "Returns to the previous route.",
+          "binding": {
+            "slot": "left",
+            "state": "md"
+          }
+        },
+        {
+          "kind": "primitive",
+          "id": "label",
+          "reason": "Day stamp on detail screens.",
+          "binding": {
+            "slot": "meta",
+            "state": "default",
+            "variant": "date"
+          }
+        },
+        {
+          "kind": "primitive",
+          "id": "badge",
+          "reason": "Synced-day count on Trends.",
+          "binding": {
+            "slot": "count",
+            "state": "default",
+            "variant": "mint",
+            "size": "count"
+          }
+        }
+      ],
+      "tokenGroupIds": [
+        "typography",
+        "tracking",
+        "space"
+      ],
+      "notes": [],
+      "implementationHints": [
+        "States: date (Label 10/.14 right), count (mint Pill paddingH 10 right, Trends), plain (no right element — empty states)."
+      ],
+      "prototype": {
+        "source": "prototype/components/screen-header.html",
+        "styles": [
+          "prototype/components/screen-header.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "title",
+          "meta",
+          "count"
+        ],
+        "states": [
+          "date",
+          "count",
+          "plain"
+        ],
+        "renderedUses": [
+          {
+            "kind": "primitive",
+            "id": "back-button"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "badge"
+          }
+        ]
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/ScreenHeader.tsx",
+          "symbolName": "ScreenHeader",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "card-heading",
+      "name": "Card Heading",
+      "description": "Row with a 26pt IconBadge, a sentence-case 13pt title in ink, and an optional right element (@kore/ui CardHeading).",
+      "uses": [
+        {
+          "kind": "primitive",
+          "id": "icon-badge",
+          "reason": "Function glyph; tint follows the heading's icon-tint-<hue> class.",
+          "binding": {
+            "slot": "icon",
+            "state": "default",
+            "variant": "inherit",
+            "size": "sm"
+          }
+        },
+        {
+          "kind": "primitive",
+          "id": "label",
+          "reason": "Card title.",
+          "binding": {
+            "slot": "title",
+            "state": "default"
+          }
+        },
+        {
+          "kind": "primitive",
+          "id": "chevron",
+          "reason": "Pressable affordance on home metric tiles.",
+          "binding": {
+            "slot": "right",
+            "state": "default",
+            "size": "sm"
+          }
+        }
+      ],
+      "tokenGroupIds": [
+        "color",
+        "typography"
+      ],
+      "notes": [],
+      "implementationHints": [
+        "Tint: add icon-tint-mint|indigo|lavender|peach as the use class. Status dot color: set --card-heading-dot on the use class."
+      ],
+      "prototype": {
+        "source": "prototype/components/card-heading.html",
+        "styles": [
+          "prototype/components/card-heading.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "icon",
+          "title",
+          "avg",
+          "avg-unit",
+          "status"
+        ],
+        "states": [
+          "plain",
+          "chevron",
+          "avg",
+          "status"
+        ],
+        "renderedUses": [
+          {
+            "kind": "primitive",
+            "id": "icon-badge"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "chevron"
+          }
+        ]
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/CardHeading.tsx",
+          "symbolName": "CardHeading",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "empty-data-card",
+      "name": "Empty Data Card",
+      "description": "Full-height empty state that fills the space below the header: brand-filled card in the route's family, a route illustration (or the 40pt glyph chip as fallback), a 22pt title and one-sentence message, centered.",
+      "uses": [
+        {
+          "kind": "primitive",
+          "id": "icon-badge",
+          "reason": "Screen glyph at 40pt.",
+          "binding": {
+            "slot": "icon",
+            "state": "default",
+            "variant": "inherit",
+            "size": "empty"
+          }
+        }
+      ],
+      "tokenGroupIds": [
+        "color",
+        "typography",
+        "tint"
+      ],
+      "notes": [],
+      "implementationHints": [
+        "Tint: pass icon-tint-<hue> as the use class; it sets the brand fill. Pass empty-data-card--art with an illustration slot to replace the glyph chip. The card flexes to fill the remaining screen height. Copy comes from MATURITY_COPY in apps/mobile/src/data/maturity.ts."
+      ],
+      "prototype": {
+        "source": "prototype/components/empty-data-card.html",
+        "styles": [
+          "prototype/components/empty-data-card.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/fonts.css",
+          "prototype/styles/illustration.css"
+        ],
+        "slots": [
+          "illustration",
+          "icon",
+          "title",
+          "message"
+        ],
+        "states": [
+          "default"
+        ],
+        "renderedUses": [
+          {
+            "kind": "primitive",
+            "id": "icon-badge"
+          }
+        ]
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/components/EmptyDataCard.tsx",
+          "symbolName": "EmptyDataCard",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "contributor-row",
+      "name": "Contributor Row",
+      "description": "Readiness contributor: fixed 104pt sentence-case label and a 6pt progress bar, mint when healthy and peach under 0.75 (@kore/ui ContributorRow).",
+      "uses": [
+        {
+          "kind": "primitive",
+          "id": "label",
+          "reason": "Contributor name.",
+          "binding": {
+            "slot": "label",
+            "state": "default",
+            "variant": "row"
+          }
+        },
+        {
+          "kind": "primitive",
+          "id": "progress",
+          "reason": "Contributor strength 0–1 via --value.",
+          "binding": {
+            "slot": "bar",
+            "state": "value",
+            "variant": "readiness"
+          }
+        }
+      ],
+      "tokenGroupIds": [
+        "hue",
+        "space"
+      ],
+      "notes": [],
+      "implementationHints": [
+        "Set --value (0–1) on the use class. warn when the contributor is under 0.75 (activity gradient)."
+      ],
+      "prototype": {
+        "source": "prototype/components/contributor-row.html",
+        "styles": [
+          "prototype/components/contributor-row.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "label"
+        ],
+        "states": [
+          "good",
+          "warn"
+        ],
+        "renderedUses": [
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "progress"
+          }
+        ]
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "packages/ui/src/components/ContributorRow.tsx",
+          "symbolName": "ContributorRow",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "ring-row",
+      "name": "Ring Row",
+      "description": "Nearby-ring row on the pairing screen: nested glass pill with ring badge, name, short id, and a three-bar signal meter or connecting step.",
+      "uses": [
+        {
+          "kind": "primitive",
+          "id": "icon-badge",
+          "reason": "Ring glyph at 32pt.",
+          "binding": {
+            "slot": "icon",
+            "state": "default",
+            "variant": "indigo",
+            "size": "row"
+          }
+        },
+        {
+          "kind": "primitive",
+          "id": "loading-mark",
+          "reason": "Connecting spinner.",
+          "binding": {
+            "slot": "step",
+            "state": "indigo"
+          }
+        }
+      ],
+      "tokenGroupIds": [
+        "color",
+        "hue",
+        "shape"
+      ],
+      "notes": [],
+      "implementationHints": [
+        "signal(): rssi ≥ −55 strong (3 bars), ≥ −70 good (2), else weak (1). While another ring is connecting, rows dim to 0.4."
+      ],
+      "prototype": {
+        "source": "prototype/components/ring-row.html",
+        "styles": [
+          "prototype/components/ring-row.css",
+          "prototype/styles/fonts.css"
+        ],
+        "slots": [
+          "name",
+          "id",
+          "signal",
+          "step"
+        ],
+        "states": [
+          "strong",
+          "good",
+          "weak",
+          "connecting",
+          "dimmed"
+        ],
+        "renderedUses": [
+          {
+            "kind": "primitive",
+            "id": "icon-badge"
+          },
+          {
+            "kind": "primitive",
+            "id": "loading-mark"
+          }
+        ]
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/pair.tsx",
+          "symbolName": "PairScreen (nearby ring Pressable)",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    },
+    {
+      "id": "journey-step",
+      "name": "Journey Step",
+      "description": "One step of a guided setup journey, filling the screen: three-segment progress, a large illustration, eyebrow + light title + one-sentence body, optional numbered checklist, and a full-width primary action with an optional ghost secondary.",
+      "uses": [
+        {
+          "kind": "primitive",
+          "id": "button",
+          "reason": "Primary and secondary step actions.",
+          "binding": {
+            "slot": "actions",
+            "state": "normal",
+            "variant": "primary | ghost",
+            "size": "lg"
+          }
+        }
+      ],
+      "tokenGroupIds": [
+        "color",
+        "typography",
+        "tint",
+        "space",
+        "shape"
+      ],
+      "notes": [
+        "Proposed: the app pairs from a single scan screen today; this journey front-loads the prerequisites docs/bdd/ring-connection.feature already requires (a ring onboarded to Oura must be factory-reset; a stale iOS bond must be removed in Settings → Bluetooth)."
+      ],
+      "implementationHints": [
+        "State step-1 / step-2 / step-3 fills the progress segments. Pass journey-step--single to hide the secondary action. Tint with glass--<hue> on the use."
+      ],
+      "prototype": {
+        "source": "prototype/components/journey-step.html",
+        "styles": [
+          "prototype/components/journey-step.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/fonts.css",
+          "prototype/styles/illustration.css"
+        ],
+        "slots": [
+          "illustration",
+          "eyebrow",
+          "title",
+          "body",
+          "detail",
+          "primary",
+          "secondary"
+        ],
+        "states": [
+          "step-1",
+          "step-2",
+          "step-3"
+        ],
+        "renderedUses": [
+          {
+            "kind": "primitive",
+            "id": "button"
+          }
+        ]
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/components/JourneyStep.tsx",
+          "symbolName": "JourneyStep",
+          "operationIntent": "new-component",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ]
+    }
+  ]
+}

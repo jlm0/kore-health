@@ -1,0 +1,118 @@
+[data-blueprint-primitive="sparkline"] {
+  --spark-color: var(--app-hue-mint);
+  --spark-dot: var(--spark-color);
+  position: relative;
+  display: block;
+  margin: 0;
+  min-width: 0;
+}
+
+.sparkline__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.sparkline__stop--mint { stop-color: var(--app-tint-fill-mint); }
+.sparkline__stop--indigo { stop-color: var(--app-tint-fill-indigo); }
+.sparkline__stop--indigo-deep { stop-color: var(--app-tint-fill-indigo-deep); }
+.sparkline__stop--peach { stop-color: var(--app-tint-fill-peach); }
+.sparkline__stop--clear { stop-color: transparent; }
+
+.sparkline__plot,
+.sparkline__plot > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.sparkline__line {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+  stroke: var(--spark-color);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sparkline__area {
+  stroke: none;
+}
+
+.sparkline__dot {
+  fill: var(--spark-dot);
+}
+
+.sparkline__y {
+  position: absolute;
+  right: 2px;
+  color: var(--app-color-faint);
+  font: var(--app-type-micro);
+}
+
+.sparkline__y:empty,
+.sparkline__x:empty {
+  display: none;
+}
+
+.sparkline__y--max {
+  top: 0;
+}
+
+.sparkline__y--min {
+  bottom: 0;
+}
+
+.sparkline__x:has(> .sparkline__y) {
+  display: none;
+}
+
+[data-blueprint-primitive="sparkline"]:has(.sparkline__x:not(:empty)) .sparkline__y--min {
+  bottom: 16px;
+}
+
+.sparkline__x,
+.sparkline__x > * {
+  display: flex;
+  margin: 0;
+  justify-content: space-between;
+  color: var(--app-color-faint);
+  font: var(--app-type-micro);
+}
+
+.sparkline__x {
+  margin-top: 6px;
+}
+
+.sparkline__x > * {
+  flex: 1;
+}
+
+.sparkline__x i {
+  font-style: normal;
+}
+
+[data-blueprint-primitive="sparkline"][data-blueprint-variant="indigo"] { --spark-color: var(--app-hue-indigo); }
+[data-blueprint-primitive="sparkline"][data-blueprint-variant="indigo-deep"] { --spark-color: var(--app-hue-indigo-deep); }
+[data-blueprint-primitive="sparkline"][data-blueprint-variant="lavender"] { --spark-color: var(--app-hue-lavender); }
+[data-blueprint-primitive="sparkline"][data-blueprint-variant="peach-light"] { --spark-color: var(--app-hue-peach-light); }
+[data-blueprint-primitive="sparkline"][data-blueprint-variant="peach-mid"] { --spark-color: var(--app-hue-peach-mid); }
+
+[data-blueprint-primitive="sparkline"][data-blueprint-state="dot-deep"][data-blueprint-variant="indigo"] { --spark-dot: var(--app-hue-indigo-deep); }
+[data-blueprint-primitive="sparkline"][data-blueprint-state="dot-deep"][data-blueprint-variant="mint"] { --spark-dot: var(--app-hue-mint-deep); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sparkline__plot > svg {
+    animation: sparkline-draw 1100ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes sparkline-draw {
+  from {
+    clip-path: inset(-6px 100% -6px -6px);
+  }
+  to {
+    clip-path: inset(-6px -6px -6px -6px);
+  }
+}

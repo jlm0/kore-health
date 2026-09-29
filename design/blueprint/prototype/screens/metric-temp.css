@@ -1,0 +1,7 @@
+.metric-temp .metric-status {
+  --card-heading-dot: var(--app-hue-mint);
+}
+
+.metric-temp .metric-trend__copy {
+  margin-top: var(--app-space-1);
+}

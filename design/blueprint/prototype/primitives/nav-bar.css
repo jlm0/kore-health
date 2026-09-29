@@ -1,0 +1,77 @@
+[data-blueprint-primitive="nav-bar"] {
+  display: grid;
+  min-height: var(--app-size-control-lg);
+  align-items: center;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--app-space-row);
+  box-sizing: border-box;
+  padding: var(--app-space-1) var(--app-space-2);
+  border-bottom: 1px solid var(--app-color-border);
+  color: var(--app-color-foreground);
+  background: var(--app-color-surface);
+  font: var(--app-type-body);
+}
+
+.nav-bar__side {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.nav-bar__side--right {
+  justify-content: flex-end;
+}
+
+.nav-bar__center {
+  min-width: 0;
+  text-align: center;
+}
+
+.nav-bar__title {
+  display: block;
+  overflow: hidden;
+  font: var(--app-type-heading);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-bar__action {
+  display: inline-flex;
+  width: var(--app-size-control-sm);
+  height: var(--app-size-control-sm);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--app-radius-md);
+  color: var(--app-color-foreground);
+  background: transparent;
+  cursor: pointer;
+}
+
+.nav-bar__action:hover {
+  background-image: linear-gradient(var(--app-color-hover), var(--app-color-hover));
+}
+
+.nav-bar__action:active {
+  background-image: linear-gradient(var(--app-color-pressed), var(--app-color-pressed));
+}
+
+.nav-bar__action:focus-visible {
+  outline: 2px solid var(--app-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.nav-bar__action svg {
+  display: block;
+  width: var(--app-size-icon-md);
+  height: var(--app-size-icon-md);
+}
+
+[data-blueprint-primitive="nav-bar"][data-blueprint-state="back-only"] .nav-bar__side--right .nav-bar__action,
+[data-blueprint-primitive="nav-bar"][data-blueprint-state="right-only"] .nav-bar__action--back {
+  visibility: hidden;
+}

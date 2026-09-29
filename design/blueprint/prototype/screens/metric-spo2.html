@@ -1,0 +1,26 @@
+<main class="k-screen metric metric-spo2" data-blueprint-screen="metric-spo2" data-blueprint-state="populated">
+  <blueprint-use kind="component" ref="aura-background" state="default"></blueprint-use>
+  <div class="k-content">
+    <blueprint-use kind="component" ref="screen-header" state="date" data-blueprint-section="header"><b slot="title">SpO2</b><em slot="meta">Sep 26</em></blueprint-use>
+
+    <section class="glass glass--brand glass--r28 glass--peach metric-card metric-hero k-enter k-enter--1" data-blueprint-section="current" data-blueprint-surface>
+        <blueprint-use kind="component" ref="card-heading" state="status" class="icon-tint-peach metric-status"><svg slot="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.47 3.09Q15.14 2.91 14.72 3.05Q14.3 3.19 14.11 3.56Q14.02 3.75 14.02 3.98V6.61L13.31 5.86Q12.98 5.58 12.98 5.2V0.98H11.02V5.16Q11.02 5.58 10.69 5.86L9.98 6.61V3.98Q9.98 3.56 9.7 3.28Q9.42 3 9 3Q8.77 3 8.53 3.09Q5.62 4.55 3.82 8.02Q2.02 11.48 2.02 15.75Q2.02 18.66 3 21.33Q3.14 21.7 3.52 21.89Q3.89 22.08 4.31 21.94L9.52 19.08Q9.98 18.8 9.98 18.19V9.42L11.3 8.11Q11.58 7.83 12 7.83Q12.42 7.83 12.7 8.11L14.02 9.42V18.19Q14.02 18.75 14.48 19.08L19.59 21.89Q19.97 22.08 20.37 21.96Q20.77 21.84 20.95 21.47L21 21.33Q21.98 18.66 21.98 15.75Q21.98 11.48 20.18 8.02Q18.38 4.55 15.47 3.09Z"/></svg><em slot="title">Current</em><em slot="status">Live</em></blueprint-use>
+        <blueprint-use kind="primitive" ref="metric-value" state="default" variant="hero"><b slot="value">96</b><small slot="unit">%</small></blueprint-use>
+        <p class="metric-when">Sep 26 · 6:42 PM</p>
+        <div class="metric-chart"><blueprint-use kind="primitive" ref="sparkline" state="default" variant="indigo-deep"><svg slot="plot" viewBox="0 0 325 110" aria-hidden="true"><path class="sparkline__area" fill="url(#spark-fill-indigo-deep)" d="M5 41.8C12.5 48 35 84.8 50 78.7C65 72.5 80 4.1 95 5C110 5.9 125 67.3 140 83.9C155 100.6 170 110.3 185 105C200 99.7 215 55.9 230 52.4C245 48.9 260 86.6 275 83.9C290 81.3 312.5 44.5 320 36.6L320 110L5 110Z"/><path class="sparkline__line" d="M5 41.8C12.5 48 35 84.8 50 78.7C65 72.5 80 4.1 95 5C110 5.9 125 67.3 140 83.9C155 100.6 170 110.3 185 105C200 99.7 215 55.9 230 52.4C245 48.9 260 86.6 275 83.9C290 81.3 312.5 44.5 320 36.6"/><circle class="sparkline__dot" cx="320" cy="36.6" r="3.5"/></svg><span slot="y-max">97</span><span slot="y-min">96</span><p slot="x-labels"><i>12 AM</i><i>6 AM</i><i>12 PM</i><i>6 PM</i><i>12 AM</i></p></blueprint-use></div>
+        <blueprint-use kind="primitive" ref="segmented-control" state="first-selected" class="metric-range"></blueprint-use>
+    </section>
+
+    <section class="glass glass--r28 metric-card metric-trend k-enter k-enter--3" data-blueprint-section="trend" data-blueprint-surface>
+      <blueprint-use kind="component" ref="card-heading" state="avg" class="icon-tint-peach"><svg slot="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.98 6 18.28 8.3 13.41 13.17 9.42 9.19 2.02 16.59 3.42 18 9.42 12 13.41 15.98 19.69 9.7 21.98 12V6Z"/></svg><em slot="title">30-day trend</em><em slot="avg">96</em><em slot="avg-unit">avg</em></blueprint-use>
+      <blueprint-use kind="primitive" ref="sparkline" state="default" variant="indigo-deep"><svg slot="plot" viewBox="0 0 325 72" aria-hidden="true"><path class="sparkline__line" d="M5 46.3C13.8 42.9 40 25.7 57.5 25.7C75 25.7 92.5 39.4 110 46.3C127.5 53.2 145 67 162.5 67C180 67 197.5 56.7 215 46.3C232.5 36 250 11.9 267.5 5C285 -1.9 311.3 5 320 5"/></svg></blueprint-use>
+      <div class="metric-stats"><blueprint-use kind="primitive" ref="stat-block" state="default" variant="center"><b slot="value">96</b><small slot="label">Low</small></blueprint-use><blueprint-use kind="primitive" ref="stat-block" state="default" variant="center"><b slot="value">96</b><small slot="label">Average</small></blueprint-use><blueprint-use kind="primitive" ref="stat-block" state="default" variant="center"><b slot="value">96</b><small slot="label">High</small></blueprint-use></div>
+    </section>
+
+    <section class="glass glass--r26 metric-card metric-about k-enter k-enter--5" data-blueprint-section="about" data-blueprint-surface>
+      <blueprint-use kind="primitive" ref="label" state="default"><span slot="text">About</span></blueprint-use>
+      <p class="metric-about__text">Blood oxygen saturation is sampled throughout the night. Values consistently above 95% are considered healthy at low altitude.</p>
+      <blueprint-use kind="primitive" ref="badge" state="default" variant="neutral" size="about"><b slot="label">Healthy above 95%</b></blueprint-use>
+    </section>
+  </div>
+</main>

@@ -1,0 +1,19 @@
+[data-blueprint-primitive="dot-trend"] {
+  display: block;
+  background: linear-gradient(to right, var(--app-color-border-strong) 2px, transparent 2px) 4px 50% / 6px 1px repeat-x;
+}
+
+.dot-trend__plot,
+.dot-trend__plot > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.dot-trend__dot {
+  fill: var(--app-color-ghost);
+}
+
+.dot-trend__dot--last {
+  fill: var(--app-hue-mint);
+}

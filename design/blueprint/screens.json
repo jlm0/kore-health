@@ -1,0 +1,4235 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectId": "kore-health",
+  "screens": [
+    {
+      "id": "home",
+      "name": "Home",
+      "description": "Dashboard: greeting and ring sync status, readiness hero with a one-line insight, sleep/activity score cards, a single Vitals list, and the Trends link. Detail (sparklines, ranges) is disclosed on each metric screen. Empty state shows the Connect your ring card before the first sync.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/"
+      },
+      "styleRefs": [
+        "prototype/screens/home.css"
+      ],
+      "notes": [
+        "Values come from the repo design-loop seed (scripts/seed-dataset.ts) folded through the app selectors; temp is in the collecting state (1 recorded night)."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/index.tsx. Screen gap is spacing.gridGap (9); cards enter with FadeInDown at 40/80/160/240/320 ms."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Top bar with the ring status line (dot + regular 12pt) and icon-only Sync / Ring glass buttons; then a medium 13pt date eyebrow and a 34pt light greeting whose second clause is semibold and carries today's state (readiness status, or 'let's connect your ring' before the first sync).",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [
+            "Weight hierarchy: status 400 · date 500 · greeting 300 with a 600 emphasis clause. Status text: Not connected / Syncing… / Connecting… / Sync failed — <reason> / Synced <rel> / Not synced yet, with a 6pt dot colored faint / sage / terracotta / sage deep / faint."
+          ],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop the glass frosts.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Date and status line.",
+              "binding": {
+                "slot": "meta",
+                "state": "default",
+                "variant": "default | status"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "glass-circle",
+              "reason": "Sync now and Manage ring actions.",
+              "binding": {
+                "slot": "actions",
+                "state": "default | active",
+                "size": "sm"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/index.tsx",
+              "symbolName": "HomeScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "connect",
+          "name": "Connect Card",
+          "description": "Before the first sync: a full-height sage card that fills the space under the greeting — ring illustration, 'Three quick steps to pair', one sentence, and a full-width Set up my ring button that opens the /pair journey.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [
+            "Proposed: replaces the single Connect card; the button leads into /pair step 1 instead of scanning immediately."
+          ],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "button",
+              "reason": "Starts the setup journey.",
+              "binding": {
+                "slot": "action",
+                "state": "normal",
+                "variant": "primary",
+                "size": "lg",
+                "copy": "Set up my ring"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/index.tsx",
+              "symbolName": "HomeScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "readiness",
+          "name": "Readiness Hero",
+          "description": "Tappable readiness ring (→ /readiness) with a status pill (Optimal ≥ 85, Good ≥ 70, else Recover) and one plain-language insight line drawn from the weakest contributor.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [
+            "Insight line is a proposed addition: it summarises the lowest readiness contributor against its baseline so the home screen answers 'how am I doing' before any chart."
+          ],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "icon-badge",
+              "reason": "Lightning glyph.",
+              "binding": {
+                "slot": "badge",
+                "state": "default",
+                "variant": "mint",
+                "size": "md"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "score-ring",
+              "reason": "Readiness score.",
+              "binding": {
+                "slot": "ring",
+                "state": "default",
+                "variant": "readiness",
+                "size": "hero"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "badge",
+              "reason": "Readiness status.",
+              "binding": {
+                "slot": "status",
+                "state": "default",
+                "variant": "mint",
+                "size": "status",
+                "copy": "Good"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "chevron",
+              "reason": "Pressable affordance.",
+              "binding": {
+                "slot": "chevron",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/index.tsx",
+              "symbolName": "HomeScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "scores",
+          "name": "Sleep & Activity",
+          "description": "Sleep and activity score cards, each with one supporting fact (time asleep, calories vs goal). Charts live on the detail screens.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "score-ring",
+              "reason": "Sleep and activity scores.",
+              "binding": {
+                "slot": "ring",
+                "state": "default",
+                "variant": "sleep | activity",
+                "size": "sm"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "icon-badge",
+              "reason": "Sleep and fire glyphs.",
+              "binding": {
+                "slot": "label",
+                "state": "default",
+                "variant": "indigo | peach",
+                "size": "xs"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Card titles.",
+              "binding": {
+                "slot": "label",
+                "state": "default",
+                "variant": "wide"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "chevron",
+              "reason": "Pressable affordance.",
+              "binding": {
+                "slot": "chevron",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/index.tsx",
+              "symbolName": "HomeScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "vitals",
+          "name": "Vitals",
+          "description": "One grouped card listing HRV, resting heart rate, body temperature and blood oxygen as rows: glyph, name, when measured, latest value, chevron. Sparklines and ranges are disclosed on each /metric screen instead of on home.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [
+            "Replaces the four vitals tiles; the body-temperature row carries its baseline-building hint in place of a timestamp."
+          ],
+          "implementationHints": [
+            "Rows are pressable (→ /metric/hrv, /metric/rhr, /metric/temp, /metric/spo2) with a hairline between rows; minimum row height 60."
+          ],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "icon-badge",
+              "reason": "Metric glyph per row.",
+              "binding": {
+                "slot": "icon",
+                "state": "default",
+                "variant": "mint | indigo | lavender | peach",
+                "size": "sm"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Card title and row names.",
+              "binding": {
+                "slot": "title",
+                "state": "default",
+                "variant": "wide"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "metric-value",
+              "reason": "Latest value per row.",
+              "binding": {
+                "slot": "value",
+                "state": "default",
+                "variant": "compact"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "chevron",
+              "reason": "Row affordance.",
+              "binding": {
+                "slot": "chevron",
+                "state": "default",
+                "size": "sm"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/index.tsx",
+              "symbolName": "HomeScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "trends",
+          "name": "Trends Link",
+          "description": "Row linking to /trends with a ring glyph in a 36pt glass circle.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "glass-circle",
+              "reason": "Ring glyph holder.",
+              "binding": {
+                "slot": "icon",
+                "state": "default",
+                "size": "md"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Trends title.",
+              "binding": {
+                "slot": "title",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "chevron",
+              "reason": "Pressable affordance.",
+              "binding": {
+                "slot": "chevron",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/index.tsx",
+              "symbolName": "HomeScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/home.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/home.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "populated",
+          "empty"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-empty",
+            "framePresetId": "phone",
+            "state": "empty"
+          },
+          {
+            "id": "phone-populated",
+            "framePresetId": "phone",
+            "state": "populated"
+          },
+          {
+            "id": "phone-full-populated",
+            "framePresetId": "phone-full",
+            "state": "populated"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "glass-circle"
+          },
+          {
+            "kind": "primitive",
+            "id": "button"
+          },
+          {
+            "kind": "primitive",
+            "id": "icon-badge"
+          },
+          {
+            "kind": "primitive",
+            "id": "score-ring"
+          },
+          {
+            "kind": "primitive",
+            "id": "badge"
+          },
+          {
+            "kind": "primitive",
+            "id": "chevron"
+          },
+          {
+            "kind": "primitive",
+            "id": "score-ring"
+          },
+          {
+            "kind": "primitive",
+            "id": "icon-badge"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "chevron"
+          },
+          {
+            "kind": "primitive",
+            "id": "icon-badge"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "metric-value"
+          },
+          {
+            "kind": "primitive",
+            "id": "chevron"
+          },
+          {
+            "kind": "primitive",
+            "id": "glass-circle"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "chevron"
+          }
+        ],
+        "localValueExceptions": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/index.tsx",
+          "symbolName": "HomeScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {
+            "populated": "today != null",
+            "empty": "today == null (before first sync)"
+          },
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    },
+    {
+      "id": "pair",
+      "name": "Pair Ring",
+      "description": "Ring setup and management, read left to right as one journey: three guided steps (used with Oura? → free the ring → place on charger), then scanning, no rings, results, connecting and paired.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/pair"
+      },
+      "styleRefs": [
+        "prototype/screens/pair.css"
+      ],
+      "notes": [
+        "Ring id 5E1A7C and RSSI −58 dBm are sample device content (not in the seed); the ring name is the seed ringDeviceName."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/pair.tsx. Screen gap is spacing.gridGap (9). While a ring connects, other rows dim to 0.4 (ring-row dimmed)."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Back button and \"Pair your ring\" title.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop the glass frosts.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Back + title, no right element.",
+              "binding": {
+                "slot": "header",
+                "state": "plain",
+                "copy": "Pair your ring"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/pair.tsx",
+              "symbolName": "PairScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "step-oura",
+          "name": "Step 1 · Used with Oura?",
+          "description": "Penna step: phone-to-ring illustration and a two-way choice — used with the Oura app goes to step 2, new or already reset skips to step 3.",
+          "styleRefs": [],
+          "prototypeOnly": true,
+          "notes": [
+            "Proposed setup step ahead of scanning; grounded in docs/bdd/ring-connection.feature (onboarded rings must be factory-reset; stale iOS bonds must be removed in Settings → Bluetooth)."
+          ],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "journey-step",
+              "reason": "Full-height guided step.",
+              "binding": {
+                "slot": "step",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/pair.tsx",
+              "symbolName": "PairScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "step-remove",
+          "name": "Step 2 · Free the ring",
+          "description": "Periwinkle step: unlink illustration and a three-item checklist (remove in Oura, forget in Settings → Bluetooth, Kore resets on discovery); secondary opens Bluetooth settings.",
+          "styleRefs": [],
+          "prototypeOnly": true,
+          "notes": [
+            "Proposed setup step ahead of scanning; grounded in docs/bdd/ring-connection.feature (onboarded rings must be factory-reset; stale iOS bonds must be removed in Settings → Bluetooth)."
+          ],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "journey-step",
+              "reason": "Full-height guided step.",
+              "binding": {
+                "slot": "step",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/pair.tsx",
+              "symbolName": "PairScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "step-charger",
+          "name": "Step 3 · On the charger",
+          "description": "Hudson step: ring-on-charger illustration; single Find my ring action starts the scan.",
+          "styleRefs": [],
+          "prototypeOnly": true,
+          "notes": [
+            "Proposed setup step ahead of scanning; grounded in docs/bdd/ring-connection.feature (onboarded rings must be factory-reset; stale iOS bonds must be removed in Settings → Bluetooth)."
+          ],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "journey-step",
+              "reason": "Full-height guided step.",
+              "binding": {
+                "slot": "step",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/pair.tsx",
+              "symbolName": "PairScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "debug-link",
+          "name": "Debug Link",
+          "description": "Faint link to /ring-debug.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Link copy.",
+              "binding": {
+                "slot": "link",
+                "state": "default",
+                "variant": "status",
+                "copy": "Having trouble? Open the debug console →"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/pair.tsx",
+              "symbolName": "PairScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "paired",
+          "name": "Your Ring",
+          "description": "Paired ring card: badge, short id, Paired pill, Read ring info action, Forget this ring link.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [
+            "After Read ring info succeeds, Battery / Firmware / Serial rows (12pt muted label, 12pt semibold ink value) appear under the header row; failures show 12pt peach-deep text."
+          ],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "icon-badge",
+              "reason": "Bluetooth-connect glyph.",
+              "binding": {
+                "slot": "icon",
+                "state": "default",
+                "variant": "mint",
+                "size": "lg"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Card title.",
+              "binding": {
+                "slot": "title",
+                "state": "default",
+                "copy": "Your ring"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "badge",
+              "reason": "Paired status and Read ring info action.",
+              "binding": {
+                "slot": "status",
+                "state": "default",
+                "variant": "mint | indigo",
+                "size": "action"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/pair.tsx",
+              "symbolName": "PairScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "pair-other",
+          "name": "Pair Different Ring",
+          "description": "Centered link that reveals the Nearby rings card while paired.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Link copy.",
+              "binding": {
+                "slot": "link",
+                "state": "default",
+                "variant": "status",
+                "copy": "Pair a different ring →"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/pair.tsx",
+              "symbolName": "PairScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "nearby",
+          "name": "Nearby Rings",
+          "description": "Scan card: header with scanning progress, discovered ring rows, hint or Rescan, and the no-rings empty state.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [
+            "Error phase replaces the list with the BLE error (12pt peach-deep, centered) and a mint Try again pill. Pair errors add Retry pairing, and for set_auth_key failures a peach Factory-reset ring pill."
+          ],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Card title and scan status.",
+              "binding": {
+                "slot": "title",
+                "state": "default",
+                "variant": "default | status"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "loading-mark",
+              "reason": "Scanning spinner.",
+              "binding": {
+                "slot": "progress",
+                "state": "mint"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "ring-row",
+              "reason": "Discovered ring, idle and connecting.",
+              "binding": {
+                "slot": "rows",
+                "state": "good | connecting"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "badge",
+              "reason": "Rescan actions.",
+              "binding": {
+                "slot": "action",
+                "state": "default",
+                "variant": "mint | neutral",
+                "size": "status",
+                "copy": "Rescan"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/pair.tsx",
+              "symbolName": "PairScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/pair.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/pair.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "step-oura",
+          "step-remove",
+          "step-charger",
+          "scanning",
+          "results",
+          "no-rings",
+          "connecting",
+          "paired"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-step-oura",
+            "framePresetId": "phone",
+            "state": "step-oura"
+          },
+          {
+            "id": "phone-step-remove",
+            "framePresetId": "phone",
+            "state": "step-remove"
+          },
+          {
+            "id": "phone-step-charger",
+            "framePresetId": "phone",
+            "state": "step-charger"
+          },
+          {
+            "id": "phone-scanning",
+            "framePresetId": "phone",
+            "state": "scanning"
+          },
+          {
+            "id": "phone-no-rings",
+            "framePresetId": "phone",
+            "state": "no-rings"
+          },
+          {
+            "id": "phone-results",
+            "framePresetId": "phone",
+            "state": "results"
+          },
+          {
+            "id": "phone-connecting",
+            "framePresetId": "phone",
+            "state": "connecting"
+          },
+          {
+            "id": "phone-paired",
+            "framePresetId": "phone",
+            "state": "paired"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "component",
+            "id": "journey-step"
+          },
+          {
+            "kind": "component",
+            "id": "journey-step"
+          },
+          {
+            "kind": "component",
+            "id": "journey-step"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "icon-badge"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "badge"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "loading-mark"
+          },
+          {
+            "kind": "component",
+            "id": "ring-row"
+          },
+          {
+            "kind": "primitive",
+            "id": "badge"
+          }
+        ],
+        "localValueExceptions": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/pair.tsx",
+          "symbolName": "PairScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {},
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    },
+    {
+      "id": "readiness",
+      "name": "Readiness",
+      "description": "Readiness detail: 170pt score ring with the delta against the 7-day night-backed average, and the six contributor bars. Empty state before any synced day.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/readiness"
+      },
+      "styleRefs": [
+        "prototype/screens/readiness.css"
+      ],
+      "notes": [
+        "Values from the design-loop seed folded through the app selectors."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/readiness.tsx. Readiness is TREND-only: the whole screen stays empty until maturity.readiness is ready."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Back button, title, and day stamp (plain in the empty state).",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Detail header.",
+              "binding": {
+                "slot": "header",
+                "state": "date | plain"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/readiness.tsx",
+              "symbolName": "ReadinessScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "score",
+          "name": "Score",
+          "description": "Lightning badge, readiness ring with \"Today\", and the vs 7-day average pill (hidden when there is no prior night-backed day).",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "icon-badge",
+              "reason": "Lightning glyph.",
+              "binding": {
+                "slot": "badge",
+                "state": "default",
+                "variant": "mint",
+                "size": "md"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "score-ring",
+              "reason": "Readiness score.",
+              "binding": {
+                "slot": "ring",
+                "state": "default",
+                "variant": "readiness",
+                "size": "lg"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "badge",
+              "reason": "Delta vs 7-day average.",
+              "binding": {
+                "slot": "delta",
+                "state": "default",
+                "variant": "mint",
+                "size": "status",
+                "copy": "+2 vs 7-day avg"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/readiness.tsx",
+              "symbolName": "ReadinessScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "contributors",
+          "name": "Contributors",
+          "description": "HRV Balance, Body Temp, Sleep, Resting HR, Recovery, Activity Bal — peach under 0.75.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Card heading.",
+              "binding": {
+                "slot": "heading",
+                "state": "plain"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "contributor-row",
+              "reason": "One row per contributor.",
+              "binding": {
+                "slot": "rows",
+                "state": "good | warn"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/readiness.tsx",
+              "symbolName": "ReadinessScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "empty",
+          "name": "Empty State",
+          "description": "EmptyDataCard before the first sync.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [
+            "When a day exists but has no night data, the title is MATURITY_COPY.readiness.none (\"Wear your ring tonight\") and the message MATURITY_COPY.readiness.empty."
+          ],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "empty-data-card",
+              "reason": "No data yet.",
+              "binding": {
+                "slot": "empty",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/readiness.tsx",
+              "symbolName": "ReadinessScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/readiness.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/readiness.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "populated",
+          "empty"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-empty",
+            "framePresetId": "phone",
+            "state": "empty"
+          },
+          {
+            "id": "phone-populated",
+            "framePresetId": "phone",
+            "state": "populated"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "primitive",
+            "id": "icon-badge"
+          },
+          {
+            "kind": "primitive",
+            "id": "score-ring"
+          },
+          {
+            "kind": "primitive",
+            "id": "badge"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "component",
+            "id": "contributor-row"
+          },
+          {
+            "kind": "component",
+            "id": "empty-data-card"
+          }
+        ],
+        "localValueExceptions": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/readiness.tsx",
+          "symbolName": "ReadinessScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {
+            "populated": "maturities.readiness.state === 'ready'",
+            "empty": "today == null or readiness not ready"
+          },
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    },
+    {
+      "id": "sleep",
+      "name": "Sleep",
+      "description": "Sleep detail, summary first: score and time asleep with efficiency and latency; stage breakdown; the stage timeline; then overnight heart rate and HRV, each on its own full-width card.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/sleep"
+      },
+      "styleRefs": [
+        "prototype/screens/sleep.css"
+      ],
+      "notes": [
+        "Values from the design-loop seed folded through the app selectors (seed sleep window is shifted to daytime clock hours by the seed clock anchor)."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/sleep.tsx."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Back button, title, and night date.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Detail header.",
+              "binding": {
+                "slot": "header",
+                "state": "date | plain"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/sleep.tsx",
+              "symbolName": "SleepScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "summary",
+          "name": "Summary",
+          "description": "Brand (Penna) summary: sleep score ring and time asleep with the sleep window, then efficiency and time-to-fall-asleep as two plain figures under a hairline.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "score-ring",
+              "reason": "Sleep score.",
+              "binding": {
+                "slot": "ring",
+                "state": "default",
+                "variant": "sleep",
+                "size": "md"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Time asleep eyebrow.",
+              "binding": {
+                "slot": "eyebrow",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "stat-block",
+              "reason": "Efficiency and latency.",
+              "binding": {
+                "slot": "stats",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/sleep.tsx",
+              "symbolName": "SleepScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "breakdown",
+          "name": "Stages",
+          "description": "White card: stage proportion bar, then a 2×2 legend giving each stage's duration and share of the night.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Card title.",
+              "binding": {
+                "slot": "heading",
+                "state": "plain"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "stage-bar",
+              "reason": "Stage proportions.",
+              "binding": {
+                "slot": "bar",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Stage names.",
+              "binding": {
+                "slot": "legend",
+                "state": "default",
+                "variant": "status"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/sleep.tsx",
+              "symbolName": "SleepScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "stages",
+          "name": "Timeline",
+          "description": "White card: hypnogram across the sleep window with stage rows and three clock ticks; disclosed after the stage summary.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [
+            "Only rendered when the night has usable HR staging; a duration-only night hides this card and the breakdown."
+          ],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Card title.",
+              "binding": {
+                "slot": "heading",
+                "state": "plain"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Stage row labels.",
+              "binding": {
+                "slot": "rows",
+                "state": "default",
+                "variant": "axis"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "hypnogram",
+              "reason": "Stage timeline.",
+              "binding": {
+                "slot": "plot",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/sleep.tsx",
+              "symbolName": "SleepScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "vitals",
+          "name": "Heart Rate & HRV",
+          "description": "Two full-width cards (Penna heart rate, sage HRV), each: heading, the overnight low/peak figure with its unit, and a full-width sparkline with three clock ticks.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [
+            "Sparklines are interactive in the app (tap/drag scrubbing tooltip with clock time)."
+          ],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Card titles.",
+              "binding": {
+                "slot": "heading",
+                "state": "plain"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "metric-value",
+              "reason": "Overnight low / peak.",
+              "binding": {
+                "slot": "value",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "Overnight series.",
+              "binding": {
+                "slot": "chart",
+                "state": "dot-deep",
+                "variant": "indigo | mint"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/sleep.tsx",
+              "symbolName": "SleepScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "empty",
+          "name": "Empty State",
+          "description": "EmptyDataCard before a tracked night.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "empty-data-card",
+              "reason": "No sleep tracked.",
+              "binding": {
+                "slot": "empty",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/sleep.tsx",
+              "symbolName": "SleepScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/sleep.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/sleep.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "populated",
+          "empty"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-empty",
+            "framePresetId": "phone",
+            "state": "empty"
+          },
+          {
+            "id": "phone-populated",
+            "framePresetId": "phone",
+            "state": "populated"
+          },
+          {
+            "id": "phone-long-populated",
+            "framePresetId": "phone-long",
+            "state": "populated"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "primitive",
+            "id": "score-ring"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "stat-block"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "stage-bar"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "hypnogram"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "metric-value"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "component",
+            "id": "empty-data-card"
+          }
+        ],
+        "localValueExceptions": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/sleep.tsx",
+          "symbolName": "SleepScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {
+            "populated": "hasSleep",
+            "empty": "today == null or !hasSleep"
+          },
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    },
+    {
+      "id": "activity",
+      "name": "Activity",
+      "description": "Activity detail, summary first: score and active calories against goal with steps and distance; the day's movement chart; inactive time; the 7-day line — each a full-width card.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/activity"
+      },
+      "styleRefs": [
+        "prototype/screens/activity.css"
+      ],
+      "notes": [
+        "Values from the design-loop seed folded through the app selectors."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/activity.tsx."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Back button, title, and day stamp.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Detail header.",
+              "binding": {
+                "slot": "header",
+                "state": "date | plain"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/activity.tsx",
+              "symbolName": "ActivityScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "score",
+          "name": "Summary",
+          "description": "Brand (Hudson) summary: activity score ring beside active calories with progress toward the calorie goal; steps and distance as two figures under a hairline.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [
+            "Steps and KM are never measured by the ring — hardcoded 0, not estimates."
+          ],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "score-ring",
+              "reason": "Activity score.",
+              "binding": {
+                "slot": "ring",
+                "state": "default",
+                "variant": "activity",
+                "size": "md"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "Active calories eyebrow.",
+              "binding": {
+                "slot": "eyebrow",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "metric-value",
+              "reason": "Active calories.",
+              "binding": {
+                "slot": "value",
+                "state": "default",
+                "variant": "hero"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "progress",
+              "reason": "Calorie goal progress.",
+              "binding": {
+                "slot": "goal",
+                "state": "value",
+                "variant": "activity"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "stat-block",
+              "reason": "Steps and distance.",
+              "binding": {
+                "slot": "stats",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/activity.tsx",
+              "symbolName": "ActivityScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "movement",
+          "name": "Movement",
+          "description": "White card: movement bar chart for the day with the Day / Week / Month range control beneath the chart it scopes.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Card heading.",
+              "binding": {
+                "slot": "heading",
+                "state": "plain"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "segmented-control",
+              "reason": "Day / Week / Month range.",
+              "binding": {
+                "slot": "range",
+                "state": "first-selected"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "bar-chart",
+              "reason": "Movement bars.",
+              "binding": {
+                "slot": "chart",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/activity.tsx",
+              "symbolName": "ActivityScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "goals",
+          "name": "Inactive time",
+          "description": "Brand (periwinkle) card: inactive time with the inactivity-alert state. The calorie goal now lives in the summary.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Card title.",
+              "binding": {
+                "slot": "heading",
+                "state": "plain"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "metric-value",
+              "reason": "Inactive time.",
+              "binding": {
+                "slot": "value",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/activity.tsx",
+              "symbolName": "ActivityScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "week",
+          "name": "Last 7 days",
+          "description": "White card: heading with the weekly average, full-width 7-day activity line.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Card title and average.",
+              "binding": {
+                "slot": "heading",
+                "state": "avg"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "7-day series.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "peach-mid"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/activity.tsx",
+              "symbolName": "ActivityScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "empty",
+          "name": "Empty State",
+          "description": "EmptyDataCard before the first daytime sync.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "empty-data-card",
+              "reason": "No activity yet.",
+              "binding": {
+                "slot": "empty",
+                "state": "default"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/activity.tsx",
+              "symbolName": "ActivityScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/activity.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/activity.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "populated",
+          "empty"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-empty",
+            "framePresetId": "phone",
+            "state": "empty"
+          },
+          {
+            "id": "phone-populated",
+            "framePresetId": "phone",
+            "state": "populated"
+          },
+          {
+            "id": "phone-full-populated",
+            "framePresetId": "phone-full",
+            "state": "populated"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "primitive",
+            "id": "score-ring"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "metric-value"
+          },
+          {
+            "kind": "primitive",
+            "id": "progress"
+          },
+          {
+            "kind": "primitive",
+            "id": "stat-block"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "segmented-control"
+          },
+          {
+            "kind": "primitive",
+            "id": "bar-chart"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "metric-value"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "component",
+            "id": "empty-data-card"
+          }
+        ],
+        "localValueExceptions": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/activity.tsx",
+          "symbolName": "ActivityScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {
+            "populated": "maturities.activity.state === 'ready'",
+            "empty": "today == null or activity not ready"
+          },
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    },
+    {
+      "id": "trends",
+      "name": "Trends",
+      "description": "Trends, grouped: Scores (readiness heatmap, sleep score, activity) and Body (HRV, resting HR, daytime HR, temperature). Every card is full width with the same heading → chart anatomy.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/trends"
+      },
+      "styleRefs": [
+        "prototype/screens/trends.css"
+      ],
+      "notes": [
+        "The seed has 7 synced days, so the heatmap renders one row and hrv/rhr have no prior week (no delta)."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/trends.tsx. Averages skip unmeasured (0) days; a trend that is not ready renders a numeric 0 plus its unlock copy."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Back, title, and a mint pill with the synced-day count.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Detail header with day count.",
+              "binding": {
+                "slot": "header",
+                "state": "count",
+                "copy": "7 d"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/trends.tsx",
+              "symbolName": "TrendsScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "empty-header",
+          "name": "Empty Header",
+          "description": "Header without a right element before the first sync.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Detail header, plain.",
+              "binding": {
+                "slot": "header",
+                "state": "plain"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/trends.tsx",
+              "symbolName": "TrendsScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "empty",
+          "name": "Empty State",
+          "description": "No synced days yet.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "empty-data-card",
+              "reason": "Calendar empty state.",
+              "binding": {
+                "slot": "empty",
+                "state": "default",
+                "copy": "No trends yet"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/trends.tsx",
+              "symbolName": "TrendsScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "readiness",
+          "name": "Readiness Heatmap",
+          "description": "White card under the Scores group: readiness heading with the 7-day average, 7-day heatmap.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [
+            "Before readiness trendReady: numeric 0 + MATURITY_COPY.readiness.none."
+          ],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Title and average.",
+              "binding": {
+                "slot": "heading",
+                "state": "avg"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "heatmap-grid",
+              "reason": "7-day readiness.",
+              "binding": {
+                "slot": "chart",
+                "state": "week"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/trends.tsx",
+              "symbolName": "TrendsScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "sleep",
+          "name": "Sleep Score",
+          "description": "Penna card: sleep score heading with average, full-width 7-day line (first/last date ticks), average time asleep caption.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Title and average.",
+              "binding": {
+                "slot": "heading",
+                "state": "avg"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "7-day series.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "indigo"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/trends.tsx",
+              "symbolName": "TrendsScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "activity",
+          "name": "Activity",
+          "description": "Hudson card: activity heading with calorie average, full-width 7-day line.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Title and average.",
+              "binding": {
+                "slot": "heading",
+                "state": "avg"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "7-day series.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "peach-light"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/trends.tsx",
+              "symbolName": "TrendsScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "body",
+          "name": "Body",
+          "description": "Body group: HRV (sage), resting HR (white), daytime HR (Penna), temperature (periwinkle) — each a full-width card with the value in the heading and a full-width 7-day line. Replaces the two-up tiles and the averages strip.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Titles and values.",
+              "binding": {
+                "slot": "heading",
+                "state": "avg"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "7-day series.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "mint | indigo | lavender"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/trends.tsx",
+              "symbolName": "TrendsScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/trends.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/trends.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "populated",
+          "empty"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-empty",
+            "framePresetId": "phone",
+            "state": "empty"
+          },
+          {
+            "id": "phone-populated",
+            "framePresetId": "phone",
+            "state": "populated"
+          },
+          {
+            "id": "phone-long-populated",
+            "framePresetId": "phone-long",
+            "state": "populated"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "component",
+            "id": "empty-data-card"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "heatmap-grid"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          }
+        ],
+        "localValueExceptions": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/trends.tsx",
+          "symbolName": "TrendsScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {
+            "populated": "days.length > 0",
+            "empty": "days.length === 0"
+          },
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    },
+    {
+      "id": "metric-hrv",
+      "name": "HRV",
+      "description": "HRV insight screen: latest value with range chart, 30-day trend, and About.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/metric/hrv"
+      },
+      "styleRefs": [
+        "prototype/screens/metric-hrv.css"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/metric/[id].tsx driven by METRICS in apps/mobile/src/data/metrics.ts."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Back, metric title, and today's date.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Detail header.",
+              "binding": {
+                "slot": "header",
+                "state": "date",
+                "copy": "SEP 26"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "current",
+          "name": "Current",
+          "description": "Headline = latest sample in the metric series (sleep-window samples for night-backed metrics) plus the range-switched chart.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [
+            "Range control sits under the chart it scopes; a hairline separates the latest reading (top half) from the chart (bottom half)."
+          ],
+          "implementationHints": [
+            "Day = hourly means of today, Week = daily means, Month = weekly means; empty buckets are dropped, never fabricated."
+          ],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Latest/Current heading with Night/Live status dot.",
+              "binding": {
+                "slot": "heading",
+                "state": "status"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "metric-value",
+              "reason": "Latest measurement.",
+              "binding": {
+                "slot": "value",
+                "state": "default",
+                "variant": "hero"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "segmented-control",
+              "reason": "Day / Week / Month range.",
+              "binding": {
+                "slot": "range",
+                "state": "first-selected"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "Range chart with end dot and min/max labels.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "mint"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "trend",
+          "name": "30-Day Trend",
+          "description": "Daily values with low/average/high, or the maturity unlock copy.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "30-day trend heading.",
+              "binding": {
+                "slot": "heading",
+                "state": "avg"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "Daily values.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "mint"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "stat-block",
+              "reason": "Low / Average / High.",
+              "binding": {
+                "slot": "stats",
+                "state": "default",
+                "variant": "center"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "about",
+          "name": "About",
+          "description": "Metric explanation and reference range.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "About title.",
+              "binding": {
+                "slot": "title",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "badge",
+              "reason": "Reference range.",
+              "binding": {
+                "slot": "range",
+                "state": "default",
+                "variant": "neutral",
+                "size": "about",
+                "copy": "Typical range 40–80 ms"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/metric-hrv.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/metric.css",
+          "prototype/screens/metric-hrv.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "populated"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-populated",
+            "framePresetId": "phone",
+            "state": "populated"
+          },
+          {
+            "id": "phone-full-populated",
+            "framePresetId": "phone-full",
+            "state": "populated"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "metric-value"
+          },
+          {
+            "kind": "primitive",
+            "id": "segmented-control"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "primitive",
+            "id": "stat-block"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "badge"
+          }
+        ],
+        "localValueExceptions": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+          "symbolName": "MetricDetailScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {
+            "populated": "id = 'hrv'"
+          },
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    },
+    {
+      "id": "metric-rhr",
+      "name": "Resting HR",
+      "description": "Resting HR insight screen: latest value with range chart, live heart-rate session, 30-day trend, and About.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/metric/rhr"
+      },
+      "styleRefs": [
+        "prototype/screens/metric-rhr.css"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/metric/[id].tsx driven by METRICS in apps/mobile/src/data/metrics.ts."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Back, metric title, and today's date.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Detail header.",
+              "binding": {
+                "slot": "header",
+                "state": "date",
+                "copy": "SEP 26"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "current",
+          "name": "Current",
+          "description": "Headline = latest sample in the metric series (sleep-window samples for night-backed metrics) plus the range-switched chart.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [
+            "Range control sits under the chart it scopes; a hairline separates the latest reading (top half) from the chart (bottom half)."
+          ],
+          "implementationHints": [
+            "Day = hourly means of today, Week = daily means, Month = weekly means; empty buckets are dropped, never fabricated."
+          ],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Latest/Current heading with Night/Live status dot.",
+              "binding": {
+                "slot": "heading",
+                "state": "status"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "metric-value",
+              "reason": "Latest measurement.",
+              "binding": {
+                "slot": "value",
+                "state": "default",
+                "variant": "hero"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "segmented-control",
+              "reason": "Day / Week / Month range.",
+              "binding": {
+                "slot": "range",
+                "state": "first-selected"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "Range chart with end dot and min/max labels.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "indigo"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "live",
+          "name": "Live Heart Rate",
+          "description": "60-second live HR session card (idle state).",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [
+            "Streaming: 44pt live bpm + 48pt sparkline of the last 30 beats; pill turns peach \"Stop\"."
+          ],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Live heading with Idle/Starting/Streaming status.",
+              "binding": {
+                "slot": "heading",
+                "state": "status"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "badge",
+              "reason": "Start live action.",
+              "binding": {
+                "slot": "action",
+                "state": "default",
+                "variant": "mint",
+                "size": "action",
+                "copy": "Start live (60 s)"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "trend",
+          "name": "30-Day Trend",
+          "description": "Daily values with low/average/high, or the maturity unlock copy.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "30-day trend heading.",
+              "binding": {
+                "slot": "heading",
+                "state": "avg"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "Daily values.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "indigo"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "stat-block",
+              "reason": "Low / Average / High.",
+              "binding": {
+                "slot": "stats",
+                "state": "default",
+                "variant": "center"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "about",
+          "name": "About",
+          "description": "Metric explanation and reference range.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "About title.",
+              "binding": {
+                "slot": "title",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "badge",
+              "reason": "Reference range.",
+              "binding": {
+                "slot": "range",
+                "state": "default",
+                "variant": "neutral",
+                "size": "about",
+                "copy": "Typical range 46–60 bpm"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/metric-rhr.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/metric.css",
+          "prototype/screens/metric-rhr.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "populated"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-populated",
+            "framePresetId": "phone",
+            "state": "populated"
+          },
+          {
+            "id": "phone-full-populated",
+            "framePresetId": "phone-full",
+            "state": "populated"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "metric-value"
+          },
+          {
+            "kind": "primitive",
+            "id": "segmented-control"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "badge"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "primitive",
+            "id": "stat-block"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "badge"
+          }
+        ],
+        "localValueExceptions": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+          "symbolName": "MetricDetailScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {
+            "populated": "id = 'rhr', live session idle"
+          },
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    },
+    {
+      "id": "metric-temp",
+      "name": "Body Temp",
+      "description": "Body Temp insight screen: latest value with range chart, 30-day trend, and About.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/metric/temp"
+      },
+      "styleRefs": [
+        "prototype/screens/metric-temp.css"
+      ],
+      "notes": [
+        "Temperature is in absolute mode (collecting: 1 recorded night), so values are absolute °F and the trend shows the baseline requirement."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/metric/[id].tsx driven by METRICS in apps/mobile/src/data/metrics.ts."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Back, metric title, and today's date.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Detail header.",
+              "binding": {
+                "slot": "header",
+                "state": "date",
+                "copy": "SEP 26"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "current",
+          "name": "Current",
+          "description": "Headline = latest sample in the metric series (sleep-window samples for night-backed metrics) plus the range-switched chart.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [
+            "Range control sits under the chart it scopes; a hairline separates the latest reading (top half) from the chart (bottom half)."
+          ],
+          "implementationHints": [
+            "Day = hourly means of today, Week = daily means, Month = weekly means; empty buckets are dropped, never fabricated."
+          ],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Latest/Current heading with Night/Live status dot.",
+              "binding": {
+                "slot": "heading",
+                "state": "status"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "metric-value",
+              "reason": "Latest measurement.",
+              "binding": {
+                "slot": "value",
+                "state": "default",
+                "variant": "hero"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "segmented-control",
+              "reason": "Day / Week / Month range.",
+              "binding": {
+                "slot": "range",
+                "state": "first-selected"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "Range chart with end dot and min/max labels.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "mint"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "trend",
+          "name": "30-Day Trend",
+          "description": "Daily values with low/average/high, or the maturity unlock copy.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "30-day trend heading.",
+              "binding": {
+                "slot": "heading",
+                "state": "plain"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "about",
+          "name": "About",
+          "description": "Metric explanation and reference range, plus the °F/°C units toggle.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "About title and Units caption.",
+              "binding": {
+                "slot": "title",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "badge",
+              "reason": "Reference range and °F / °C unit toggle.",
+              "binding": {
+                "slot": "range",
+                "state": "default",
+                "variant": "neutral | ink",
+                "size": "about | unit",
+                "copy": "Baseline ± 0.5 °F"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/metric-temp.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/metric.css",
+          "prototype/screens/metric-temp.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "populated"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-populated",
+            "framePresetId": "phone",
+            "state": "populated"
+          },
+          {
+            "id": "phone-full-populated",
+            "framePresetId": "phone-full",
+            "state": "populated"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "metric-value"
+          },
+          {
+            "kind": "primitive",
+            "id": "segmented-control"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "badge"
+          }
+        ],
+        "localValueExceptions": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+          "symbolName": "MetricDetailScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {
+            "populated": "id = 'temp', tempAbsMode (baseline collecting)"
+          },
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    },
+    {
+      "id": "metric-spo2",
+      "name": "SpO2",
+      "description": "SpO2 insight screen: latest value with range chart, 30-day trend, and About.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/metric/spo2"
+      },
+      "styleRefs": [
+        "prototype/screens/metric-spo2.css"
+      ],
+      "notes": [],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/metric/[id].tsx driven by METRICS in apps/mobile/src/data/metrics.ts."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Back, metric title, and today's date.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Detail header.",
+              "binding": {
+                "slot": "header",
+                "state": "date",
+                "copy": "SEP 26"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "current",
+          "name": "Current",
+          "description": "Headline = latest sample in the metric series (sleep-window samples for night-backed metrics) plus the range-switched chart.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [
+            "Range control sits under the chart it scopes; a hairline separates the latest reading (top half) from the chart (bottom half)."
+          ],
+          "implementationHints": [
+            "Day = hourly means of today, Week = daily means, Month = weekly means; empty buckets are dropped, never fabricated."
+          ],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "Latest/Current heading with Night/Live status dot.",
+              "binding": {
+                "slot": "heading",
+                "state": "status"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "metric-value",
+              "reason": "Latest measurement.",
+              "binding": {
+                "slot": "value",
+                "state": "default",
+                "variant": "hero"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "segmented-control",
+              "reason": "Day / Week / Month range.",
+              "binding": {
+                "slot": "range",
+                "state": "first-selected"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "Range chart with end dot and min/max labels.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "indigo-deep"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "trend",
+          "name": "30-Day Trend",
+          "description": "Daily values with low/average/high, or the maturity unlock copy.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "card-heading",
+              "reason": "30-day trend heading.",
+              "binding": {
+                "slot": "heading",
+                "state": "avg"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "sparkline",
+              "reason": "Daily values.",
+              "binding": {
+                "slot": "chart",
+                "state": "default",
+                "variant": "indigo-deep"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "stat-block",
+              "reason": "Low / Average / High.",
+              "binding": {
+                "slot": "stats",
+                "state": "default",
+                "variant": "center"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "about",
+          "name": "About",
+          "description": "Metric explanation and reference range.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "label",
+              "reason": "About title.",
+              "binding": {
+                "slot": "title",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "primitive",
+              "id": "badge",
+              "reason": "Reference range.",
+              "binding": {
+                "slot": "range",
+                "state": "default",
+                "variant": "neutral",
+                "size": "about",
+                "copy": "Healthy above 95%"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+              "symbolName": "MetricDetailScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/metric-spo2.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/metric.css",
+          "prototype/screens/metric-spo2.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "populated"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-populated",
+            "framePresetId": "phone",
+            "state": "populated"
+          },
+          {
+            "id": "phone-full-populated",
+            "framePresetId": "phone-full",
+            "state": "populated"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "metric-value"
+          },
+          {
+            "kind": "primitive",
+            "id": "segmented-control"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "component",
+            "id": "card-heading"
+          },
+          {
+            "kind": "primitive",
+            "id": "sparkline"
+          },
+          {
+            "kind": "primitive",
+            "id": "stat-block"
+          },
+          {
+            "kind": "primitive",
+            "id": "label"
+          },
+          {
+            "kind": "primitive",
+            "id": "badge"
+          }
+        ],
+        "localValueExceptions": []
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/metric/[id].tsx",
+          "symbolName": "MetricDetailScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {
+            "populated": "id = 'spo2'"
+          },
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    },
+    {
+      "id": "ring-debug",
+      "name": "Ring Debug",
+      "description": "Developer console for the ring link: wrapped ink command buttons, stored key/device meta line, and a log console that fills as commands run.",
+      "framePresetId": "phone",
+      "productionRelationship": {
+        "kind": "existing-route",
+        "routePath": "/ring-debug"
+      },
+      "styleRefs": [
+        "prototype/screens/ring-debug.css"
+      ],
+      "notes": [
+        "Initial state before any command runs: no stored key or device, empty console."
+      ],
+      "prototypeOnly": false,
+      "implementationHints": [
+        "apps/mobile/src/app/ring-debug.tsx. Buttons: ink fill, radius 10, padding 9/14, min height 48, 13pt semibold white system font; disabled 0.35, pressed 0.7."
+      ],
+      "sections": [
+        {
+          "id": "header",
+          "name": "Header",
+          "description": "Back button and \"Ring debug\" title.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "component",
+              "id": "aura-background",
+              "reason": "Screen backdrop.",
+              "binding": {
+                "slot": "background",
+                "state": "default"
+              }
+            },
+            {
+              "kind": "component",
+              "id": "screen-header",
+              "reason": "Back + title, no right element.",
+              "binding": {
+                "slot": "header",
+                "state": "plain",
+                "copy": "Ring debug"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/ring-debug.tsx",
+              "symbolName": "RingDebugScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "commands",
+          "name": "Commands",
+          "description": "Wrapped DebugButtons in source order; Authenticate is disabled without a stored key, and every button disables while a command runs.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [
+            {
+              "kind": "primitive",
+              "id": "button",
+              "reason": "Debug commands.",
+              "binding": {
+                "slot": "commands",
+                "state": "normal | disabled",
+                "variant": "debug"
+              }
+            }
+          ],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/ring-debug.tsx",
+              "symbolName": "RingDebugScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "meta",
+          "name": "Meta",
+          "description": "Stored auth key prefix and device id.",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [
+            "Shows \"key: <first 8 hex>… · device: <id>\" once paired."
+          ],
+          "uses": [],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/ring-debug.tsx",
+              "symbolName": "RingDebugScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        },
+        {
+          "id": "console",
+          "name": "Console",
+          "description": "Log lines (Menlo 11pt ink) appended per command: \"> label\", \"ok: label\", \"ERR label: message\".",
+          "styleRefs": [],
+          "prototypeOnly": false,
+          "notes": [],
+          "implementationHints": [],
+          "uses": [],
+          "implementationTargets": [
+            {
+              "platform": "ios",
+              "framework": "react-native-expo",
+              "candidatePath": "apps/mobile/src/app/ring-debug.tsx",
+              "symbolName": "RingDebugScreen",
+              "operationIntent": "existing-section",
+              "propMapping": {},
+              "stateMapping": {},
+              "tokenAdapter": "packages/ui/src/tokens",
+              "testPaths": [],
+              "storyPaths": [],
+              "unresolvedDecisions": []
+            }
+          ]
+        }
+      ],
+      "prototype": {
+        "source": "prototype/screens/ring-debug.html",
+        "styles": [
+          "prototype/styles/fonts.css",
+          "prototype/styles/glass.css",
+          "prototype/styles/kore.css",
+          "prototype/styles/illustration.css",
+          "prototype/screens/ring-debug.css"
+        ],
+        "assetRefs": [
+          "prototype/assets/fonts/sora-200.woff2",
+          "prototype/assets/fonts/sora-300.woff2",
+          "prototype/assets/fonts/sora-400.woff2",
+          "prototype/assets/fonts/sora-500.woff2",
+          "prototype/assets/fonts/sora-600.woff2"
+        ],
+        "states": [
+          "default"
+        ],
+        "reviewConditions": [
+          {
+            "id": "phone-default",
+            "framePresetId": "phone",
+            "state": "default"
+          }
+        ],
+        "renderedUses": [
+          {
+            "kind": "component",
+            "id": "aura-background"
+          },
+          {
+            "kind": "component",
+            "id": "screen-header"
+          },
+          {
+            "kind": "primitive",
+            "id": "button"
+          }
+        ],
+        "localValueExceptions": [
+          {
+            "property": "font-family",
+            "value": "ui-sans-serif, system-ui, -apple-system, sans-serif",
+            "reason": "DebugButton labels and the meta line set no fontFamily in ring-debug.tsx, so they render in the platform system font."
+          }
+        ]
+      },
+      "implementationTargets": [
+        {
+          "platform": "ios",
+          "framework": "react-native-expo",
+          "candidatePath": "apps/mobile/src/app/ring-debug.tsx",
+          "symbolName": "RingDebugScreen",
+          "operationIntent": "existing-implementation",
+          "propMapping": {},
+          "stateMapping": {
+            "default": "no stored key, empty log"
+          },
+          "tokenAdapter": "packages/ui/src/tokens",
+          "testPaths": [],
+          "storyPaths": [],
+          "unresolvedDecisions": []
+        }
+      ],
+      "flow": "journey"
+    }
+  ]
+}

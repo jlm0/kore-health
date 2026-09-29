@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { radius, surfaces } from '../tokens';
+import { useCardTone } from './GlassCard';
 
 interface ProgressBarProps {
   progress: number;
@@ -19,6 +20,7 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ progress, colors, height = 6, delay = 0, style }: ProgressBarProps) {
+  const onBrand = useCardTone() != null;
   const [width, setWidth] = useState(0);
   const fill = useSharedValue(0);
 
@@ -44,7 +46,7 @@ export function ProgressBar({ progress, colors, height = 6, delay = 0, style }: 
         {
           height,
           borderRadius: radius.pill,
-          backgroundColor: surfaces.track,
+          backgroundColor: onBrand ? surfaces.circleFill : surfaces.track,
           overflow: 'hidden',
         },
         style,

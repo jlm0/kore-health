@@ -1,0 +1,54 @@
+[data-blueprint-primitive="row-layout"] {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-row);
+  box-sizing: border-box;
+  color: var(--app-color-foreground);
+  font: var(--app-type-body);
+}
+
+.row-layout__leading {
+  display: inline-flex;
+  width: var(--app-size-control-sm);
+  height: var(--app-size-control-sm);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--app-radius-md);
+  color: var(--app-color-foreground);
+  background: var(--app-color-surface-muted);
+}
+
+.row-layout__leading svg {
+  width: var(--app-size-icon-sm);
+  height: var(--app-size-icon-sm);
+}
+
+.row-layout__body {
+  display: grid;
+  min-width: 0;
+}
+
+.row-layout__title {
+  overflow: hidden;
+  font: var(--app-type-body);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-layout__subtitle {
+  overflow: hidden;
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-layout__trailing {
+  flex: none;
+  margin-left: auto;
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+  font-variant-numeric: tabular-nums;
+}

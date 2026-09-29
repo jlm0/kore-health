@@ -1,0 +1,41 @@
+.screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--app-size-control-lg);
+  padding: var(--app-space-1) var(--app-space-2) var(--app-space-2);
+  font-family: var(--app-font-sans);
+}
+
+.screen-header__side {
+  display: flex;
+  min-width: var(--app-space-10);
+  align-items: center;
+}
+
+.screen-header__side--right {
+  justify-content: flex-end;
+}
+
+.screen-header__title {
+  color: var(--app-color-foreground);
+  font: var(--app-type-title);
+  letter-spacing: var(--app-tracking-title);
+}
+
+.screen-header em {
+  font-style: normal;
+}
+
+.screen-header__title:empty {
+  display: none;
+}
+
+.screen-header [data-blueprint-primitive="badge"] {
+  align-self: center;
+}
+
+.screen-header:not([data-blueprint-state="date"]) .screen-header__date,
+.screen-header:not([data-blueprint-state="count"]) .screen-header__count {
+  display: none;
+}

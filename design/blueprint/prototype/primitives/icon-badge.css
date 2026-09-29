@@ -1,0 +1,60 @@
+[data-blueprint-primitive="icon-badge"] {
+  --icon-badge-size: var(--app-size-badge-md);
+  --icon-badge-glyph: 15px;
+  display: inline-flex;
+  width: var(--icon-badge-size);
+  height: var(--icon-badge-size);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid var(--app-tint-badge-edge);
+  border-radius: calc(var(--icon-badge-size) * 0.36);
+  color: var(--icon-tint-fg, var(--app-tint-badge-mint-fg));
+  background: linear-gradient(141deg, var(--icon-tint-from, var(--app-tint-badge-mint-from)), var(--icon-tint-to, var(--app-tint-badge-mint-to)));
+}
+
+.icon-badge__glyph,
+.icon-badge__glyph > * {
+  display: inline-flex;
+}
+
+.icon-badge__glyph svg {
+  width: var(--icon-badge-glyph);
+  height: var(--icon-badge-glyph);
+}
+
+[data-blueprint-primitive="icon-badge"][data-blueprint-variant="mint"],
+.icon-tint-mint {
+  --icon-tint-from: var(--app-tint-badge-mint-from);
+  --icon-tint-to: var(--app-tint-badge-mint-to);
+  --icon-tint-fg: var(--app-tint-badge-mint-fg);
+}
+
+[data-blueprint-primitive="icon-badge"][data-blueprint-variant="indigo"],
+.icon-tint-indigo {
+  --icon-tint-from: var(--app-tint-badge-indigo-from);
+  --icon-tint-to: var(--app-tint-badge-indigo-to);
+  --icon-tint-fg: var(--app-tint-badge-indigo-fg);
+}
+
+[data-blueprint-primitive="icon-badge"][data-blueprint-variant="lavender"],
+.icon-tint-lavender {
+  --icon-tint-from: var(--app-tint-badge-lavender-from);
+  --icon-tint-to: var(--app-tint-badge-lavender-to);
+  --icon-tint-fg: var(--app-tint-badge-lavender-fg);
+}
+
+[data-blueprint-primitive="icon-badge"][data-blueprint-variant="peach"],
+.icon-tint-peach {
+  --icon-tint-from: var(--app-tint-badge-peach-from);
+  --icon-tint-to: var(--app-tint-badge-peach-to);
+  --icon-tint-fg: var(--app-tint-badge-peach-fg);
+}
+
+[data-blueprint-primitive="icon-badge"][data-blueprint-size="xs"] { --icon-badge-size: var(--app-size-badge-xs); --icon-badge-glyph: 10px; }
+[data-blueprint-primitive="icon-badge"][data-blueprint-size="sm"] { --icon-badge-size: var(--app-size-badge-sm); --icon-badge-glyph: 13px; }
+[data-blueprint-primitive="icon-badge"][data-blueprint-size="row"] { --icon-badge-size: 32px; --icon-badge-glyph: 19px; }
+[data-blueprint-primitive="icon-badge"][data-blueprint-size="lg"] { --icon-badge-size: var(--app-size-badge-lg); --icon-badge-glyph: 21px; }
+[data-blueprint-primitive="icon-badge"][data-blueprint-size="empty"] { --icon-badge-size: 40px; --icon-badge-glyph: 23px; }
+[data-blueprint-primitive="icon-badge"][data-blueprint-size="xl"] { --icon-badge-size: var(--app-size-badge-xl); --icon-badge-glyph: 26px; }

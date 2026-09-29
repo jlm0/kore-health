@@ -1,0 +1,49 @@
+<main class="k-screen pair" data-blueprint-screen="pair" data-blueprint-state="step-oura">
+  <blueprint-use kind="component" ref="aura-background" state="default"></blueprint-use>
+  <div class="k-content k-content--grid">
+    <blueprint-use kind="component" ref="screen-header" state="plain" data-blueprint-section="header"><b slot="title">Pair your ring</b></blueprint-use>
+
+    <blueprint-use kind="component" ref="journey-step" state="step-1" class="glass--indigo pair-step pair-step--oura" data-blueprint-section="step-oura"><svg slot="illustration" class="k-art" viewBox="0 0 280 200" role="img" aria-label="A phone linked to a ring"><circle class="a-veil" cx="140" cy="100" r="90"/><rect class="a-white" x="62" y="36" width="80" height="140" rx="18"/><rect class="a-penna" x="74" y="56" width="56" height="38" rx="9"/><rect class="a-penna" x="74" y="104" width="40" height="8" rx="4"/><rect class="a-penna" x="74" y="118" width="52" height="8" rx="4"/><rect class="a-ink" x="88" y="158" width="28" height="4" rx="2"/><path class="s-white" stroke-width="4" stroke-dasharray="6 8" d="M148 110C164 104 170 110 178 110"/><g class="a-float"><circle class="s-ink" stroke-width="12" cx="208" cy="110" r="26"/></g><circle class="a-ink" cx="200" cy="58" r="15"/><text class="a-white k-art__glyph" x="200" y="64" text-anchor="middle">?</text></svg><em slot="eyebrow">Step 1 of 3</em><em slot="title">Has this ring been used with <strong>the Oura app</strong>?</em><em slot="body">A ring set up in Oura is locked to that app, so it needs a reset before Kore can pair with it.</em><em slot="primary">Yes, it has</em><em slot="secondary">No, it’s new or already reset</em></blueprint-use>
+    <blueprint-use kind="component" ref="journey-step" state="step-2" class="glass--lavender pair-step pair-step--remove" data-blueprint-section="step-remove"><svg slot="illustration" class="k-art" viewBox="0 0 280 200" role="img" aria-label="A phone unlinking from a ring"><circle class="a-veil" cx="140" cy="100" r="90"/><rect class="a-white" x="62" y="36" width="80" height="140" rx="18"/><rect class="a-peri" x="74" y="56" width="56" height="38" rx="9"/><rect class="a-peri" x="74" y="104" width="40" height="8" rx="4"/><rect class="a-peri" x="74" y="118" width="52" height="8" rx="4"/><rect class="a-ink" x="88" y="158" width="28" height="4" rx="2"/><path class="s-white" stroke-width="4" stroke-dasharray="6 8" d="M148 110H160"/><path class="s-white" stroke-width="4" stroke-dasharray="6 8" d="M186 110H176"/><circle class="a-ink" cx="168" cy="110" r="11"/><path class="s-white" stroke-width="2.5" d="M164 106L172 114M172 106L164 114"/><g class="a-float"><circle class="s-ink" stroke-width="12" cx="212" cy="110" r="24"/></g></svg><em slot="eyebrow">Step 2 of 3</em><em slot="title">Free it from <strong>Oura and your phone</strong></em><em slot="body">Do these once, then Kore takes it from here.</em><ol slot="detail"><li>Remove the ring in the Oura app</li><li>Forget it in Settings → Bluetooth</li><li>If it’s still locked, Kore can factory-reset it</li></ol><em slot="primary">Done, continue</em><em slot="secondary">Open Bluetooth settings</em></blueprint-use>
+    <blueprint-use kind="component" ref="journey-step" state="step-3" class="glass--peach pair-step pair-step--charger journey-step--single" data-blueprint-section="step-charger"><svg slot="illustration" class="k-art" viewBox="0 0 280 200" role="img" aria-label="A ring resting on its charger"><circle class="a-veil" cx="140" cy="100" r="90"/><rect class="a-white" x="68" y="150" width="144" height="26" rx="13"/><rect class="a-rubble" x="116" y="112" width="48" height="44" rx="14"/><g class="a-float"><circle class="s-ink" stroke-width="12" cx="140" cy="94" r="28"/></g><path class="s-white" stroke-width="4" d="M96 70A52 52 0 0 1 108 52"/><path class="s-white" stroke-width="4" d="M184 70A52 52 0 0 0 172 52"/><path class="a-terra" d="M214 58l-14 22h11l-7 20l20 -27h-11l8 -15Z"/></svg><em slot="eyebrow">Step 3 of 3</em><em slot="title">Place your ring <strong>on its charger</strong></em><em slot="body">Charging keeps the ring awake so Kore can find it fast. Keep your phone close.</em><em slot="primary">Find my ring</em></blueprint-use>
+
+    <a class="pair-debug-link" href="/ring-debug" data-blueprint-section="debug-link"><blueprint-use kind="primitive" ref="label" state="default" variant="status"><span slot="text">Having trouble? Open the debug console →</span></blueprint-use></a>
+
+    <section class="glass glass--brand glass--r24 glass--mint pair-card pair-paired" data-blueprint-section="paired" data-blueprint-surface>
+      <div class="pair-paired__row">
+        <blueprint-use kind="primitive" ref="icon-badge" state="default" variant="mint" size="lg"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.98 9.98 17.02 12 18.98 14.02 21 12ZM14.86 16.31 12.98 18.19V14.39ZM12.98 5.81 14.86 7.69 12.98 9.56ZM17.72 7.69 12 2.02H11.02V9.56L6.42 5.02L5.02 6.42L10.59 12L5.02 17.58L6.42 18.98L11.02 14.39V21.98H12L17.72 16.31L13.41 12ZM6.98 12 5.02 9.98 3 12 5.02 14.02Z"/></svg></span></blueprint-use>
+        <span class="pair-paired__copy">
+          <blueprint-use kind="primitive" ref="label" state="default"><span slot="text">Your ring</span></blueprint-use>
+          <span class="pair-paired__id">5E1A7C</span>
+        </span>
+        <blueprint-use kind="primitive" ref="badge" state="default" variant="mint" size="action"><b slot="label">Paired</b></blueprint-use>
+      </div>
+      <div class="pair-paired__actions"><blueprint-use kind="primitive" ref="badge" state="default" variant="indigo" size="action"><b slot="label">Read ring info</b></blueprint-use></div>
+      <a class="pair-paired__forget" href="#">Forget this ring</a>
+    </section>
+
+    <a class="pair-other" href="#" data-blueprint-section="pair-other"><blueprint-use kind="primitive" ref="label" state="default" variant="status"><span slot="text">Pair a different ring →</span></blueprint-use></a>
+
+    <section class="glass glass--r24 pair-card pair-nearby" data-blueprint-section="nearby" data-blueprint-surface>
+      <div class="pair-nearby__head">
+        <blueprint-use kind="primitive" ref="label" state="default"><span slot="text">Nearby rings</span></blueprint-use>
+        <span class="pair-nearby__progress">
+          <blueprint-use kind="primitive" ref="loading-mark" state="mint"></blueprint-use>
+          <blueprint-use kind="primitive" ref="label" state="default" variant="status"><span slot="text">Scanning…</span></blueprint-use>
+        </span>
+      </div>
+
+      <div class="pair-nearby__empty">
+        <p class="k-body k-body--center">No rings found — make sure the ring is nearby and awake</p>
+        <blueprint-use kind="primitive" ref="badge" state="default" variant="mint" size="status"><b slot="label">Rescan</b></blueprint-use>
+      </div>
+
+      <div class="pair-nearby__list">
+        <blueprint-use kind="component" ref="ring-row" state="good" class="pair-row pair-row--idle"><em slot="name">Oura 20380B2623025712</em><em slot="id">5E1A7C</em><em slot="signal">Good · -58 dBm</em><em slot="step">Authenticating…</em></blueprint-use>
+        <blueprint-use kind="component" ref="ring-row" state="connecting" class="pair-row pair-row--connecting"><em slot="name">Oura 20380B2623025712</em><em slot="id">5E1A7C</em><em slot="signal">Good · -58 dBm</em><em slot="step">Authenticating…</em></blueprint-use>
+        <p class="pair-nearby__hint">Keep your ring close — results appear as they are found</p>
+        <blueprint-use kind="primitive" ref="badge" state="default" variant="neutral" size="status" class="pair-nearby__rescan"><b slot="label">Rescan</b></blueprint-use>
+      </div>
+    </section>
+  </div>
+</main>

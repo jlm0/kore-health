@@ -31,3 +31,6 @@ yarn-error.*
 
 # TypeScript
 *.tsbuildinfo
+
+# Blueprint review evidence
+.blueprint-artifacts/

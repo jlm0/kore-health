@@ -1,0 +1,108 @@
+:where([data-blueprint-surface]) {
+  background-color: var(--app-color-surface);
+}
+
+:where([data-blueprint-surface] [data-blueprint-surface]) {
+  background-color: var(--app-color-surface-2);
+}
+
+:where([data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface]) {
+  background-color: var(--app-color-surface-3);
+}
+
+:where([data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface]) {
+  background-color: var(--app-color-surface-4);
+}
+
+:where([data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface]) {
+  background-color: var(--app-color-surface-5);
+}
+
+:where([data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface] [data-blueprint-surface]) {
+  background-color: var(--app-color-surface-6);
+}
+
+[data-blueprint-primitive="pressable-row"] {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-row);
+  box-sizing: border-box;
+  padding: var(--app-space-3);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-lg);
+  color: var(--app-color-foreground);
+  font: var(--app-type-body);
+  cursor: pointer;
+}
+
+.pressable-row__leading {
+  display: inline-flex;
+  width: var(--app-size-control-sm);
+  height: var(--app-size-control-sm);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--app-radius-md);
+  color: var(--app-color-foreground);
+  background: var(--app-color-surface-muted);
+}
+
+.pressable-row__leading svg,
+.pressable-row__trailing {
+  width: var(--app-size-icon-sm);
+  height: var(--app-size-icon-sm);
+  flex: none;
+}
+
+.pressable-row__body {
+  display: grid;
+  min-width: 0;
+}
+
+.pressable-row__title {
+  overflow: hidden;
+  font: var(--app-type-body);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pressable-row__subtitle {
+  overflow: hidden;
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pressable-row__trailing {
+  margin-left: auto;
+  color: var(--app-color-muted);
+}
+
+[data-blueprint-primitive="pressable-row"]:hover {
+  background-image: linear-gradient(var(--app-color-hover), var(--app-color-hover));
+}
+
+[data-blueprint-primitive="pressable-row"]:active {
+  background-image: linear-gradient(var(--app-color-pressed), var(--app-color-pressed));
+}
+
+[data-blueprint-primitive="pressable-row"]:focus-visible {
+  outline: 2px solid var(--app-color-focus-ring);
+  outline-offset: 2px;
+}
+
+[data-blueprint-primitive="pressable-row"][data-blueprint-state="group-first"] {
+  border-radius: var(--app-radius-lg) var(--app-radius-lg) 0 0;
+}
+
+[data-blueprint-primitive="pressable-row"][data-blueprint-state="group-middle"] {
+  border-top-color: transparent;
+  border-radius: 0;
+}
+
+[data-blueprint-primitive="pressable-row"][data-blueprint-state="group-last"] {
+  border-top-color: transparent;
+  border-radius: 0 0 var(--app-radius-lg) var(--app-radius-lg);
+}

@@ -1,0 +1,65 @@
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
+  padding: var(--app-space-6);
+}
+
+.metric-hero {
+  gap: var(--app-space-1);
+}
+
+.metric-hero > [data-blueprint-component="card-heading"] {
+  margin-bottom: var(--app-space-3);
+}
+
+.metric-when {
+  margin: 0;
+  color: var(--app-color-muted);
+  font: var(--app-type-micro);
+}
+
+.metric-note {
+  margin: 0;
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+}
+
+.metric-range {
+  margin-top: var(--app-space-4);
+}
+
+.metric-chart {
+  margin-top: var(--app-space-5);
+  padding-top: var(--app-space-6);
+  border-top: 1px solid var(--app-color-border-strong);
+}
+
+.metric-stats {
+  display: flex;
+  padding-top: var(--app-space-4);
+  border-top: 1px solid var(--app-color-border-strong);
+  justify-content: space-between;
+}
+
+.metric-about__text {
+  margin: 0;
+  color: var(--app-color-slate);
+  font: var(--app-type-body);
+}
+
+.metric-units {
+  display: flex;
+  margin-top: var(--app-space-1);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metric-units__options {
+  display: flex;
+  gap: var(--app-space-2);
+}
+
+.metric-live__status {
+  --card-heading-dot: var(--app-color-faint);
+}

@@ -1,0 +1,138 @@
+.journey-step {
+  display: flex;
+  min-height: 560px;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--app-space-6);
+  padding: var(--app-space-6);
+  font-family: var(--app-font-sans);
+}
+
+.journey-step i,
+.journey-step em,
+.journey-step b {
+  font-style: normal;
+}
+
+.journey-step__art > span,
+.journey-step__detail > span {
+  display: contents;
+}
+
+.journey-step__progress {
+  display: flex;
+  gap: 6px;
+}
+
+.journey-step__progress i {
+  display: block;
+  height: 4px;
+  flex: 1;
+  border-radius: var(--app-radius-full);
+  background: var(--app-color-circle-fill);
+}
+
+.journey-step[data-blueprint-state="step-1"] .journey-step__progress i:nth-child(-n + 1),
+.journey-step[data-blueprint-state="step-2"] .journey-step__progress i:nth-child(-n + 2),
+.journey-step[data-blueprint-state="step-3"] .journey-step__progress i:nth-child(-n + 3) {
+  background: var(--app-color-foreground);
+}
+
+.journey-step__art {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.journey-step__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.journey-step__eyebrow {
+  margin: 0;
+  color: var(--app-color-muted);
+  font: var(--app-type-label);
+}
+
+.journey-step__title {
+  margin: 0;
+  color: var(--app-color-foreground);
+  font: var(--app-type-display);
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.journey-step__title strong {
+  font-weight: 600;
+}
+
+.journey-step__body {
+  margin: 0;
+  color: var(--app-color-slate);
+  font: var(--app-type-body);
+  text-wrap: pretty;
+}
+
+.journey-step__detail:not(:has(*)) {
+  display: none;
+}
+
+.journey-step__detail ol {
+  display: flex;
+  margin: var(--app-space-2) 0 0;
+  padding: 0;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  list-style: none;
+  counter-reset: journey;
+}
+
+.journey-step__detail li {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  color: var(--app-color-foreground);
+  font: var(--app-type-body);
+  font-weight: 500;
+  counter-increment: journey;
+}
+
+.journey-step__detail li::before {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--app-radius-full);
+  background: var(--app-color-circle-fill);
+  font: var(--app-type-caption);
+  font-weight: 600;
+  content: counter(journey);
+}
+
+.journey-step__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.journey-step__actions [data-blueprint-primitive="button"] {
+  width: 100%;
+}
+
+.journey-step--single .journey-step__secondary {
+  display: none;
+}
+
+.journey-step:has(.journey-step__detail li) {
+  gap: var(--app-space-5);
+}
+
+.journey-step:has(.journey-step__detail li) .k-art {
+  max-width: 200px;
+}

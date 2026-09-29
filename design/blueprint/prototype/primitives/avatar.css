@@ -1,0 +1,70 @@
+[data-blueprint-primitive="avatar"] {
+  position: relative;
+  display: inline-flex;
+  width: var(--app-size-control-md);
+  height: var(--app-size-control-md);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius-full);
+  color: var(--app-color-on-secondary);
+  background: var(--app-color-secondary);
+  font: var(--app-type-label);
+  font-weight: 600;
+}
+
+.avatar__fallback {
+  display: none;
+  width: var(--app-size-icon-md);
+  height: var(--app-size-icon-md);
+}
+
+.avatar__status {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: none;
+  width: 25%;
+  height: 25%;
+  border: 2px solid var(--app-color-surface);
+  border-radius: var(--app-radius-full);
+  background: var(--app-color-success);
+}
+
+[data-blueprint-primitive="avatar"][data-blueprint-state="fallback"] .avatar__initials {
+  display: none;
+}
+
+[data-blueprint-primitive="avatar"][data-blueprint-state="fallback"] {
+  color: var(--app-color-muted);
+  background: var(--app-color-surface-muted);
+}
+
+[data-blueprint-primitive="avatar"][data-blueprint-state="fallback"] .avatar__fallback,
+[data-blueprint-primitive="avatar"][data-blueprint-state="status"] .avatar__status {
+  display: block;
+}
+
+[data-blueprint-primitive="avatar"][data-blueprint-size="sm"] {
+  width: var(--app-size-control-sm);
+  height: var(--app-size-control-sm);
+}
+
+[data-blueprint-primitive="avatar"][data-blueprint-size="sm"] .avatar__fallback {
+  width: var(--app-size-icon-sm);
+  height: var(--app-size-icon-sm);
+}
+
+[data-blueprint-primitive="avatar"][data-blueprint-size="lg"] {
+  width: var(--app-size-control-lg);
+  height: var(--app-size-control-lg);
+  font: var(--app-type-body);
+  font-weight: 600;
+}
+
+[data-blueprint-primitive="avatar"][data-blueprint-size="lg"] .avatar__fallback {
+  width: var(--app-size-icon-lg);
+  height: var(--app-size-icon-lg);
+}

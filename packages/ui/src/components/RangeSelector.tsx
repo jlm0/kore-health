@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { haptics } from '../haptics';
-import { fontFamily, letterSpacing, palette, radius, surfaces } from '../tokens';
+import { palette, radius, surfaces, type } from '../tokens';
+import { useCardTone } from './GlassCard';
 
-// Segmented Day/Week/Month-style picker as one capsule TRACK with a sliding
-// ink capsule for the active segment (the Soma convention): equal-width
-// segments, greyscale chrome, the capsule glides on change instead of pills
-// swapping color in place.
+// One capsule track with a sliding ink capsule for the active segment.
 interface RangeSelectorProps<T extends string> {
   options: readonly { id: T; label: string }[];
   value: T;
@@ -21,6 +19,7 @@ export function RangeSelector<T extends string>({
   onChange,
   style,
 }: RangeSelectorProps<T>) {
+  const onBrand = useCardTone() != null;
   const [trackWidth, setTrackWidth] = useState(0);
   const activeIndex = Math.max(
     0,
@@ -34,7 +33,7 @@ export function RangeSelector<T extends string>({
 
   return (
     <View
-      style={[styles.track, style]}
+      style={[styles.track, { backgroundColor: onBrand ? surfaces.circleFill : surfaces.chipNeutral }, style]}
       onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}>
       {trackWidth > 0 && (
         <Animated.View
@@ -57,14 +56,11 @@ export function RangeSelector<T extends string>({
             }}
             hitSlop={6}
             accessibilityRole="button"
+            accessibilityState={{ selected: active }}
             accessibilityLabel={`Show ${o.label.toLowerCase()} range`}
             style={styles.segment}>
-            <Text
-              style={[
-                styles.text,
-                { color: active ? palette.white : palette.muted },
-              ]}>
-              {o.label.toUpperCase()}
+            <Text style={[type.label, { color: active ? palette.white : palette.muted }]}>
+              {o.label}
             </Text>
           </Pressable>
         );
@@ -76,7 +72,6 @@ export function RangeSelector<T extends string>({
 const styles = StyleSheet.create({
   track: {
     flexDirection: 'row',
-    backgroundColor: surfaces.chipNeutral,
     borderRadius: radius.pill,
     padding: 3,
   },
@@ -91,11 +86,6 @@ const styles = StyleSheet.create({
   segment: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 6,
-  },
-  text: {
-    fontSize: 9,
-    fontFamily: fontFamily.semiBold,
-    letterSpacing: letterSpacing(9, 0.12),
+    paddingVertical: 8,
   },
 });

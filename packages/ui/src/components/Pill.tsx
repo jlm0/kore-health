@@ -1,29 +1,24 @@
 import React from 'react';
-import { Pressable, View, type Insets, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, Text, View, type Insets, type StyleProp, type ViewStyle } from 'react-native';
 import { haptics } from '../haptics';
-import { palette, iconTints, radius, surfaces, tints } from '../tokens';
-import { Label } from './Typo';
+import { iconTints, palette, radius, surfaces, tints, type } from '../tokens';
+import { useCardTone } from './GlassCard';
 
 const variants = {
-  mint: { bg: tints.mint, color: palette.mint.deep },
-  indigo: { bg: tints.indigo, color: palette.indigo.deep },
+  mint: { bg: tints.mint, color: iconTints.mint.fg },
+  indigo: { bg: tints.indigo, color: iconTints.indigo.fg },
   lavender: { bg: tints.lavender, color: iconTints.lavender.fg },
-  peach: { bg: tints.peach, color: palette.peach.deep },
+  peach: { bg: tints.peach, color: iconTints.peach.fg },
   neutral: { bg: surfaces.chipNeutral, color: palette.muted },
-  // Solid ink pill — the active segment in Day/Week/Month-style selectors
-  // (Soma convention: one dark pill on a neutral track, no hue in chrome).
   ink: { bg: palette.ink, color: palette.white },
 } as const;
 
-// A Pill is only ~20 pt tall. This hitSlop lifts every interactive Pill to
-// the 48×48 pt touch-target floor (see touch.ts) without changing its
-// visual size.
-const DEFAULT_HIT_SLOP: Insets = { top: 14, bottom: 14, left: 14, right: 14 };
+// Pills are ~26 pt tall; the slop lifts interactive ones to the 48 pt floor.
+const DEFAULT_HIT_SLOP: Insets = { top: 11, bottom: 11, left: 8, right: 8 };
 
 interface PillProps {
   children: string;
   variant?: keyof typeof variants;
-  em?: number;
   paddingH?: number;
   onPress?: () => void;
   disabled?: boolean;
@@ -35,32 +30,31 @@ interface PillProps {
 export function Pill({
   children,
   variant = 'mint',
-  em = 0.14,
-  paddingH = 12,
+  paddingH = 14,
   onPress,
   disabled,
   hitSlop,
   accessibilityLabel,
   style,
 }: PillProps) {
-  const v = variants[variant];
+  const onBrand = useCardTone() != null;
+  const hued = variant !== 'neutral' && variant !== 'ink';
+  const v = onBrand && hued ? { bg: surfaces.circleFill, color: palette.ink } : variants[variant];
   const pill = (
     <View
       style={[
         {
+          minHeight: 26,
+          justifyContent: 'center',
           backgroundColor: v.bg,
           borderRadius: radius.pill,
           paddingHorizontal: paddingH,
-          paddingVertical: 4,
+          paddingVertical: 3,
           alignSelf: 'flex-start',
         },
-        // In the interactive case `style` moves to the wrapper (see below) so
-        // alignment props like alignSelf keep working on the touchable.
         ...(onPress ? [] : [style]),
       ]}>
-      <Label size={9} em={em} color={v.color}>
-        {children}
-      </Label>
+      <Text style={[type.caption, { fontFamily: type.label.fontFamily, color: v.color }]}>{children}</Text>
     </View>
   );
 
@@ -75,7 +69,7 @@ export function Pill({
         hitSlop={hitSlop ?? DEFAULT_HIT_SLOP}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        style={({ pressed }) => [style as ViewStyle, pressed && { opacity: 0.7 }]}>
+        style={({ pressed }) => [style as ViewStyle, { opacity: disabled ? 0.5 : pressed ? 0.7 : 1 }]}>
         {pill}
       </Pressable>
     );

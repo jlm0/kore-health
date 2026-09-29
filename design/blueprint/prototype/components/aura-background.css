@@ -1,0 +1,37 @@
+.aura {
+  --aura-big: calc(100vw * 1.7);
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aura__wash,
+.aura__blob {
+  position: absolute;
+  display: block;
+}
+
+.aura__wash {
+  inset: 0;
+  background: linear-gradient(180deg, var(--app-color-aura-top) 0%, var(--app-color-aura-mid) 35%, transparent 100%);
+}
+
+.aura__blob {
+  width: var(--aura-big);
+  height: var(--aura-big);
+  border-radius: var(--app-radius-full);
+}
+
+.aura__blob--top {
+  top: calc(var(--aura-big) * -0.55);
+  right: calc(var(--aura-big) * -0.5);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--app-hue-indigo-light) 45%, transparent), transparent);
+}
+
+.aura__blob--bottom {
+  bottom: calc(var(--aura-big) * -0.6);
+  left: calc(var(--aura-big) * -0.6);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--app-hue-peach-pale) 60%, transparent), transparent);
+}

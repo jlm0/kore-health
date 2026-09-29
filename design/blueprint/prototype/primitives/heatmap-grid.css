@@ -1,0 +1,44 @@
+[data-blueprint-primitive="heatmap-grid"] {
+  display: grid;
+  gap: 8px;
+}
+
+.heatmap-grid__cells,
+.heatmap-grid__days,
+.heatmap-grid__days > p {
+  display: grid;
+  margin: 0;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.heatmap-grid__cell {
+  --v: 0.5;
+  display: block;
+  aspect-ratio: 1;
+  border-radius: var(--app-radius-sm);
+  background: color-mix(in srgb, var(--app-hue-mint) calc((0.12 + var(--v) * 0.5) * 100%), transparent);
+}
+
+.heatmap-grid__cell:nth-child(1) { --v: var(--heat-1, 0.2); }
+.heatmap-grid__cell:nth-child(2) { --v: var(--heat-2, 0.6); }
+.heatmap-grid__cell:nth-child(3) { --v: var(--heat-3, 0.7); }
+.heatmap-grid__cell:nth-child(4) { --v: var(--heat-4, 0.9); }
+.heatmap-grid__cell:nth-child(5) { --v: var(--heat-5, 1); }
+.heatmap-grid__cell:nth-child(6) { --v: var(--heat-6, 0.5); }
+.heatmap-grid__cell:nth-child(7) { --v: var(--heat-7, 0.4); }
+
+.heatmap-grid__days,
+.heatmap-grid__days > p {
+  color: var(--app-color-faint);
+  font: var(--app-type-micro);
+  text-align: center;
+}
+
+.heatmap-grid__days > p {
+  grid-column: 1 / -1;
+}
+
+.heatmap-grid__days i {
+  font-style: normal;
+}

@@ -1,101 +1,113 @@
-// Greyscale-first system: text and tracks are true neutrals (no blue cast),
-// screens are near-white, and hue lives in charts/rings/accents only.
+// Brand palette: French Porcelain base, Umbra ink, and four brand hues
+// (Farmer's Market sage, Penna blue, periwinkle, Hudson blush). Summary cards
+// take a flat brand fill with ink content; chart and list cards stay white.
 export const palette = {
-  ink: '#23272F',
-  slate: '#4A4F58',
-  muted: '#5B6069',
-  faint: '#7A7F89',
-  ghost: '#A6AAB3',
+  ink: '#1F1F1F',
+  slate: '#3A3840',
+  muted: '#4D4A54',
+  faint: '#5F5C67',
+  ghost: '#B4B1BA',
   white: '#FFFFFF',
+  porcelain: '#F5F4F7',
+  success: '#6B6D58',
+  warning: '#C9735C',
+  destructive: '#B0552A',
   mint: {
-    light: '#7CCBB9',
-    base: '#63B8A8',
-    deep: '#4FA898',
+    light: '#B4B6A0',
+    base: '#7C7F66',
+    deep: '#5E6049',
   },
   indigo: {
-    light: '#93AAEC',
-    base: '#7E96E0',
-    deep: '#6D87DC',
+    light: '#B9C7E0',
+    base: '#6A82B8',
+    deep: '#4F6699',
   },
   lavender: {
-    light: '#C0B4EA',
-    base: '#A793DD',
+    light: '#C9CDF5',
+    base: '#7F88D6',
   },
   peach: {
-    pale: '#F2CBAC',
-    light: '#EFB58C',
-    mid: '#E8A57E',
-    deep: '#DE9468',
+    pale: '#EBDBD3',
+    light: '#E3B4A2',
+    mid: '#D08770',
+    deep: '#B96650',
   },
+  rubble: '#D0BEA3',
 } as const;
 
 export const surfaces = {
-  // A light veil over the iOS thin material — the blur material provides the
-  // body of the glass; this just lifts it toward white. (Near-solid here
-  // would smother the material and read as flat plastic again.)
-  card: 'rgba(255,255,255,0.28)',
-  cardBorder: 'rgba(255,255,255,0.9)',
-  cardFallback: 'rgba(255,255,255,0.78)',
-  cardSheen: ['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.06)', 'rgba(255,255,255,0)'],
-  track: 'rgba(35,39,47,0.06)',
-  trackStrong: 'rgba(35,39,47,0.08)',
-  hairline: 'rgba(35,39,47,0.1)',
-  gridline: 'rgba(35,39,47,0.045)',
-  chipNeutral: 'rgba(35,39,47,0.05)',
+  card: '#FFFFFF',
+  well: '#F5F4F7',
+  cardBorder: 'rgba(255,255,255,0.6)',
+  cardSheen: ['rgba(255,255,255,0.22)', 'rgba(255,255,255,0)'],
+  circleFill: 'rgba(255,255,255,0.6)',
+  track: 'rgba(31,31,31,0.07)',
+  trackStrong: 'rgba(31,31,31,0.1)',
+  hairline: 'rgba(31,31,31,0.08)',
+  gridline: 'rgba(31,31,31,0.06)',
+  chipNeutral: 'rgba(31,31,31,0.06)',
 } as const;
 
 export const tints = {
-  mint: 'rgba(99,184,168,0.13)',
-  indigo: 'rgba(126,150,224,0.13)',
-  lavender: 'rgba(167,147,221,0.14)',
-  peach: 'rgba(239,181,140,0.16)',
+  mint: 'rgba(94,96,73,0.14)',
+  indigo: 'rgba(79,102,153,0.13)',
+  lavender: 'rgba(127,136,214,0.16)',
+  peach: 'rgba(185,102,80,0.13)',
 } as const;
 
-// Card tint gradients are dialed to a whisper: cards read as frosted white
-// glass; the tint prop still differentiates a metric at a glance without
-// painting the whole card.
 export const cardTints = {
-  mint: ['rgba(124,203,185,0.07)', 'rgba(124,203,185,0.01)'],
-  indigo: ['rgba(147,170,236,0.07)', 'rgba(147,170,236,0.01)'],
-  lavender: ['rgba(192,180,234,0.07)', 'rgba(192,180,234,0.01)'],
-  peach: ['rgba(242,203,172,0.08)', 'rgba(242,203,172,0.015)'],
+  mint: ['#DEE0D3', '#D3D5C5'],
+  indigo: ['#C9D3E8', '#B9C7E0'],
+  lavender: ['#D8DBFA', '#C9CDF5'],
+  peach: ['#F1E5DF', '#EBDBD3'],
 } as const;
 
 export type CardTint = keyof typeof cardTints;
 
 export const iconTints = {
-  mint: { bg: ['#D5F1E8', '#AEE1D2'], fg: '#3E9484' },
-  indigo: { bg: ['#E0E8FD', '#C2CFF7'], fg: '#5C77D6' },
-  lavender: { bg: ['#EBE4FB', '#D4C8F0'], fg: '#8A72CE' },
-  peach: { bg: ['#FCE6D1', '#F5C9A5'], fg: '#C97C4E' },
+  mint: { bg: ['#ECEDE4', '#D9DBCC'], fg: '#4A4C38' },
+  indigo: { bg: ['#E8EDF6', '#CBD5EA'], fg: '#3F5585' },
+  lavender: { bg: ['#EEEFFD', '#D6D9F9'], fg: '#474FA3' },
+  peach: { bg: ['#F7EFEB', '#EBDBD3'], fg: '#8E4632' },
 } as const;
 
 export type IconTint = keyof typeof iconTints;
 
+// Chart ink on a brand-filled card: the deep tone of the card's own hue.
+export const brandInk: Record<CardTint, string> = {
+  mint: palette.mint.deep,
+  indigo: palette.indigo.deep,
+  lavender: palette.indigo.deep,
+  peach: palette.peach.deep,
+};
+
 export const gradients = {
-  readiness: [palette.mint.light, palette.mint.deep],
-  sleep: [palette.indigo.light, palette.indigo.deep],
-  activity: [palette.peach.light, palette.peach.deep],
+  readiness: [palette.mint.base, palette.mint.deep],
+  sleep: [palette.indigo.base, palette.indigo.deep],
+  activity: [palette.peach.mid, palette.peach.deep],
   spo2: [palette.indigo.light, palette.mint.base],
 } as const;
 
+export const progressGradients = {
+  readiness: [palette.mint.light, palette.mint.deep],
+  activity: [palette.peach.light, palette.peach.deep],
+} as const;
+
 export const stageColors = {
-  deep: '#6E86D8',
-  rem: '#9FB8EC',
-  light: '#C0B4EA',
-  awake: '#E8B79E',
+  deep: '#4F6699',
+  rem: '#8F97E0',
+  light: '#B9C7E0',
+  awake: '#D0BEA3',
 } as const;
 
 export type StageKey = keyof typeof stageColors;
 
-// One neutral backdrop for every screen — hue belongs to data, not chrome.
-// Keys stay so screens can re-differentiate later without call-site changes.
 export const screenBase = {
-  home: '#F4F5F7',
-  sleep: '#F4F5F7',
-  readiness: '#F4F5F7',
-  activity: '#F4F5F7',
-  trends: '#F4F5F7',
+  home: palette.porcelain,
+  sleep: palette.porcelain,
+  readiness: palette.porcelain,
+  activity: palette.porcelain,
+  trends: palette.porcelain,
 } as const;
 
 export type ScreenKey = keyof typeof screenBase;

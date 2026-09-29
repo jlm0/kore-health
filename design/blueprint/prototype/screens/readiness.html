@@ -1,0 +1,25 @@
+<main class="k-screen readiness" data-blueprint-screen="readiness" data-blueprint-state="populated">
+  <blueprint-use kind="component" ref="aura-background" state="default"></blueprint-use>
+  <div class="k-content">
+    <div class="readiness-header readiness-header--populated"><blueprint-use kind="component" ref="screen-header" state="date" data-blueprint-section="header"><b slot="title">Readiness</b><em slot="meta">Sep 26</em></blueprint-use></div>
+    <div class="readiness-header readiness-header--empty"><blueprint-use kind="component" ref="screen-header" state="plain"><b slot="title">Readiness</b></blueprint-use></div>
+
+    <section class="glass glass--brand glass--r28 glass--mint readiness-hero k-enter k-enter--1" data-blueprint-section="score" data-blueprint-surface>
+      <blueprint-use kind="primitive" ref="icon-badge" state="default" variant="mint" size="md" class="readiness-hero__badge"><span slot="glyph"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.02 15H6L12.98 0.98V9H18L11.02 23.02Z"/></svg></span></blueprint-use>
+      <blueprint-use kind="primitive" ref="score-ring" state="default" variant="readiness" size="lg" class="readiness-hero__ring"><span slot="center"><b>71</b><small>Today</small></span></blueprint-use>
+      <blueprint-use kind="primitive" ref="badge" state="default" variant="mint" size="status" class="readiness-hero__delta"><b slot="label">+2 vs 7-day avg</b></blueprint-use>
+    </section>
+
+    <section class="glass glass--r28 readiness-contributors k-enter k-enter--2" data-blueprint-section="contributors" data-blueprint-surface>
+      <blueprint-use kind="component" ref="card-heading" state="plain" class="icon-tint-mint"><svg slot="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.02 12.98Q6.61 12.98 5.55 13.83Q4.5 14.67 4.12 15.98H2.02V18H4.12Q4.5 19.31 5.55 20.16Q6.61 21 7.99 21Q9.38 21 10.45 20.16Q11.53 19.31 11.86 18H21.98V15.98H11.86Q11.53 14.67 10.45 13.83Q9.38 12.98 8.02 12.98ZM8.02 18.98Q7.17 18.98 6.59 18.4Q6 17.81 6 16.99Q6 16.17 6.59 15.59Q7.17 15 7.99 15Q8.81 15 9.4 15.59Q9.98 16.17 9.98 16.99Q9.98 17.81 9.4 18.4Q8.81 18.98 8.02 18.98ZM19.88 6Q19.5 4.69 18.45 3.84Q17.39 3 16.01 3Q14.62 3 13.55 3.84Q12.47 4.69 12.14 6H2.02V8.02H12.14Q12.47 9.33 13.55 10.17Q14.62 11.02 16.01 11.02Q17.39 11.02 18.45 10.17Q19.5 9.33 19.88 8.02H21.98V6ZM15.98 9Q15.19 9 14.6 8.41Q14.02 7.83 14.02 7.01Q14.02 6.19 14.6 5.6Q15.19 5.02 16.01 5.02Q16.83 5.02 17.41 5.6Q18 6.19 18 7.01Q18 7.83 17.41 8.41Q16.83 9 15.98 9Z"/></svg><em slot="title">Contributors</em></blueprint-use>
+        <blueprint-use kind="component" ref="contributor-row" state="good" class="readiness-contributor readiness-contributor--hrvBalance"><em slot="label">HRV balance</em></blueprint-use>
+        <blueprint-use kind="component" ref="contributor-row" state="warn" class="readiness-contributor readiness-contributor--bodyTemp"><em slot="label">Body temp</em></blueprint-use>
+        <blueprint-use kind="component" ref="contributor-row" state="good" class="readiness-contributor readiness-contributor--sleep"><em slot="label">Sleep</em></blueprint-use>
+        <blueprint-use kind="component" ref="contributor-row" state="good" class="readiness-contributor readiness-contributor--restingHr"><em slot="label">Resting HR</em></blueprint-use>
+        <blueprint-use kind="component" ref="contributor-row" state="good" class="readiness-contributor readiness-contributor--recovery"><em slot="label">Recovery</em></blueprint-use>
+        <blueprint-use kind="component" ref="contributor-row" state="warn" class="readiness-contributor readiness-contributor--activityBalance"><em slot="label">Activity balance</em></blueprint-use>
+    </section>
+
+    <blueprint-use kind="component" ref="empty-data-card" state="default" class="icon-tint-mint k-empty empty-data-card--art" data-blueprint-section="empty"><svg slot="illustration" class="k-art" viewBox="0 0 280 200" role="img" aria-label="Sun rising inside a readiness ring"><circle class="a-veil" cx="140" cy="100" r="90"/><path class="s-white" stroke-width="12" d="M80.9 124.5A64 64 0 1 1 199.1 124.5"/><path class="s-sage-deep" stroke-width="12" d="M80.9 124.5A64 64 0 0 1 185.3 54.7"/><g class="a-float"><circle class="a-hudson" cx="140" cy="100" r="30"/></g><circle class="a-white" cx="50" cy="46" r="4"/><circle class="a-white" cx="232" cy="38" r="3"/><circle class="a-white" cx="238" cy="150" r="5"/><circle class="a-white" cx="42" cy="152" r="3"/></svg><svg slot="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.02 15H6L12.98 0.98V9H18L11.02 23.02Z"/></svg><em slot="title">No data yet</em><span slot="message">Sync your ring from the Home tab to see your readiness.</span></blueprint-use>
+  </div>
+</main>

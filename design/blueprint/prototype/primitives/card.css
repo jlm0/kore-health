@@ -1,0 +1,35 @@
+[data-blueprint-primitive="card"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--app-space-2);
+  padding: var(--app-space-6);
+}
+
+.card__head {
+  display: grid;
+  gap: var(--app-space-1);
+}
+
+.card__eyebrow {
+  color: var(--app-color-muted);
+  font: var(--app-type-label);
+  letter-spacing: var(--app-tracking-label);
+}
+
+.card__title {
+  font: var(--app-type-heading);
+}
+
+.card__body {
+  margin: 0;
+  color: var(--app-color-slate);
+  font: var(--app-type-body);
+}
+
+[data-blueprint-primitive="card"][data-blueprint-variant="flat"] {
+  box-shadow: 0 0 0 1px var(--app-color-border-strong);
+}
+
+[data-blueprint-primitive="card"][data-blueprint-variant="elevated"] {
+  box-shadow: var(--app-shadow-lg);
+}

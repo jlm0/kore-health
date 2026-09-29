@@ -1,0 +1,122 @@
+.pair-debug-link,
+.pair-other {
+  display: inline-flex;
+  align-self: flex-start;
+  text-decoration: none;
+}
+
+.pair-other {
+  align-self: center;
+}
+
+.pair .ring-row em {
+  font-style: normal;
+}
+
+.pair-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-row);
+  padding: var(--app-space-4);
+}
+
+.pair-paired {
+  gap: var(--app-space-card-gap);
+}
+
+.pair-paired__row {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-row);
+}
+
+.pair-paired__copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pair-paired__id {
+  color: var(--app-color-slate);
+  font: var(--app-type-body);
+}
+
+.pair .pair-paired__row [data-blueprint-primitive="badge"] {
+  align-self: center;
+}
+
+.pair-paired__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.pair-paired__forget {
+  align-self: flex-start;
+  color: var(--app-color-destructive);
+  font: var(--app-type-caption);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pair-nearby__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pair-nearby__progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pair-nearby__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--app-space-card-gap);
+  padding: var(--app-space-2) 0;
+}
+
+.pair .pair-nearby__empty [data-blueprint-primitive="badge"],
+.pair .pair-nearby__rescan {
+  align-self: center;
+}
+
+.pair-nearby__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.pair-nearby__hint {
+  margin: 0;
+  color: var(--app-color-muted);
+  font: var(--app-type-caption);
+  text-align: center;
+}
+
+.pair:not([data-blueprint-state="step-oura"]) .pair-step--oura,
+.pair:not([data-blueprint-state="step-remove"]) .pair-step--remove,
+.pair:not([data-blueprint-state="step-charger"]) .pair-step--charger,
+.pair[data-blueprint-state^="step-"] .pair-debug-link,
+.pair[data-blueprint-state^="step-"] .pair-nearby,
+.pair[data-blueprint-state="paired"] .pair-nearby,
+.pair:not([data-blueprint-state="paired"]) .pair-paired,
+.pair:not([data-blueprint-state="paired"]) .pair-other,
+.pair:not([data-blueprint-state="scanning"]):not([data-blueprint-state="connecting"]) .pair-nearby__progress,
+.pair:not([data-blueprint-state="scanning"]):not([data-blueprint-state="connecting"]) .pair-nearby__hint,
+.pair:not([data-blueprint-state="no-rings"]) .pair-nearby__empty,
+.pair[data-blueprint-state="no-rings"] .pair-nearby__list,
+.pair:not([data-blueprint-state="results"]) .pair-nearby__rescan,
+.pair[data-blueprint-state="connecting"] .pair-row--idle,
+.pair:not([data-blueprint-state="connecting"]) .pair-row--connecting {
+  display: none;
+}
+
+.pair-debug-link {
+  padding: 0 var(--app-space-3) var(--app-space-2);
+}

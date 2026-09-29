@@ -1,0 +1,14 @@
+<div data-blueprint-primitive="score-ring" data-blueprint-state="default" data-blueprint-variant="readiness" data-blueprint-size="hero" role="img" aria-label="Score">
+  <svg class="score-ring__svg" viewBox="0 0 100 100" aria-hidden="true">
+    <defs>
+      <linearGradient id="score-ring-readiness" x1="0" y1="0" x2="1" y2="1"><stop class="score-ring__stop score-ring__stop--readiness-a" offset="0"/><stop class="score-ring__stop score-ring__stop--readiness-b" offset="1"/></linearGradient>
+      <linearGradient id="score-ring-sleep" x1="0" y1="0" x2="1" y2="1"><stop class="score-ring__stop score-ring__stop--sleep-a" offset="0"/><stop class="score-ring__stop score-ring__stop--sleep-b" offset="1"/></linearGradient>
+      <linearGradient id="score-ring-activity" x1="0" y1="0" x2="1" y2="1"><stop class="score-ring__stop score-ring__stop--activity-a" offset="0"/><stop class="score-ring__stop score-ring__stop--activity-b" offset="1"/></linearGradient>
+    </defs>
+    <circle class="score-ring__track" cx="50" cy="50"/>
+    <circle class="score-ring__arc score-ring__arc--readiness" cx="50" cy="50" pathLength="100" stroke="url(#score-ring-readiness)"/>
+    <circle class="score-ring__arc score-ring__arc--sleep" cx="50" cy="50" pathLength="100" stroke="url(#score-ring-sleep)"/>
+    <circle class="score-ring__arc score-ring__arc--activity" cx="50" cy="50" pathLength="100" stroke="url(#score-ring-activity)"/>
+  </svg>
+  <div class="score-ring__center" data-blueprint-slot="center"><b>71</b><small>Readiness</small></div>
+</div>

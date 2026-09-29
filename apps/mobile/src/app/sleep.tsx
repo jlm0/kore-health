@@ -2,20 +2,24 @@ import {
   BackButton,
   CardHeading,
   GlassCard,
+  HeaderMeta,
   Hypnogram,
-  IconBadge,
   Label,
   MetricValue,
-  Pill,
   Screen,
   ScoreRing,
   ScreenHeader,
   Sparkline,
   StageBar,
+  StatBlock,
+  StatRow,
+  Txt,
+  brandInk,
   fontFamily,
   gradients,
   palette,
   stageColors,
+  type,
   type HypnogramSegment,
 } from '@kore/ui';
 import { useRouter } from 'expo-router';
@@ -25,9 +29,21 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { EmptyDataCard } from '@/components/EmptyDataCard';
 import { useDataset, useToday } from '@/data/hooks';
 import { MATURITY_COPY } from '@/data/maturity';
-import { downsample, fmtClock, fmtDate, fmtDuration, fmtHoursMinutes, windowSamples } from '@/data/selectors';
+import { downsample, fmtClock, fmtDate, fmtDuration, windowSamples } from '@/data/selectors';
 
 const STAGE_ROWS = ['Awake', 'REM', 'Light', 'Deep'];
+
+function fmtStage(minutes: number): string {
+  const { h, m } = fmtDuration(minutes);
+  if (h === 0) return `${m}m`;
+  return `${h}h ${String(m).padStart(2, '0')}m`;
+}
+
+function hourLabel(ms: number): string {
+  const d = new Date(ms);
+  const h = d.getHours() % 12 || 12;
+  return `${h} ${d.getHours() >= 12 ? 'PM' : 'AM'}`;
+}
 
 export default function SleepScreen() {
   const router = useRouter();
@@ -70,14 +86,7 @@ export default function SleepScreen() {
 
   const timeLabels = useMemo(() => {
     if (!hasSleep) return [];
-    const labels: string[] = [];
-    for (let i = 0; i < 5; i++) {
-      const t = sleep.start + ((sleep.end - sleep.start) * i) / 4;
-      const d = new Date(t);
-      let h = d.getHours() % 12 || 12;
-      labels.push(`${h} ${d.getHours() >= 12 ? 'PM' : 'AM'}`);
-    }
-    return labels;
+    return [0, 0.5, 1].map((f) => hourLabel(sleep.start + (sleep.end - sleep.start) * f));
   }, [sleep, hasSleep]);
 
   if (today == null || !hasSleep) {
@@ -86,10 +95,10 @@ export default function SleepScreen() {
         <ScreenHeader
           title="Sleep"
           left={<BackButton onPress={() => router.back()} />}
-          right={today ? <Label size={10} em={0.14}>{fmtDate(today.dayStart)}</Label> : undefined}
+          right={today ? <HeaderMeta>{fmtDate(today.dayStart)}</HeaderMeta> : undefined}
         />
         <EmptyDataCard
-          icon="sleep"
+          art="sleep"
           tint="indigo"
           title="No sleep tracked"
           message={MATURITY_COPY.sleep.empty}
@@ -114,11 +123,13 @@ export default function SleepScreen() {
     { weight: sleep.awakeMin, color: stageColors.awake },
   ];
 
+  const stageTotal = sleep.deepMin + sleep.remMin + sleep.lightMin + sleep.awakeMin;
+  const pct = (min: number) => (stageTotal > 0 ? `${Math.round((min / stageTotal) * 100)}%` : '0%');
   const legend = [
-    { color: stageColors.deep, time: fmtHoursMinutes(sleep.deepMin), label: 'Deep' },
-    { color: stageColors.rem, time: fmtHoursMinutes(sleep.remMin), label: 'REM' },
-    { color: stageColors.light, time: fmtHoursMinutes(sleep.lightMin), label: 'Light' },
-    { color: stageColors.awake, time: fmtHoursMinutes(sleep.awakeMin), label: 'Awake' },
+    { color: stageColors.deep, time: fmtStage(sleep.deepMin), share: pct(sleep.deepMin), label: 'Deep' },
+    { color: stageColors.rem, time: fmtStage(sleep.remMin), share: pct(sleep.remMin), label: 'REM' },
+    { color: stageColors.light, time: fmtStage(sleep.lightMin), share: pct(sleep.lightMin), label: 'Light' },
+    { color: stageColors.awake, time: fmtStage(sleep.awakeMin), share: pct(sleep.awakeMin), label: 'Awake' },
   ];
 
   return (
@@ -126,62 +137,82 @@ export default function SleepScreen() {
       <ScreenHeader
         title="Sleep"
         left={<BackButton onPress={() => router.back()} />}
-        right={<Label size={10} em={0.14}>{fmtDate(today.dayStart)}</Label>}
+        right={<HeaderMeta>{fmtDate(today.dayStart)}</HeaderMeta>}
       />
 
       <Animated.View entering={FadeInDown.delay(40).duration(500)}>
-        <GlassCard radius={28} padding={18} tint="indigo" contentStyle={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <IconBadge name="sleep" tint="indigo" style={{ position: 'absolute', top: 14, right: 14 }} />
-          <ScoreRing size={92} value={today.sleepScore} colors={gradients.sleep} strokeWidth={8}>
-            <Text style={{ fontSize: 28, fontFamily: fontFamily.displayLight, color: palette.ink }}>
-              {today.sleepScore}
-            </Text>
-          </ScoreRing>
-          <View style={{ gap: 5, flex: 1 }}>
-            <Text style={{ fontSize: 36, fontFamily: fontFamily.displayLight, color: palette.ink, lineHeight: 46 }}>
-              {dur.h}
-              <Text style={{ fontSize: 16, color: palette.muted }}>h</Text> {dur.m}
-              <Text style={{ fontSize: 16, color: palette.muted }}>m</Text>
-            </Text>
-            <Text
-              style={{
-                fontSize: 10,
-                fontFamily: fontFamily.regular,
-                letterSpacing: 1,
-                color: palette.muted,
-              }}>
-              {fmtClock(sleep.start)} — {fmtClock(sleep.end)}
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-              <Pill variant="indigo" em={0.06} paddingH={8}>{`${sleep.efficiency}% eff`}</Pill>
-              <Pill variant="neutral" em={0.06} paddingH={8}>{`${sleep.latencyMin}m latency`}</Pill>
+        <GlassCard tint="indigo" contentStyle={{ gap: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 24 }}>
+            <ScoreRing size={118} value={today.sleepScore} colors={gradients.sleep} strokeWidth={8}>
+              <Text style={{ fontSize: 30, fontFamily: fontFamily.light, color: palette.ink }}>
+                {today.sleepScore}
+              </Text>
+              <Txt role="caption">Score</Txt>
+            </ScoreRing>
+            <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+              <Label>Time asleep</Label>
+              <Text style={{ fontSize: 40, fontFamily: fontFamily.light, color: palette.ink, lineHeight: 44, letterSpacing: -1.2 }}>
+                {dur.h}
+                <Text style={[type.body, { color: palette.muted }]}>h</Text> {dur.m}
+                <Text style={[type.body, { color: palette.muted }]}>m</Text>
+              </Text>
+              <Txt role="caption">{`${fmtClock(sleep.start)} – ${fmtClock(sleep.end)}`}</Txt>
             </View>
           </View>
+          <StatRow>
+            <StatBlock value={`${sleep.efficiency}%`} label="Efficiency" />
+            <StatBlock value={`${sleep.latencyMin}m`} label="Time to fall asleep" />
+          </StatRow>
         </GlassCard>
       </Animated.View>
 
       {hasStages && (
         <Animated.View entering={FadeInDown.delay(80).duration(500)}>
-          <GlassCard radius={28} padding={20}>
-            <CardHeading icon="chart-timeline-variant" tint="lavender">Stages</CardHeading>
-            <Label size={8} em={0.1} color={palette.faint} style={{ marginTop: 4 }}>
+          <GlassCard contentStyle={{ gap: 16 }}>
+            <CardHeading icon="chart-bar-stacked" tint="indigo">Stages</CardHeading>
+            <StageBar segments={stageSegments} delay={300} />
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 16, columnGap: 24 }}>
+              {legend.map((l) => (
+                <View key={l.label} style={{ width: '44%', gap: 4 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: l.color }} />
+                    <Txt role="caption">{l.label}</Txt>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+                    <Text style={{ fontSize: 20, fontFamily: fontFamily.light, color: palette.ink, letterSpacing: -0.4 }}>
+                      {l.time}
+                    </Text>
+                    <Txt role="caption">{l.share}</Txt>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </GlassCard>
+        </Animated.View>
+      )}
+
+      {hasStages && (
+        <Animated.View entering={FadeInDown.delay(120).duration(500)}>
+          <GlassCard contentStyle={{ gap: 16 }}>
+            <CardHeading icon="chart-timeline-variant" tint="lavender">Timeline</CardHeading>
+            <Txt role="caption" style={{ marginTop: -8 }}>
               Estimated from heart rate & movement
-            </Label>
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-              <View style={{ height: 100, justifyContent: 'space-between', paddingVertical: 2 }}>
+            </Txt>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ height: 104, justifyContent: 'space-between', paddingVertical: 2 }}>
                 {STAGE_ROWS.map((r) => (
-                  <Label key={r} size={8} em={0.08} color={palette.faint}>
+                  <Txt key={r} role="micro">
                     {r}
-                  </Label>
+                  </Txt>
                 ))}
               </View>
               <View style={{ flex: 1 }}>
                 <Hypnogram segments={hypnoSegments} height={104} delay={250} />
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
                   {timeLabels.map((t, i) => (
-                    <Text key={i} style={{ fontSize: 8, fontFamily: fontFamily.regular, color: palette.faint }}>
+                    <Txt key={i} role="micro">
                       {t}
-                    </Text>
+                    </Txt>
                   ))}
                 </View>
               </View>
@@ -190,63 +221,49 @@ export default function SleepScreen() {
         </Animated.View>
       )}
 
-      {hasStages && (
-        <Animated.View entering={FadeInDown.delay(160).duration(500)}>
-          <GlassCard radius={26} padding={{ horizontal: 20, vertical: 18 }} contentStyle={{ gap: 14 }}>
-            <StageBar segments={stageSegments} delay={400} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              {legend.map((l) => (
-                <View key={l.label} style={{ gap: 3 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: l.color }} />
-                    <Text style={{ fontSize: 13, fontFamily: fontFamily.regular, color: palette.ink }}>
-                      {l.time}
-                    </Text>
-                  </View>
-                  <Label size={8} em={0.14} color={palette.faint}>
-                    {l.label}
-                  </Label>
-                </View>
-              ))}
-            </View>
-          </GlassCard>
-        </Animated.View>
-      )}
-
-      <Animated.View
-        entering={FadeInDown.delay(240).duration(500)}
-        style={{ flexDirection: 'row', gap: 13 }}>
-        <GlassCard radius={24} padding={16} tint="indigo" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
-          <CardHeading icon="heart" tint="indigo">Heart Rate</CardHeading>
-          <MetricValue value={sleep.lowestHr > 0 ? String(sleep.lowestHr) : '0'} unit="low" />
-          <Sparkline
-            data={nightHr}
-            height={44}
-            color={palette.indigo.base}
-            dot="min"
-            dotColor={palette.indigo.deep}
-            delay={500}
-            interactive
-            xLabels={nightHr.length >= 2 ? timeLabels : undefined}
-            xValues={nightXValues(nightHr.length)}
-            formatValue={(v) => String(Math.round(v))}
-          />
+      <Animated.View entering={FadeInDown.delay(160).duration(500)}>
+        <GlassCard tint="indigo" contentStyle={{ gap: 16 }}>
+          <CardHeading icon="heart" tint="indigo">Heart rate</CardHeading>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+            <MetricValue value={sleep.lowestHr > 0 ? String(sleep.lowestHr) : '0'} unit="bpm" />
+            <Txt role="caption">lowest overnight</Txt>
+          </View>
+          {nightHr.length >= 2 ? (
+            <Sparkline
+              data={nightHr}
+              height={44}
+              color={brandInk.indigo}
+              dot="min"
+              delay={500}
+              interactive
+              xLabels={timeLabels}
+              xValues={nightXValues(nightHr.length)}
+              formatValue={(v) => `${Math.round(v)} bpm`}
+            />
+          ) : null}
         </GlassCard>
-        <GlassCard radius={24} padding={16} tint="mint" style={{ flex: 1 }} contentStyle={{ gap: 6 }}>
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+        <GlassCard tint="mint" contentStyle={{ gap: 16 }}>
           <CardHeading icon="heart-pulse" tint="mint">HRV</CardHeading>
-          <MetricValue value={sleep.peakHrv > 0 ? String(sleep.peakHrv) : '0'} unit="peak" />
-          <Sparkline
-            data={nightHrv}
-            height={44}
-            color={palette.mint.base}
-            dot="max"
-            dotColor={palette.mint.deep}
-            delay={560}
-            interactive
-            xLabels={nightHrv.length >= 2 ? timeLabels : undefined}
-            xValues={nightXValues(nightHrv.length)}
-            formatValue={(v) => String(Math.round(v))}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+            <MetricValue value={sleep.peakHrv > 0 ? String(sleep.peakHrv) : '0'} unit="ms" />
+            <Txt role="caption">highest overnight</Txt>
+          </View>
+          {nightHrv.length >= 2 ? (
+            <Sparkline
+              data={nightHrv}
+              height={44}
+              color={brandInk.mint}
+              dot="max"
+              delay={560}
+              interactive
+              xLabels={timeLabels}
+              xValues={nightXValues(nightHrv.length)}
+              formatValue={(v) => `${Math.round(v)} ms`}
+            />
+          ) : null}
         </GlassCard>
       </Animated.View>
     </Screen>

@@ -1,0 +1,176 @@
+[data-blueprint-primitive="input"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: var(--app-space-2);
+  color: var(--app-color-foreground);
+  font: var(--app-type-body);
+}
+
+.input__label {
+  overflow: hidden;
+  font: var(--app-type-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.input__control {
+  position: relative;
+  display: flex;
+  min-height: var(--app-size-control-md);
+  align-items: center;
+  box-sizing: border-box;
+  border: 1px solid var(--app-color-border-strong);
+  border-radius: var(--app-radius-md);
+  background: var(--app-color-surface);
+  transition:
+    border-color var(--app-motion-state),
+    background-color var(--app-motion-state),
+    box-shadow var(--app-motion-state);
+}
+
+.input__field {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  margin: 0;
+  padding: 0 var(--app-space-3);
+  border: 0;
+  outline: none;
+  color: transparent;
+  caret-color: transparent;
+  background: transparent;
+  font: var(--app-type-body);
+}
+
+.input__placeholder,
+.input__value {
+  position: absolute;
+  right: var(--app-space-3);
+  left: var(--app-space-3);
+  overflow: hidden;
+  color: var(--app-color-muted);
+  pointer-events: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.input__value {
+  color: var(--app-color-foreground);
+  opacity: 0;
+}
+
+.input__caret {
+  display: inline-block;
+  width: 1px;
+  height: 1.1em;
+  margin-left: 1px;
+  background: var(--app-color-foreground);
+  opacity: 0;
+  vertical-align: text-bottom;
+}
+
+[data-blueprint-primitive="input"][data-blueprint-variant="filled"] .input__control {
+  border-color: transparent;
+  background: var(--app-color-surface-muted);
+}
+
+[data-blueprint-primitive="input"][data-blueprint-variant="ghost"] .input__control {
+  border-color: transparent;
+  background: transparent;
+}
+
+[data-blueprint-primitive="input"][data-blueprint-variant="outline"] .input__control {
+  background: transparent;
+}
+
+[data-blueprint-primitive="input"][data-blueprint-variant="underline"] .input__control {
+  border-color: transparent;
+  border-bottom-color: var(--app-color-border-strong);
+  border-radius: 0;
+  background: transparent;
+}
+
+[data-blueprint-primitive="input"][data-blueprint-variant="underline"] .input__field {
+  padding: 0;
+}
+
+[data-blueprint-primitive="input"][data-blueprint-variant="underline"] .input__placeholder,
+[data-blueprint-primitive="input"][data-blueprint-variant="underline"] .input__value {
+  right: 0;
+  left: 0;
+}
+
+[data-blueprint-primitive="input"][data-blueprint-state="value"] .input__placeholder,
+[data-blueprint-primitive="input"][data-blueprint-state="focused"] .input__placeholder,
+[data-blueprint-primitive="input"][data-blueprint-state="invalid"] .input__placeholder {
+  opacity: 0;
+}
+
+[data-blueprint-primitive="input"][data-blueprint-state="value"] .input__value,
+[data-blueprint-primitive="input"][data-blueprint-state="focused"] .input__value,
+[data-blueprint-primitive="input"][data-blueprint-state="invalid"] .input__value {
+  opacity: 1;
+}
+
+[data-blueprint-primitive="input"][data-blueprint-state="focused"] .input__control,
+[data-blueprint-primitive="input"] .input__control:focus-within {
+  border-color: var(--app-color-focus-ring);
+  box-shadow: 0 0 0 1px var(--app-color-focus-ring);
+}
+
+[data-blueprint-primitive="input"][data-blueprint-variant="underline"][data-blueprint-state="focused"] .input__control,
+[data-blueprint-primitive="input"][data-blueprint-variant="underline"] .input__control:focus-within {
+  border-color: transparent;
+  border-bottom-color: var(--app-color-focus-ring);
+  box-shadow: 0 1px 0 0 var(--app-color-focus-ring);
+}
+
+[data-blueprint-primitive="input"][data-blueprint-state="focused"] .input__caret,
+[data-blueprint-primitive="input"] .input__control:focus-within .input__caret {
+  opacity: 1;
+  animation: bp-input-caret 1.1s steps(1) infinite;
+}
+
+[data-blueprint-primitive="input"][data-blueprint-state="invalid"] .input__control {
+  border-color: var(--app-color-destructive);
+  box-shadow: 0 0 0 1px var(--app-color-destructive);
+}
+
+[data-blueprint-primitive="input"][data-blueprint-variant="underline"][data-blueprint-state="invalid"] .input__control {
+  border-color: transparent;
+  border-bottom-color: var(--app-color-destructive);
+  box-shadow: 0 1px 0 0 var(--app-color-destructive);
+}
+
+[data-blueprint-primitive="input"][data-blueprint-state="invalid"] .input__label {
+  color: var(--app-color-destructive);
+}
+
+[data-blueprint-primitive="input"][data-blueprint-state="disabled"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+[data-blueprint-primitive="input"][data-blueprint-state="disabled"] .input__field {
+  cursor: not-allowed;
+}
+
+@keyframes bp-input-caret {
+  0%,
+  54% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input__control,
+  .input__caret {
+    transition: none;
+    animation: none;
+  }
+}

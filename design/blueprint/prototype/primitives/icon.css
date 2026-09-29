@@ -1,0 +1,23 @@
+[data-blueprint-primitive="icon"] {
+  display: inline-flex;
+  width: var(--app-size-icon-md);
+  height: var(--app-size-icon-md);
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--app-color-foreground);
+}
+
+[data-blueprint-primitive="icon"] svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+[data-blueprint-primitive="icon"][data-blueprint-variant="muted"] {
+  color: var(--app-color-muted);
+}
+
+[data-blueprint-primitive="icon"][data-blueprint-variant="accent"] {
+  color: var(--app-color-accent);
+}

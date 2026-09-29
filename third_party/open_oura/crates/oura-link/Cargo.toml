@@ -1,0 +1,17 @@
+[package]
+name = "oura-link"
+description = "BLE transport, connection, auth handshake and sync drain for Oura rings"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+oura-protocol = { path = "../oura-protocol" }
+thiserror = "1"
+hex = "0.4"
+uuid = "1"
+tokio = { version = "1", features = ["sync", "time", "rt", "macros"] }
+async-trait = "0.1"
+futures = "0.3"
+btleplug = "0.11"

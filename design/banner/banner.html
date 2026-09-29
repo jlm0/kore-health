@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kore Health banner</title>
+<style>
+  @font-face { font-family: Sora; font-weight: 300; src: url("../../node_modules/.bun/@expo-google-fonts+sora@0.4.2/node_modules/@expo-google-fonts/sora/300Light/Sora_300Light.ttf"); }
+  @font-face { font-family: Sora; font-weight: 400; src: url("../../node_modules/.bun/@expo-google-fonts+sora@0.4.2/node_modules/@expo-google-fonts/sora/400Regular/Sora_400Regular.ttf"); }
+  @font-face { font-family: Sora; font-weight: 500; src: url("../../node_modules/.bun/@expo-google-fonts+sora@0.4.2/node_modules/@expo-google-fonts/sora/500Medium/Sora_500Medium.ttf"); }
+  @font-face { font-family: Sora; font-weight: 600; src: url("../../node_modules/.bun/@expo-google-fonts+sora@0.4.2/node_modules/@expo-google-fonts/sora/600SemiBold/Sora_600SemiBold.ttf"); }
+
+  :root {
+    --porcelain: #F5F4F7;
+    --ink: #1F1F1F;
+    --muted: #4D4A54;
+    --faint: #5F5C67;
+    --sage: #D3D5C5;
+    --sage-ink: #5E6049;
+    --penna: #B9C7E0;
+    --penna-ink: #4F6699;
+    --hudson: #EBDBD3;
+    --hudson-ink: #B96650;
+    --rubble: #D0BEA3;
+    --track: rgba(31, 31, 31, 0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; }
+
+  html, body { width: 1280px; height: 480px; }
+
+  body {
+    font-family: Sora, system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--porcelain);
+    overflow: hidden;
+  }
+
+  .banner {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 520px;
+    gap: 40px;
+    height: 100%;
+    padding: 44px 44px 44px 64px;
+  }
+
+  .banner::before {
+    content: "";
+    position: absolute;
+    inset: -120px auto auto 380px;
+    width: 520px;
+    height: 520px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(185, 199, 224, 0.55), rgba(185, 199, 224, 0) 68%);
+  }
+
+  .copy {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 7px solid var(--ink);
+    box-shadow: inset 0 0 0 5px var(--porcelain), inset 0 0 0 40px var(--penna);
+  }
+
+  .wordmark { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; }
+  .wordmark span { font-weight: 300; color: var(--faint); }
+
+  .eyebrow {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-size: 44px;
+    line-height: 1.1;
+    font-weight: 300;
+    letter-spacing: -1.6px;
+    margin-bottom: 20px;
+  }
+
+  h1 strong { font-weight: 600; }
+
+  .lede {
+    max-width: 540px;
+    font-size: 16px;
+    line-height: 1.55;
+    font-weight: 400;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .lede code { font-family: inherit; font-weight: 500; color: var(--ink); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    background: rgba(31, 31, 31, 0.06);
+  }
+
+  .chip.outline { background: transparent; box-shadow: inset 0 0 0 1px rgba(31, 31, 31, 0.18); color: var(--muted); }
+
+  .cards {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .card {
+    position: relative;
+    border-radius: 26px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+
+  .card .label { font-size: 13px; font-weight: 500; letter-spacing: 0.2px; }
+  .card .value { white-space: nowrap; font-size: 40px; font-weight: 300; letter-spacing: -1.4px; line-height: 1; }
+  .card .value small { font-size: 16px; font-weight: 400; letter-spacing: 0; margin-left: 4px; }
+  .card .note { font-size: 12px; font-weight: 400; opacity: 0.75; margin-top: 6px; }
+
+  .readiness { background: var(--sage); color: #3C3E2E; }
+  .sleep { background: var(--penna); color: #2C3A5A; }
+  .heart { background: var(--hudson); color: #6E3A2B; }
+  .activity { background: #FFFFFF; }
+
+  .ring { position: absolute; right: 18px; top: 18px; }
+
+  .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+
+  .hypnogram { display: flex; align-items: flex-end; gap: 3px; height: 54px; }
+  .hypnogram i { display: block; width: 7px; border-radius: 3px; background: var(--penna-ink); }
+
+  .bars { display: flex; align-items: flex-end; gap: 6px; height: 58px; }
+  .bars i { display: block; width: 14px; border-radius: 5px; background: var(--rubble); }
+  .bars i.today { background: var(--ink); }
+</style>
+</head>
+<body>
+  <main class="banner">
+    <section class="copy">
+      <div class="brand">
+        <div class="mark"></div>
+        <div class="wordmark">Kore <span>Health</span></div>
+      </div>
+      <p class="eyebrow">Educational project · built on open_oura</p>
+      <h1>Your ring's raw data,<br><strong>scored on your phone.</strong></h1>
+      <p class="lede">A cloud-free React Native companion that talks to an Oura ring over Bluetooth using the reverse-engineered <code>open_oura</code> protocol, then derives sleep, readiness and activity locally.</p>
+      <div class="chips">
+        <span class="chip">Expo · React Native</span>
+        <span class="chip">Rust protocol core</span>
+        <span class="chip outline">Not affiliated with Oura</span>
+      </div>
+    </section>
+
+    <section class="cards">
+      <article class="card readiness">
+        <svg class="ring" width="64" height="64" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(31,31,31,0.1)" stroke-width="7"/>
+          <circle cx="32" cy="32" r="26" fill="none" stroke="#5E6049" stroke-width="7" stroke-linecap="round" stroke-dasharray="134 164" transform="rotate(-90 32 32)"/>
+        </svg>
+        <span class="label">Readiness</span>
+        <div>
+          <div class="value">82</div>
+          <div class="note">Resting HR back to baseline</div>
+        </div>
+      </article>
+
+      <article class="card sleep">
+        <span class="label">Sleep</span>
+        <div class="row">
+          <div>
+            <div class="value">7<small>h</small> 42<small>m</small></div>
+            <div class="note">Deep 1h 18m</div>
+          </div>
+          <div class="hypnogram">
+            <i style="height:40%"></i><i style="height:85%"></i><i style="height:100%"></i><i style="height:60%"></i><i style="height:35%"></i><i style="height:75%"></i><i style="height:95%"></i><i style="height:50%"></i><i style="height:30%"></i><i style="height:65%"></i><i style="height:20%"></i>
+          </div>
+        </div>
+      </article>
+
+      <article class="card heart">
+        <span class="label">Heart rate</span>
+        <svg width="100%" height="56" viewBox="0 0 220 56" preserveAspectRatio="none">
+          <path d="M0 38 C 18 36, 26 30, 40 32 S 64 44, 80 40 S 104 18, 120 22 S 146 40, 162 36 S 190 20, 204 24 L 220 26" fill="none" stroke="#B96650" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="204" cy="24" r="5" fill="#B96650"/>
+        </svg>
+        <div>
+          <div class="value">58<small>bpm</small></div>
+        </div>
+      </article>
+
+      <article class="card activity">
+        <span class="label">Activity</span>
+        <div class="row">
+          <div>
+            <div class="value">412<small>cal</small></div>
+            <div class="note">Goal 500</div>
+          </div>
+          <div class="bars">
+            <i style="height:55%"></i><i style="height:80%"></i><i style="height:40%"></i><i style="height:95%"></i><i style="height:65%"></i><i class="today" style="height:72%"></i>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

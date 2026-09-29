@@ -224,6 +224,8 @@ export default function RingDebugScreen() {
       run('deep resync (full rebuild from cursor 0)', async () => {
         await linkRef.current?.transport.disconnect();
         await deepResync();
+        const { syncError } = useHealthStore.getState();
+        if (syncError) throw new Error(syncError);
         log('dataset rebuilt from ring history — ring-forgotten days were dropped');
       }),
     [run, log],

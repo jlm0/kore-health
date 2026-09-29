@@ -66,7 +66,7 @@ third_party/open_oura      Vendored open_oura workspace (MIT)
 design/blueprint           Blueprint design sidecar (tokens, screens, prototype)
 design/banner              This README's banner (HTML source + rendered PNG)
 docs/bdd                   Behavior contracts and compliance notes
-docs/captures              Recorded ring captures used for decoding work
+docs/captures              Local ring captures for decoding work (gitignored)
 scripts                    Seed data, Metro CDP eval, banner render
 ```
 

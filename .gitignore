@@ -34,3 +34,6 @@ yarn-error.*
 
 # Blueprint review evidence
 .blueprint-artifacts/
+
+# Personal ring captures (biometric data), local only
+/docs/captures/

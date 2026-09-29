@@ -68,7 +68,7 @@ interface HealthState {
   setRingDeviceId: (id: string | null) => void;
   setRingDeviceName: (name: string | null) => void;
   setUnits: (units: Units) => void;
-  /** Unpair: drop the saved device + auth key and reset the history cursor. */
+  /** Unpair: drop the saved device, auth key and everything synced from it. */
   forgetRing: () => void;
   /** Fresh start: forget the ring and drop all synced data; keeps display preferences. */
   resetAll: () => void;
@@ -78,6 +78,21 @@ interface HealthState {
   /** Single atomic commit of a completed sync fold → one AsyncStorage write. */
   applySyncResult: (result: RingFoldState) => void;
 }
+
+// Everything derived from the paired ring. Replaying a ring's history from
+// cursor 0 onto kept data would double-count the additive activity totals.
+const NO_RING = {
+  ringAuthKey: null,
+  ringDeviceId: null,
+  ringDeviceName: null,
+  dataset: null,
+  tempAbsSeries: [],
+  tempNights: [],
+  activityByDay: {},
+  syncCursor: 0,
+  lastSyncAt: null,
+  latestVitals: null,
+} satisfies Partial<HealthState>;
 
 export const useHealthStore = create<HealthState>()(
   persist(
@@ -102,24 +117,9 @@ export const useHealthStore = create<HealthState>()(
       setRingDeviceId: (id) => set({ ringDeviceId: id }),
       setRingDeviceName: (name) => set({ ringDeviceName: name }),
       setUnits: (units) => set({ units }),
-      forgetRing: () =>
-        set({ ringDeviceId: null, ringDeviceName: null, ringAuthKey: null, syncCursor: 0 }),
+      forgetRing: () => set(NO_RING),
       resetAll: () =>
-        set({
-          ringAuthKey: null,
-          ringDeviceId: null,
-          ringDeviceName: null,
-          dataset: null,
-          tempAbsSeries: [],
-          tempNights: [],
-          activityByDay: {},
-          syncCursor: 0,
-          lastSyncAt: null,
-          lastOpenedAt: null,
-          latestVitals: null,
-          connectionStatus: 'disconnected',
-          syncError: null,
-        }),
+        set({ ...NO_RING, lastOpenedAt: null, connectionStatus: 'disconnected', syncError: null }),
       setConnectionStatus: (status, error = null) =>
         set({ connectionStatus: status, syncError: error }),
       setSyncCursor: (cursorDs) => set({ syncCursor: cursorDs }),

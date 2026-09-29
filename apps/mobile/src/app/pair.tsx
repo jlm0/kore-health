@@ -16,7 +16,7 @@ import {
 } from '@kore/ui';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, Pressable, Text, View } from 'react-native';
 import { JourneyStep } from '@/components/JourneyStep';
 import { waitForBluetoothReady, withTimeout, describeBleError, isPairingInfoRemoved } from '@/ring/bluetooth';
 import { OuraRingClient } from '@/ring/client';
@@ -574,8 +574,22 @@ export default function PairScreen() {
           </View>
           <Pressable
             onPress={() => {
-              haptics.confirm();
-              void cancelSync().then(forgetRing);
+              haptics.tap();
+              Alert.alert(
+                'Forget this ring?',
+                'Its synced data is removed from this phone too. Pairing again re-imports what the ring still stores.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Forget',
+                    style: 'destructive',
+                    onPress: () => {
+                      haptics.confirm();
+                      void cancelSync().then(forgetRing);
+                    },
+                  },
+                ],
+              );
             }}
             hitSlop={10}
             style={{ alignSelf: 'flex-start', paddingVertical: 9, marginVertical: -9 }}>
